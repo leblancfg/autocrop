@@ -18,3 +18,4 @@ The script works on openCV 2.4.9 and python 2.7.10, and has not been tested othe
 Check out:
 * http://docs.opencv.org/master/d7/d8b/tutorial_py_face_detection.html#gsc.tab=0
 * http://docs.opencv.org/master/d5/daf/tutorial_py_histogram_equalization.html#gsc.tab=0
+* http://photo.stackexchange.com/questions/60411/how-can-i-batch-crop-based-on-face-location
