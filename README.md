@@ -1,7 +1,7 @@
 # autocrop
 Basic Python 2.7 script using openCV, that automatically crops faces from batches of photos.
 
-Perfect for batch work for ID cards or profile pictures, will output square images centered around the biggest face detected, and a slight brightness equalization with openCV's built-in CLAHE (Contrast Limited Adaptive Histogram Equalization).
+Perfect for batch work for ID cards or profile pictures, will output 500px wide square images, centered around the biggest face detected. It also adds a little bit of brightness equalization with openCV's built-in CLAHE (Contrast Limited Adaptive Histogram Equalization).
 
 ## How-to
 The script will process all .jpg files in the /photos directory. The cropped files are placed in photos/crop, and originals are moved to photos/bkp.
