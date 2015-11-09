@@ -2,6 +2,7 @@ import cv2
 import time
 import shutil
 import glob
+import numpy as np
 from contextlib import contextmanager
 import os
 import math
@@ -21,10 +22,12 @@ cascPath = "haarcascade_frontalface_default.xml"
 
 # Number of error files in batch --errors
 n = 0
+spent = 1
 
-# Create final height and width variables
-fheight = 500
-fwidth = 500
+# ====== Switchbox for external variables ======
+fheight = 500 # Height in px of final image
+fwidth = 500 # Width in px of final image
+fixexp = True # Flag to fix underexposition by CLAHE
 
 # Create the haar cascade
 faceCascade = cv2.CascadeClassifier(cascPath)
@@ -42,9 +45,6 @@ with cd("~/autocrop/photos/"):
 
     # START ITERATION
     for file in files_grabbed:
-
-        # Copy to /bkp
-        shutil.copy(file, "bkp")
 
         # Read the image
         image = cv2.imread(file)
@@ -64,49 +64,59 @@ with cd("~/autocrop/photos/"):
         flags = cv2.cv.CV_HAAR_FIND_BIGGEST_OBJECT | cv2.cv.CV_HAAR_DO_ROUGH_SEARCH
         )
 
-        #print "Found {0} faces!".format(len(faces))
-        #print faces[-1][3]
-
-        # Stop this iteration if no face found --errors ============= for now that'll be it;
-        # Could fiddle around with scaleFactor, or CLAHE the grayscale and try again.
-        if len(faces) == 0:
-            print "No faces can be detected in file {0}.".format(str(file))
+        if len(faces) == 0: # Handle no faces
+            print " No faces can be detected in file {0}.".format(str(file))
             n = n+1
+            break
 
-        else:
+        # Copy to /bkp
+        shutil.copy(file, "bkp")
 
-            # Make padding from probable biggest face
-            x, y, w, h = faces[-1]
-            pad = h/6
+        # Make padding from probable biggest face
+        x, y, w, h = faces[-1]
+        pad = h/6 # <- arbitrary number that seems to work well
 
-            # Make sure padding is contained within picture
-            while True: # decreases pad by 5% increments to fit crop into image
-                if y-2*pad < 0 or y+h+pad > height or int(x-1.5*pad) < 0 or x+w+int(1.5*pad) > width:
-                    pad = 0.95 * pad
-                else:
-                    break
+        # Make sure padding is contained within picture
+        while True: # decreases pad by 6% increments to fit crop into image. This could lead to very small faces.
+            if y-2*pad < 0 or y+h+pad > height or int(x-1.5*pad) < 0 or x+w+int(1.5*pad) > width:
+                pad = 0.94 * pad
+            else:
+                break
 
-            # Crop the image from the original
-            image = image[y-2*pad:y+h+pad, x-1.5*pad:x+w+1.5*pad] # the actual cropping
+        # Crop the image from the original
+        image = image[y-2*pad:y+h+pad, x-1.5*pad:x+w+1.5*pad] # The actual cropping
 
-            # Resize the damn thing
-            image = cv2.resize(image, (fheight, fwidth), interpolation = cv2.INTER_AREA)
+        # Resize the damn thing
+        image = cv2.resize(image, (fheight, fwidth), interpolation = cv2.INTER_AREA)
 
-            # === CLAHE ===
-            ycr = cv2.cvtColor(image, cv2.COLOR_BGR2YCR_CB) #change the color image from BGR to YCrCb format
-            y,cr,cb = cv2.split(ycr) # split the image into channels
-            clahe = cv2.createCLAHE(clipLimit=0.9, tileGridSize=(16,16))
-            y = clahe.apply(y)
-            image = cv2.merge([y,cr,cb]) # merge 3 channels including the modified 1st channel into one image
-            image = cv2.cvtColor(image, cv2.COLOR_YCR_CB2BGR) # change the color image from YCrCb to BGR format
+        # ====== Dealing with underexposition ======
+        if fixexp == True: # see line 29
 
-            # Write cropfile
-            cropfilename = "{0}".format(str(file))
-            cv2.imwrite(cropfilename, image)
+            # Check if under-exposed
+            uexp = cv2.calcHist([gray],[0],None,[256],[0,256])
 
-            # Move files to /crop
-            shutil.move(cropfilename, "crop")
+            if sum(uexp[-26:]) < 0.01*sum(uexp) :
+                print " Crop for {0} was underexposed".format(str(file))
+                # CLAHE
+                ycr = cv2.cvtColor(image, cv2.COLOR_BGR2YCR_CB) # change the color image from BGR to YCrCb format
+                y,cr,cb = cv2.split(ycr) # split the image into channels
+                clahe = cv2.createCLAHE(clipLimit=0.001, tileGridSize=(16,16))
+                y = clahe.apply(y)
+                image = cv2.merge([y,cr,cb]) # merge 3 channels including the modified 1st channel into one image
+                image = cv2.cvtColor(image, cv2.COLOR_YCR_CB2BGR) # change the color image from YCrCb to BGR format
 
-    # Stop and print timer
-    spent = time.clock() - t0
-    print " {0} files have been cropped in {1} s, average {2} ms/jpg.".format(len(files_grabbed)-n,int(round(spent)), int((spent)/(len(files_grabbed)-n)))
+        # Write cropfile
+        cropfilename = "{0}".format(str(file))
+        cv2.imwrite(cropfilename, image)
+
+        # Move files to /crop
+        shutil.move(cropfilename, "crop")
+
+
+# Stop and print timer
+spent = time.clock() - t0
+if spent == 0:
+    print " No files were cropped"
+
+else:
+    print " {0} files have been cropped in {1} ms, average {2} ms/jpg.".format(len(files_grabbed)-n,int(round(1000*spent)), int((1000*spent)/(len(files_grabbed)-n)))
