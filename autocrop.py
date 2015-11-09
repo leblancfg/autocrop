@@ -19,8 +19,12 @@ def cd(newdir):
 # Link the CV goods
 cascPath = "haarcascade_frontalface_default.xml"
 
-# Number of no-face files in batch --errors
+# Number of error files in batch --errors
 n = 0
+
+# Create final height and width variables
+fheight = 500
+fwidth = 500
 
 # Create the haar cascade
 faceCascade = cv2.CascadeClassifier(cascPath)
@@ -38,17 +42,6 @@ with cd("~/autocrop/photos/"):
 
     # START ITERATION
     for file in files_grabbed:
-
-        # Make sure it's well coded =========== don't use except for specific cases
-        #
-        #if len(str(file)) != 10 or format(str(file)[:6]).isdigit() == False : # not 10 characters or not 6 digits
-        #   print "Filename for {0} is not formatted correctly".format(str(file))
-        #
-        #elif os.path.getsize(file) < 128:
-        #   print "File size for {0} is too small".format(str(file))
-        #
-        #else:
-        #print"{0}: filename correct".format(str(file))
 
         # Copy to /bkp
         shutil.copy(file, "bkp")
@@ -97,7 +90,7 @@ with cd("~/autocrop/photos/"):
             image = image[y-2*pad:y+h+pad, x-1.5*pad:x+w+1.5*pad] # the actual cropping
 
             # Resize the damn thing
-            image = cv2.resize(image, (500, 500), interpolation = cv2.INTER_AREA)
+            image = cv2.resize(image, (fheight, fwidth), interpolation = cv2.INTER_AREA)
 
             # === CLAHE ===
             ycr = cv2.cvtColor(image, cv2.COLOR_BGR2YCR_CB) #change the color image from BGR to YCrCb format
