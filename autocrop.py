@@ -2,6 +2,7 @@ import cv2
 import time
 import shutil
 import glob
+import numpy as np
 from contextlib import contextmanager
 import os
 import math
@@ -16,17 +17,24 @@ def cd(newdir):
     finally:
         os.chdir(prevdir)
 
+# Define simple gamma correction fn
+def gamma(img, correction):
+    img = img/255.0
+    img = cv2.pow(img, correction)
+    return np.uint8(img*255)
+
 # Link the CV goods
 cascPath = "haarcascade_frontalface_default.xml"
 
-# Number of error files in batch --errors
-n = 0
-spent = 1
+# Internal variables
+n = 0 # Number of error files
+spent = 0 # Timer in ms
 
 # ====== Switchbox for external variables ======
 fheight = 500 # Height in px of final image
 fwidth = 500 # Width in px of final image
-#fixexp = True # Flag to fix underexposition by CLAHE
+fixexp = True # Flag to fix underexposition
+marker = False # Flag for gamma correct
 
 # Create the haar cascade
 faceCascade = cv2.CascadeClassifier(cascPath)
@@ -39,11 +47,14 @@ with cd("~/autocrop/photos/"):
     for files in types:
         files_grabbed.extend(glob.glob(files))
 
-    # Start timer
+    # Start global timer
     t0 = time.clock()
 
     # START ITERATION
     for file in files_grabbed:
+
+        # Restart local timer
+        t1 = time.clock()
 
         # Read the image
         image = cv2.imread(file)
@@ -89,20 +100,22 @@ with cd("~/autocrop/photos/"):
             image = cv2.resize(image, (fheight, fwidth), interpolation = cv2.INTER_AREA)
 
             # ====== Dealing with underexposition ======
-            # if fixexp == True: # see line 29
+            if fixexp == True: # see line 29
 
                 # Check if under-exposed
-                #uexp = cv2.calcHist([gray],[0],None,[256],[0,256])
+                uexp = cv2.calcHist([gray],[0],None,[256],[0,256])
 
-               # if sum(uexp[-26:]) < 0.01*sum(uexp) :
-                   # print " Crop for {0} was underexposed".format(str(file))
+                if sum(uexp[-26:]) < 0.001*sum(uexp) :
+                    marker = True
+                    image = gamma(image, 0.90)
+
                     # CLAHE
-            ycr = cv2.cvtColor(image, cv2.COLOR_BGR2YCR_CB) # change the color image from BGR to YCrCb format
-            y,cr,cb = cv2.split(ycr) # split the image into channels
-            clahe = cv2.createCLAHE(clipLimit=0.001, tileGridSize=(16,16))
-            y = clahe.apply(y)
-            image = cv2.merge([y,cr,cb]) # merge 3 channels including the modified 1st channel into one image
-            image = cv2.cvtColor(image, cv2.COLOR_YCR_CB2BGR) # change the color image from YCrCb to BGR format
+                    #ycr = cv2.cvtColor(image, cv2.COLOR_BGR2YCR_CB) # change the color image from BGR to YCrCb format
+                    #y,cr,cb = cv2.split(ycr) # split the image into channels
+                    #clahe = cv2.createCLAHE(clipLimit=0.001, tileGridSize=(16,16))
+                    #y = clahe.apply(y)
+                    #image = cv2.merge([y,cr,cb]) # merge 3 channels including the modified 1st channel into one image
+                    #image = cv2.cvtColor(image, cv2.COLOR_YCR_CB2BGR) # change the color image from YCrCb to BGR format
 
             # Write cropfile
             cropfilename = "{0}".format(str(file))
@@ -111,6 +124,12 @@ with cd("~/autocrop/photos/"):
             # Move files to /crop
             shutil.move(cropfilename, "crop")
 
+            # Print stuff
+            if marker == True:
+                print "{0} + gamma, {1} ms".format(str(file),int(round(1000*(time.clock() - t1))))
+                marker = False
+            else:
+                print "{0}, {1} ms".format(str(file),int(round(1000*(time.clock() - t1))))
 
 # Stop and print timer
 spent = time.clock() - t0
@@ -118,4 +137,4 @@ if spent == 0:
     print " No files were cropped"
 
 else:
-    print " {0} files have been cropped in {1} ms, average {2} ms/jpg.".format(len(files_grabbed)-n,int(round(1000*spent)), int((1000*spent)/(len(files_grabbed)-n)))
+    print " {0} files have been cropped in {1} ms, average {2} ms/image.".format(len(files_grabbed)-n,int(round(1000*spent)),round((1000*spent)/(files_grabbed - n)))
