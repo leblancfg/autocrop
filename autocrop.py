@@ -137,4 +137,4 @@ if spent == 0:
     print " No files were cropped"
 
 else:
-    print " {0} files have been cropped in {1} ms, average {2} ms/image.".format(len(files_grabbed)-n,int(round(1000*spent)),round((1000*spent)/(files_grabbed - n)))
+    print " {0} files have been cropped in {1} ms, average {2} ms/image.".format(len(files_grabbed)-n,int(round(1000*spent)),int((1000*spent)/(len(files_grabbed) - n)))
