@@ -8,7 +8,7 @@ Perfect for batch work for ID cards or profile pictures, will output 500px wide 
 
 ## How-to
 
-Move your pictures in the photos directory, bash to autocrop, run with python autocrop.py. Simple!
+Move your pictures in *photos*, open a shell in *autocrop*, run with *python autocrop.py*. Simple!
 
 The script will process all .jpg files in the /photos directory. The cropped files are placed in photos/crop, and originals are moved to photos/bkp.
 
