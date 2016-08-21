@@ -28,4 +28,4 @@ Adapted from:
 * Handle input filetypes for *.bmp, *.dib, *.jp2,*.png, *.webp, *.pbm, *.pgm, *.ppm, *.sr, *.ras, *.tiff, *.tif
 * Handle output image size.
 * Handle CLI input: `$ autocrop [-w width] [-h height] [-i input-folder] [-o output-folder] [--passport=<country>]`
-* * Future: Could ultimately mean bundling OpenCV dependencies as stand-alone package (apt, pacman, etc.)
+** Future: Could ultimately mean bundling OpenCV dependencies as stand-alone package (apt, pacman, etc.)
