@@ -1,5 +1,6 @@
+from __future__ import print_function
+
 import cv2
-import time
 import shutil
 import glob
 import numpy as np
@@ -27,8 +28,7 @@ def gamma(img, correction):
 cascPath = "haarcascade_frontalface_default.xml"
 
 # Internal variables
-n = 0 # Number of error files
-spent = 0 # Timer in ms
+errors = 0
 
 # ====== Switchbox for external variables ======
 fheight = 500 # Height in px of final image
@@ -39,7 +39,7 @@ marker = False # Flag for gamma correct
 # Create the haar cascade
 faceCascade = cv2.CascadeClassifier(cascPath)
 
-with cd("~/autocrop/photos/"):
+with cd("photos/"):
 
     types = ('*.JPG', '*.jpg') # the tuple of file types
     files_grabbed = []
@@ -47,14 +47,8 @@ with cd("~/autocrop/photos/"):
     for files in types:
         files_grabbed.extend(glob.glob(files))
 
-    # Start global timer
-    t0 = time.clock()
-
     # START ITERATION
     for file in files_grabbed:
-
-        # Restart local timer
-        t1 = time.clock()
 
         # Read the image
         image = cv2.imread(file)
@@ -65,18 +59,19 @@ with cd("~/autocrop/photos/"):
         minface = int(math.sqrt(height*height + width*width) / 8)
 
         # ====== Detect faces in the image ======
-        faces = [[]] # make faces a list of lists
+        faces = [[]]
         faces = faceCascade.detectMultiScale(
-        gray,
-        scaleFactor=1.1,
-        minNeighbors=5,
-        minSize=(minface, minface),
-        flags = cv2.cv.CV_HAAR_FIND_BIGGEST_OBJECT | cv2.cv.CV_HAAR_DO_ROUGH_SEARCH
+            gray,
+            scaleFactor=1.1,
+            minNeighbors=5,
+            minSize=(minface, minface),
+            flags = cv2.cv.CV_HAAR_FIND_BIGGEST_OBJECT | cv2.cv.CV_HAAR_DO_ROUGH_SEARCH
         )
-
-        if len(faces) == 0: # Handle no faces
-            print " No faces can be detected in file {0}.".format(str(file))
-            n = n+1
+        
+        # Handle no faces
+        if len(faces) == 0: 
+            print(" No faces can be detected in file {0}.".format(str(file)))
+            errors += 1
         else:
 
             # Copy to /bkp
@@ -109,14 +104,6 @@ with cd("~/autocrop/photos/"):
                     marker = True
                     image = gamma(image, 0.90)
 
-                    # CLAHE
-                    #ycr = cv2.cvtColor(image, cv2.COLOR_BGR2YCR_CB) # change the color image from BGR to YCrCb format
-                    #y,cr,cb = cv2.split(ycr) # split the image into channels
-                    #clahe = cv2.createCLAHE(clipLimit=0.001, tileGridSize=(16,16))
-                    #y = clahe.apply(y)
-                    #image = cv2.merge([y,cr,cb]) # merge 3 channels including the modified 1st channel into one image
-                    #image = cv2.cvtColor(image, cv2.COLOR_YCR_CB2BGR) # change the color image from YCrCb to BGR format
-
             # Write cropfile
             cropfilename = "{0}".format(str(file))
             cv2.imwrite(cropfilename, image)
@@ -124,17 +111,5 @@ with cd("~/autocrop/photos/"):
             # Move files to /crop
             shutil.move(cropfilename, "crop")
 
-            # Print stuff
-            if marker == True:
-                print "{0} + gamma, {1} ms".format(str(file),int(round(1000*(time.clock() - t1))))
-                marker = False
-            else:
-                print "{0}, {1} ms".format(str(file),int(round(1000*(time.clock() - t1))))
-
 # Stop and print timer
-spent = time.clock() - t0
-if spent == 0:
-    print " No files were cropped"
-
-else:
-    print " {0} files have been cropped in {1} ms, average {2} ms/image.".format(len(files_grabbed)-n,int(round(1000*spent)),int((1000*spent)/(len(files_grabbed) - n)))
+print(" {0} files have been cropped".format(len(files_grabbed) - errors))
