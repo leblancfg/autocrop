@@ -14,7 +14,7 @@ The script will process all .jpg files in the /photos directory. The cropped fil
 If it can't find a face in the picture, it'll simply leave it in /photos.
 
 ## Versions
-The script works on openCV 2.4.9 and python 2.7.10. It has not been tested otherwise. For now, it also artificially restricts filetype as jpg and output size as 500px. These values can easily be tweaked in autocrop.py.
+The script works on openCV 2.4.9 and python 2.7+ and 3+. It has not been tested otherwise. For now, it also artificially restricts filetype as jpg and output size as 500px. These values can easily be tweaked in autocrop.py.
 
 ## More Info
 Check out:
