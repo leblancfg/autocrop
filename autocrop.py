@@ -8,6 +8,11 @@ from contextlib import contextmanager
 import os
 import math
 
+INCREMENT = 0.06
+GAMMA_THRES = 0.001 
+GAMMA = 0.90
+FACE_RATIO = 6
+
 # Define directory change within context
 @contextmanager
 def cd(newdir):
@@ -31,9 +36,9 @@ cascPath = "haarcascade_frontalface_default.xml"
 errors = 0
 
 # ====== Switchbox for external variables ======
-fheight = 500 # Height in px of final image
-fwidth = 500 # Width in px of final image
-fixexp = True # Flag to fix underexposition
+fheight = 500  # Height in px of final image
+fwidth = 500   # Width in px of final image
+fixexp = True  # Flag to fix underexposition
 marker = False # Flag for gamma correct
 
 # Create the haar cascade
@@ -47,10 +52,7 @@ with cd("photos/"):
     for files in types:
         files_grabbed.extend(glob.glob(files))
 
-    # START ITERATION
     for file in files_grabbed:
-
-        # Read the image
         image = cv2.imread(file)
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
@@ -79,17 +81,17 @@ with cd("photos/"):
 
             # Make padding from probable biggest face
             x, y, w, h = faces[-1]
-            pad = h/6 # <- arbitrary number that seems to work well
+            pad = h / FACE_RATIO
 
             # Make sure padding is contained within picture
-            while True: # decreases pad by 6% increments to fit crop into image. This could lead to very small faces.
+            while True:  # decreases pad by 6% increments to fit crop into image. This could lead to very small faces.
                 if y-2*pad < 0 or y+h+pad > height or int(x-1.5*pad) < 0 or x+w+int(1.5*pad) > width:
-                    pad = 0.94 * pad
+                    pad = (1 - INCREMENT) * pad
                 else:
                     break
 
             # Crop the image from the original
-            image = image[y-2*pad:y+h+pad, x-1.5*pad:x+w+1.5*pad] # The actual cropping
+            image = image[y-2*pad:y+h+pad, x-1.5*pad:x+w+1.5*pad]
 
             # Resize the damn thing
             image = cv2.resize(image, (fheight, fwidth), interpolation = cv2.INTER_AREA)
@@ -98,11 +100,11 @@ with cd("photos/"):
             if fixexp == True: # see line 29
 
                 # Check if under-exposed
-                uexp = cv2.calcHist([gray],[0],None,[256],[0,256])
+                uexp = cv2.calcHist([gray], [0], None, [256], [0,256])
 
-                if sum(uexp[-26:]) < 0.001*sum(uexp) :
+                if sum(uexp[-26:]) < GAMMA_THRES * sum(uexp) :
                     marker = True
-                    image = gamma(image, 0.90)
+                    image = gamma(image, GAMMA)
 
             # Write cropfile
             cropfilename = "{0}".format(str(file))
