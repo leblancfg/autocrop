@@ -6,7 +6,6 @@ import glob
 import numpy as np
 from contextlib import contextmanager
 import os
-import math
 
 INCREMENT = 0.06
 GAMMA_THRES = 0.001 
@@ -58,7 +57,7 @@ with cd("photos/"):
 
         # Scale the image
         height, width = (image.shape[:2])
-        minface = int(math.sqrt(height*height + width*width) / 8)
+        minface = int(np.sqrt(height*height + width*width) / 8)
 
         # ====== Detect faces in the image ======
         faces = [[]]
