@@ -7,6 +7,8 @@ import numpy as np
 from contextlib import contextmanager
 import os
 
+INPUT_FILETYPES = ['*.jpg', '*.jpeg']
+OUTPUT_SIZE_PIXELS = 500
 INCREMENT = 0.06
 GAMMA_THRES = 0.001 
 GAMMA = 0.90
@@ -33,22 +35,19 @@ cascPath = "haarcascade_frontalface_default.xml"
 
 # Internal variables
 errors = 0
-
-# ====== Switchbox for external variables ======
-fheight = 500  # Height in px of final image
-fwidth = 500   # Width in px of final image
-fixexp = True  # Flag to fix underexposition
-marker = False # Flag for gamma correct
+fheight = OUTPUT_SIZE_PIXELS  # Height in px of final image
+fwidth = OUTPUT_SIZE_PIXELS   # Width in px of final image
+fixexp = True                 # Flag to fix underexposition
+marker = False                # Flag for gamma correct
 
 # Create the haar cascade
 faceCascade = cv2.CascadeClassifier(cascPath)
 
 with cd("photos/"):
 
-    types = ('*.JPG', '*.jpg') # the tuple of file types
     files_grabbed = []
 
-    for files in types:
+    for files in INPUT_FILETYPES:
         files_grabbed.extend(glob.glob(files))
 
     for file in files_grabbed:
