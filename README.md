@@ -6,7 +6,7 @@ Basic script using openCV, that automatically detects and crops faces from batch
 
 Perfect for batch work for ID cards or profile pictures, will output 500px wide square images, centered around the biggest face detected. It can also add a touch of auto gamma correction.
 
-## Installation
+## Dependencies
 ### Conda
 The easiest way to run *autocrop* is to use the [Anaconda Python distribution](https://www.anaconda.com/download/) and run the following:
 
@@ -19,24 +19,24 @@ Otherwise, binaries for the Python-only bindings for OpenCV have recently been m
 
     pip install numpy opencv-python
 
-## How-to
-Simple! In your shell, clone the Github repository:
+## Installation and How-to
+Just clone this repo in your shell:
 
     git clone https://github.com/leblancfg/autocrop
 
-Move your pictures to *photos*, then run with:
+Move your pictures to be cropped in the *photos* directory, then run the script with:
 
     cd autocrop
     python autocrop.py
 
 Simple!
 
-The script will process all `.jpg` files in the /photos directory. The cropped files are placed in photos/crop, and originals are moved to photos/bkp.
+The script will process all `.jpg` files in the `/photos` directory. The cropped files are placed in `photos/crop`, and originals are moved to `photos/bkp`.
 
-If it can't find a face in the picture, it'll simply leave it in /photos.
+If it can't find a face in the picture, it'll simply leave it in `/photos`.
 
 ## Versions
-The script works on openCV 2.4.9 and python 2.7+ and 3+. It has not been tested otherwise. For now, it also artificially restricts filetype as jpg and output size as 500px. These values can easily be tweaked in autocrop.py.
+The script works on openCV 2.4.9 and python 2.7+ and 3+. It has not been tested otherwise. For now, it also artificially restricts filetype as jpg and output size as 500px. These values can easily be tweaked in the header in `autocrop.py`.
 
 ## More Info
 Check out:
@@ -47,6 +47,7 @@ Adapted from:
 * http://photo.stackexchange.com/questions/60411/how-can-i-batch-crop-based-on-face-location
 
 ## TODO
+Pull requests welcome!
 * Handle input filetypes for *.bmp, *.dib, *.jp2,*.png, *.webp, *.pbm, *.pgm, *.ppm, *.sr, *.ras, *.tiff, *.tif
 * Handle output image size.
 * Handle CLI input: `$ autocrop [-w width] [-h height] [-i input-folder] [-o output-folder] [--passport=<country>]`
