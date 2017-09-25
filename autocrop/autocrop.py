@@ -4,18 +4,16 @@ from contextlib import contextmanager
 import cv2
 import glob
 import numpy as np
-from optparse import OptionParser
+import argparse
 import os
 import shutil
+import sys
 
 # Internal variables
 errors = 0
-fheight = OUTPUT_SIZE_PIXELS  # Height in px of final image
-fwidth = OUTPUT_SIZE_PIXELS   # Width in px of final image
 fixexp = True                 # Flag to fix underexposition
 marker = False                # Flag for gamma correct
 INPUT_FILETYPES = ['*.jpg', '*.jpeg']
-OUTPUT_SIZE_PIXELS = 500
 INCREMENT = 0.06
 GAMMA_THRES = 0.001 
 GAMMA = 0.90
@@ -68,6 +66,7 @@ def main():
             if len(faces) == 0: 
                 print(' No faces can be detected in file {0}.'.format(str(file)))
                 errors += 1
+                break
 
             # Copy to /bkp
             shutil.copy(file, 'bkp')
@@ -109,4 +108,16 @@ def main():
     print(' {0} files have been cropped'.format(len(files_grabbed) - errors))
 
 def cli():
-    
+    # Taken from https://www.saltycrane.com/blog/2009/09/python-optparse-example/
+    parser = argparse.ArgumentParser(description='Automatically crops faces from batches of pictures')
+    parser.add_argument('-w', '--width', default=500, help='Width of the cropped files in pixels')
+    parser.add_argument('-h', '--height', default=500, help='Height of the cropped files in pixels')
+    args = parser.parse_args()
+    fwidth = args.width
+    fheight = args.height
+
+    # if len(args) != 1:
+    #     parser.error('wrong number of arguments')
+
+    main()
+
