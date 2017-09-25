@@ -1,20 +1,25 @@
 from __future__ import print_function
 
+from contextlib import contextmanager
 import cv2
-import shutil
 import glob
 import numpy as np
-from contextlib import contextmanager
+from optparse import OptionParser
 import os
+import shutil
 
+# Internal variables
+errors = 0
+fheight = OUTPUT_SIZE_PIXELS  # Height in px of final image
+fwidth = OUTPUT_SIZE_PIXELS   # Width in px of final image
+fixexp = True                 # Flag to fix underexposition
+marker = False                # Flag for gamma correct
 INPUT_FILETYPES = ['*.jpg', '*.jpeg']
 OUTPUT_SIZE_PIXELS = 500
 INCREMENT = 0.06
 GAMMA_THRES = 0.001 
 GAMMA = 0.90
 FACE_RATIO = 6
-
-# Link the CV goods
 cascPath = 'haarcascade_frontalface_default.xml'
 
 # Define directory change within context
@@ -32,46 +37,38 @@ def gamma(img, correction):
     img = cv2.pow(img/255.0, correction)
     return np.uint8(img*255)
 
-# Internal variables
-errors = 0
-fheight = OUTPUT_SIZE_PIXELS  # Height in px of final image
-fwidth = OUTPUT_SIZE_PIXELS   # Width in px of final image
-fixexp = True                 # Flag to fix underexposition
-marker = False                # Flag for gamma correct
+def main():
+    # Create the haar cascade
+    faceCascade = cv2.CascadeClassifier(cascPath)
 
-# Create the haar cascade
-faceCascade = cv2.CascadeClassifier(cascPath)
+    with cd('../photos/'):
+        files_grabbed = []
+        for files in INPUT_FILETYPES:
+            files_grabbed.extend(glob.glob(files))
 
-with cd('../photos/'):
+        for file in files_grabbed:
+            image = cv2.imread(file)
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+ 
+            # Scale the image
+            height, width = (image.shape[:2])
+            minface = int(np.sqrt(height*height + width*width) / 8)
 
-    files_grabbed = []
+            # ====== Detect faces in the image ======
+            faces = [[]]
+            faces = faceCascade.detectMultiScale(
+                gray,
+                scaleFactor=1.1,
+                minNeighbors=5,
+                minSize=(minface, minface),
+                flags = cv2.cv.CV_HAAR_FIND_BIGGEST_OBJECT | cv2.cv.CV_HAAR_DO_ROUGH_SEARCH
+            )
 
-    for files in INPUT_FILETYPES:
-        files_grabbed.extend(glob.glob(files))
+            # Handle no faces
+            if len(faces) == 0: 
+                print(' No faces can be detected in file {0}.'.format(str(file)))
+                errors += 1
 
-    for file in files_grabbed:
-        image = cv2.imread(file)
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-        # Scale the image
-        height, width = (image.shape[:2])
-        minface = int(np.sqrt(height*height + width*width) / 8)
-
-        # ====== Detect faces in the image ======
-        faces = [[]]
-        faces = faceCascade.detectMultiScale(
-            gray,
-            scaleFactor=1.1,
-            minNeighbors=5,
-            minSize=(minface, minface),
-            flags = cv2.cv.CV_HAAR_FIND_BIGGEST_OBJECT | cv2.cv.CV_HAAR_DO_ROUGH_SEARCH
-        )
-        
-        # Handle no faces
-        if len(faces) == 0: 
-            print(' No faces can be detected in file {0}.'.format(str(file)))
-            errors += 1
-        else:
             # Copy to /bkp
             shutil.copy(file, 'bkp')
 
@@ -80,7 +77,7 @@ with cd('../photos/'):
             pad = h / FACE_RATIO
 
             # Make sure padding is contained within picture
-            while True:  # decreases pad by 6% increments to fit crop into image. This could lead to very small faces.
+            while True:  # decreases pad by 6% increments to fit crop into image. Can lead to very small faces.
                 if y-2*pad < 0 or y+h+pad > height or int(x-1.5*pad) < 0 or x+w+int(1.5*pad) > width:
                     pad = (1 - INCREMENT) * pad
                 else:
@@ -108,5 +105,8 @@ with cd('../photos/'):
             # Move files to /crop
             shutil.move(cropfilename, 'crop')
 
-# Stop and print timer
-print(' {0} files have been cropped'.format(len(files_grabbed) - errors))
+    # Stop and print timer
+    print(' {0} files have been cropped'.format(len(files_grabbed) - errors))
+
+def cli():
+    
