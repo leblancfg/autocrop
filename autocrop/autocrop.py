@@ -14,6 +14,9 @@ GAMMA_THRES = 0.001
 GAMMA = 0.90
 FACE_RATIO = 6
 
+# Link the CV goods
+cascPath = 'haarcascade_frontalface_default.xml'
+
 # Define directory change within context
 @contextmanager
 def cd(newdir):
@@ -28,9 +31,6 @@ def cd(newdir):
 def gamma(img, correction):
     img = cv2.pow(img/255.0, correction)
     return np.uint8(img*255)
-
-# Link the CV goods
-cascPath = "haarcascade_frontalface_default.xml"
 
 # Internal variables
 errors = 0
@@ -69,11 +69,11 @@ with cd('../photos/'):
         
         # Handle no faces
         if len(faces) == 0: 
-            print(" No faces can be detected in file {0}.".format(str(file)))
+            print(' No faces can be detected in file {0}.'.format(str(file)))
             errors += 1
         else:
             # Copy to /bkp
-            shutil.copy(file, "bkp")
+            shutil.copy(file, 'bkp')
 
             # Make padding from probable biggest face
             x, y, w, h = faces[-1]
@@ -93,8 +93,7 @@ with cd('../photos/'):
             image = cv2.resize(image, (fheight, fwidth), interpolation = cv2.INTER_AREA)
 
             # ====== Dealing with underexposition ======
-            if fixexp == True: # see line 29
-
+            if fixexp == True:
                 # Check if under-exposed
                 uexp = cv2.calcHist([gray], [0], None, [256], [0,256])
 
@@ -103,11 +102,11 @@ with cd('../photos/'):
                     image = gamma(image, GAMMA)
 
             # Write cropfile
-            cropfilename = "{0}".format(str(file))
+            cropfilename = '{0}'.format(str(file))
             cv2.imwrite(cropfilename, image)
 
             # Move files to /crop
-            shutil.move(cropfilename, "crop")
+            shutil.move(cropfilename, 'crop')
 
 # Stop and print timer
-print(" {0} files have been cropped".format(len(files_grabbed) - errors))
+print(' {0} files have been cropped'.format(len(files_grabbed) - errors))
