@@ -7,7 +7,6 @@ import numpy as np
 import argparse
 import os
 import shutil
-import sys
 
 # Internal variables
 errors = 0
@@ -108,7 +107,6 @@ def main():
     print(' {0} files have been cropped'.format(len(files_grabbed) - errors))
 
 def cli():
-    # Taken from https://www.saltycrane.com/blog/2009/09/python-optparse-example/
     parser = argparse.ArgumentParser(description='Automatically crops faces from batches of pictures')
     parser.add_argument('-w', '--width', default=500, help='Width of the cropped files in pixels')
     parser.add_argument('-h', '--height', default=500, help='Height of the cropped files in pixels')
