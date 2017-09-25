@@ -26,8 +26,7 @@ def cd(newdir):
 
 # Define simple gamma correction fn
 def gamma(img, correction):
-    img = img/255.0
-    img = cv2.pow(img, correction)
+    img = cv2.pow(img/255.0, correction)
     return np.uint8(img*255)
 
 # Link the CV goods
@@ -43,7 +42,7 @@ marker = False                # Flag for gamma correct
 # Create the haar cascade
 faceCascade = cv2.CascadeClassifier(cascPath)
 
-with cd("photos/"):
+with cd('../photos/'):
 
     files_grabbed = []
 
@@ -73,7 +72,6 @@ with cd("photos/"):
             print(" No faces can be detected in file {0}.".format(str(file)))
             errors += 1
         else:
-
             # Copy to /bkp
             shutil.copy(file, "bkp")
 
