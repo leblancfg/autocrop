@@ -1,0 +1,17 @@
+LICENSE
+MANIFEST.in
+README.md
+setup.cfg
+setup.py
+autocrop/.__init__.py.swp
+autocrop/.autocrop.py.swp
+autocrop/__init__.py
+autocrop/__version__.py
+autocrop/autocrop.py
+autocrop/haarcascade_frontalface_default.xml
+autocrop.egg-info/PKG-INFO
+autocrop.egg-info/SOURCES.txt
+autocrop.egg-info/dependency_links.txt
+autocrop.egg-info/entry_points.txt
+autocrop.egg-info/requires.txt
+autocrop.egg-info/top_level.txt

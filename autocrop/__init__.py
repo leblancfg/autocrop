@@ -1,3 +1,4 @@
+import argparse
 import os
 import sys
 
@@ -13,3 +14,4 @@ from .autocrop import cli
 
 if __name__ == '__main__':
     cli()
+

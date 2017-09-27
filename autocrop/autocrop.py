@@ -1,15 +1,18 @@
 from __future__ import print_function
 
+import argparse
 from contextlib import contextmanager
 import cv2
 import glob
 import numpy as np
-import argparse
 import os
 import shutil
+import sys
+
+from .__version__ import __title__, __description__, __author__, __version__
+
 
 # Internal variables
-errors = 0
 fixexp = True                 # Flag to fix underexposition
 marker = False                # Flag for gamma correct
 INPUT_FILETYPES = ['*.jpg', '*.jpeg']
@@ -17,7 +20,11 @@ INCREMENT = 0.06
 GAMMA_THRES = 0.001 
 GAMMA = 0.90
 FACE_RATIO = 6
-cascPath = 'haarcascade_frontalface_default.xml'
+
+# Load XML Resource
+cascFile= 'haarcascade_frontalface_default.xml'
+d = os.path.dirname(sys.modules['autocrop'].__file__)
+cascPath = os.path.join(d, cascFile)
 
 # Define directory change within context
 @contextmanager
@@ -34,11 +41,16 @@ def gamma(img, correction):
     img = cv2.pow(img/255.0, correction)
     return np.uint8(img*255)
 
-def main():
+def main(path, fheight, fwidth):
+    """Given path containing image files to process, will
+    1) copy them to `path/bkp`, and 
+    2) create face-cropped versions and place them in `path/crop`
+    """
+    errors = 0
     # Create the haar cascade
     faceCascade = cv2.CascadeClassifier(cascPath)
 
-    with cd('../photos/'):
+    with cd(path):
         files_grabbed = []
         for files in INPUT_FILETYPES:
             files_grabbed.extend(glob.glob(files))
@@ -52,13 +64,12 @@ def main():
             minface = int(np.sqrt(height*height + width*width) / 8)
 
             # ====== Detect faces in the image ======
-            faces = [[]]
             faces = faceCascade.detectMultiScale(
                 gray,
                 scaleFactor=1.1,
                 minNeighbors=5,
                 minSize=(minface, minface),
-                flags = cv2.cv.CV_HAAR_FIND_BIGGEST_OBJECT | cv2.cv.CV_HAAR_DO_ROUGH_SEARCH
+                flags = cv2.CASCADE_FIND_BIGGEST_OBJECT | cv2.CASCADE_DO_ROUGH_SEARCH
             )
 
             # Handle no faces
@@ -82,7 +93,11 @@ def main():
                     break
 
             # Crop the image from the original
-            image = image[y-2*pad:y+h+pad, x-1.5*pad:x+w+1.5*pad]
+            h1 = int(x-1.5*pad) 
+            h2 = int(x+w+1.5*pad)
+            v1 = int(y-2*pad)
+            v2 = int(y+h+pad)
+            image = image[v1:v2, h1:h2]
 
             # Resize the damn thing
             image = cv2.resize(image, (fheight, fwidth), interpolation = cv2.INTER_AREA)
@@ -108,14 +123,12 @@ def main():
 
 def cli():
     parser = argparse.ArgumentParser(description='Automatically crops faces from batches of pictures')
-    parser.add_argument('-w', '--width', default=500, help='Width of the cropped files in pixels')
-    parser.add_argument('-h', '--height', default=500, help='Height of the cropped files in pixels')
+    parser.add_argument('-p', '--path', default='photos', help='Path where images to crop are located')
+    parser.add_argument('-w', '--width', type=int, default=500, help='Width of the cropped files in pixels')
+    parser.add_argument('-H', '--height', type=int, default=500, help='Height of the cropped files in pixels')
+
     args = parser.parse_args()
-    fwidth = args.width
-    fheight = args.height
+    print('Processing images in folder:', path)
 
-    # if len(args) != 1:
-    #     parser.error('wrong number of arguments')
-
-    main()
+    main(args.path, args.height, args.width)
 
