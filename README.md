@@ -1,13 +1,13 @@
 # autocrop
 
-![obama_crop](https://cloud.githubusercontent.com/assets/15659410/10975709/3e38de48-83b6-11e5-8885-d95da758ca17.png)
+<p align="center"><img title="obama_crop" src="https://cloud.githubusercontent.com/assets/15659410/10975709/3e38de48-83b6-11e5-8885-d95da758ca17.png"></p>
 
 Basic script using openCV, that automatically detects and crops faces from batches of photos.
 
-Perfect for batch work for ID cards or profile pictures, will output 500px wide square images, centered around the biggest face detected. It can also add a touch of auto gamma correction.
+Perfect for batch work for ID cards or profile pictures, will output images centered around the biggest face detected. It can also add a touch of auto gamma correction.
 
 ## Installation
-Simple!
+>**N.B. 28/019/2017**: `pip install autocrop` should now work on most platforms, as well as a basic command-line interface (CLI). Testing on further platforms is currently under way. If this fails:
 
 The script will process all `.jpg` files in the `/photos` directory. The cropped files are placed in `photos/crop`, and originals are moved to `photos/bkp`.
 
@@ -37,8 +37,8 @@ Move your pictures to be cropped in the *photos* directory, then run the script 
     cd autocrop
     python autocrop.py
 
-## Versions
-The script works on openCV 2.4.9 and python 2.7+ and 3+. It has not been tested otherwise. For now, it also artificially restricts filetype as jpg and output size as 500px. These values can easily be tweaked in the header in `autocrop.py`.
+## Requirements
+The script works on Python 2.7 and 3+, and on Windows, macOS and Linux. It has not been tested otherwise.
 
 ## More Info
 Check out:
@@ -47,11 +47,3 @@ Check out:
 
 Adapted from:
 * http://photo.stackexchange.com/questions/60411/how-can-i-batch-crop-based-on-face-location
-
-## TODO
-Pull requests welcome! I don't see major feature additions in the future, but proper 
-* [ ] Create PyPI and conda-forge packages so that it can be directly pip- or conda-installable.
-* [ ] Split off into smaller functions, and write unit tests.
-* [ ] Handle input filetypes for `*.bmp`, `*.dib`, `*.jp2`, `*.png`, `*.webp`, `*.pbm`, `*.pgm`, `*.ppm`, `*.sr`, `*.ras`, `*.tiff`, `*.tif`.
-* [ ] Handle output image size.
-* [ ] Handle CLI input: `$ autocrop [-w width] [-h height] [-i input-folder] [-o output-folder] [--passport=<country>]`
