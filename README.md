@@ -38,7 +38,7 @@ Move your pictures to be cropped in the *photos* directory, then run the script 
     python autocrop.py
 
 ## Versions
-The script works on openCV 2.4.9 and python 2.7+ and 3+. It has not been tested otherwise. For now, it also artificially restricts filetype as jpg and output size as 500px. These values can easily be tweaked in the header in `autocrop.py`.
+The script works on openCV 3+, and Python 2.7 or (preferably) 3+. It is in active development.
 
 ## More Info
 Check out:
@@ -53,5 +53,5 @@ Pull requests welcome! I don't see major feature additions in the future, but pr
 * [ ] Create PyPI and conda-forge packages so that it can be directly pip- or conda-installable.
 * [ ] Split off into smaller functions, and write unit tests.
 * [ ] Handle input filetypes for `*.bmp`, `*.dib`, `*.jp2`, `*.png`, `*.webp`, `*.pbm`, `*.pgm`, `*.ppm`, `*.sr`, `*.ras`, `*.tiff`, `*.tif`.
-* [ ] Handle output image size.
-* [ ] Handle CLI input: `$ autocrop [-w width] [-h height] [-i input-folder] [-o output-folder] [--passport=<country>]`
+* [X] Handle output image size.
+* [X] Handle CLI input: `$ autocrop [-w width] [-H height] [-p path]`
