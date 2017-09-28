@@ -20,7 +20,8 @@ AUTHOR = 'Francois Leblanc'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    'numpy', 'opencv-python'
+    'numpy>=1.11',
+    'opencv-python>=3, <4'
 ]
 
 # The rest you shouldn't have to touch too much :)
@@ -93,7 +94,7 @@ setup(
     },
     install_requires=REQUIRED,
     include_package_data=True,
-    license='MIT',
+    license='BSD 2-Clause',
     classifiers=[
         # Trove classifiers
         # Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers

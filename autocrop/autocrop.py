@@ -128,7 +128,7 @@ def cli():
     parser.add_argument('-H', '--height', type=int, default=500, help='Height of the cropped files in pixels')
 
     args = parser.parse_args()
-    print('Processing images in folder:', path)
+    print('Processing images in folder:', args.path)
 
     main(args.path, args.height, args.width)
 
