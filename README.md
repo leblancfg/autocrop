@@ -1,4 +1,4 @@
-# autocrop
+# autocrop [![Travis Build Status](https://img.shields.io/travis/leblancfg/autocrop.svg)](https://travis-ci.org/leblancfg/autocrop) [![AppVeyor Build Status](https://img.shields.io/appveyor/ci/leblancfg/autocrop.svg?label=%22Windows%22)](https://ci.appveyor.com/project/leblancfg/autocrop/branch/master) [![PyPI version](https://badge.fury.io/py/autocrop.svg)](https://badge.fury.io/py/autocrop) 
 
 <p align="center"><img title="obama_crop" src="https://cloud.githubusercontent.com/assets/15659410/10975709/3e38de48-83b6-11e5-8885-d95da758ca17.png"></p>
 
@@ -38,7 +38,7 @@ Move your pictures to be cropped in the *photos* directory, then run the script 
     python autocrop.py
 
 ## Requirements
-The script works on Python 2.7 and 3+, and on Windows, macOS and Linux. It has not been tested otherwise.
+The script works on Python 2.7 and 3.4+, and on Windows, macOS and Linux. It has not been tested otherwise.
 
 ## More Info
 Check out:

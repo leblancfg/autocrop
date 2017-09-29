@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from __future__ import print_function
 
 import argparse
@@ -15,7 +17,9 @@ from .__version__ import __title__, __description__, __author__, __version__
 # Internal variables
 fixexp = True                 # Flag to fix underexposition
 marker = False                # Flag for gamma correct
-INPUT_FILETYPES = ['*.jpg', '*.jpeg']
+INPUT_FILETYPES = ['*.jpg', '*.jpeg', '*.bmp', '*.dib', '*.jp2',
+                   '*.png', '*.webp', '*.pbm', '*.pgm', '*.ppm',
+                   '*.sr', '*.ras', '*.tiff', '*.tif']
 INCREMENT = 0.06
 GAMMA_THRES = 0.001 
 GAMMA = 0.90
@@ -41,75 +45,94 @@ def gamma(img, correction):
     img = cv2.pow(img/255.0, correction)
     return np.uint8(img*255)
 
+def crop(image, fwidth=500, fheight=500):
+    """Given a ndarray image with a face, returns cropped array.
+
+    Arguments:
+        - image, the numpy array of the image to be processed.
+        - fwidth, the final width (px) of the cropped img. Default: 500
+        - fheight, the final height (px) of the cropped img. Default: 500
+    Returns:
+        - image, a cropped numpy array
+
+    ndarray, int, int -> ndarray
+    """
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # Scale the image
+    height, width = (image.shape[:2])
+    minface = int(np.sqrt(height*height + width*width) / 8)
+
+    # Create the haar cascade
+    faceCascade = cv2.CascadeClassifier(cascPath)
+
+    # ====== Detect faces in the image ======
+    faces = faceCascade.detectMultiScale(
+        gray,
+        scaleFactor=1.1,
+        minNeighbors=5,
+        minSize=(minface, minface),
+        flags = cv2.CASCADE_FIND_BIGGEST_OBJECT | cv2.CASCADE_DO_ROUGH_SEARCH
+    )
+
+    # Handle no faces
+    if len(faces) == 0: 
+        return None
+
+    # Make padding from probable biggest face
+    x, y, w, h = faces[-1]
+    pad = h / FACE_RATIO
+
+    # Make sure padding is contained within picture
+    while True:  # decreases pad by 6% increments to fit crop into image. Can lead to very small faces.
+        if y-2*pad < 0 or y+h+pad > height or int(x-1.5*pad) < 0 or x+w+int(1.5*pad) > width:
+            pad = (1 - INCREMENT) * pad
+        else:
+            break
+
+    # Crop the image from the original
+    h1 = int(x-1.5*pad) 
+    h2 = int(x+w+1.5*pad)
+    v1 = int(y-2*pad)
+    v2 = int(y+h+pad)
+    image = image[v1:v2, h1:h2]
+
+    # Resize the damn thing
+    image = cv2.resize(image, (fheight, fwidth), interpolation = cv2.INTER_AREA)
+
+    # ====== Dealing with underexposition ======
+    if fixexp == True:
+        # Check if under-exposed
+        uexp = cv2.calcHist([gray], [0], None, [256], [0,256])
+        if sum(uexp[-26:]) < GAMMA_THRES * sum(uexp) :
+            marker = True
+            image = gamma(image, GAMMA)
+    return image
+
 def main(path, fheight, fwidth):
     """Given path containing image files to process, will
     1) copy them to `path/bkp`, and 
     2) create face-cropped versions and place them in `path/crop`
     """
     errors = 0
-    # Create the haar cascade
-    faceCascade = cv2.CascadeClassifier(cascPath)
-
     with cd(path):
         files_grabbed = []
         for files in INPUT_FILETYPES:
             files_grabbed.extend(glob.glob(files))
 
         for file in files_grabbed:
-            image = cv2.imread(file)
-            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
- 
-            # Scale the image
-            height, width = (image.shape[:2])
-            minface = int(np.sqrt(height*height + width*width) / 8)
-
-            # ====== Detect faces in the image ======
-            faces = faceCascade.detectMultiScale(
-                gray,
-                scaleFactor=1.1,
-                minNeighbors=5,
-                minSize=(minface, minface),
-                flags = cv2.CASCADE_FIND_BIGGEST_OBJECT | cv2.CASCADE_DO_ROUGH_SEARCH
-            )
-
-            # Handle no faces
-            if len(faces) == 0: 
-                print(' No faces can be detected in file {0}.'.format(str(file)))
-                errors += 1
-                break
-
             # Copy to /bkp
             shutil.copy(file, 'bkp')
 
-            # Make padding from probable biggest face
-            x, y, w, h = faces[-1]
-            pad = h / FACE_RATIO
+            # Perform the actual crop
+            input  = cv2.imread(file)
+            image = crop(input, fwidth, fheight)
 
-            # Make sure padding is contained within picture
-            while True:  # decreases pad by 6% increments to fit crop into image. Can lead to very small faces.
-                if y-2*pad < 0 or y+h+pad > height or int(x-1.5*pad) < 0 or x+w+int(1.5*pad) > width:
-                    pad = (1 - INCREMENT) * pad
-                else:
-                    break
-
-            # Crop the image from the original
-            h1 = int(x-1.5*pad) 
-            h2 = int(x+w+1.5*pad)
-            v1 = int(y-2*pad)
-            v2 = int(y+h+pad)
-            image = image[v1:v2, h1:h2]
-
-            # Resize the damn thing
-            image = cv2.resize(image, (fheight, fwidth), interpolation = cv2.INTER_AREA)
-
-            # ====== Dealing with underexposition ======
-            if fixexp == True:
-                # Check if under-exposed
-                uexp = cv2.calcHist([gray], [0], None, [256], [0,256])
-
-                if sum(uexp[-26:]) < GAMMA_THRES * sum(uexp) :
-                    marker = True
-                    image = gamma(image, GAMMA)
+            # Make sure there actually was a face in there
+            if image == None:
+                print(' No faces can be detected in file {0}.'.format(str(file)))
+                errors += 1
+                continue
 
             # Write cropfile
             cropfilename = '{0}'.format(str(file))
