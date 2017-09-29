@@ -35,5 +35,5 @@ test_script:
   # the interpreter you're using - Appveyor does not do anything special
   # to put the Python version you want to use on PATH.
   # - "build.cmd %PYTHON%\\python.exe setup.py test"
-  - pytest
+  - "%PYTHON%\\python.exe -m pytest"
 
