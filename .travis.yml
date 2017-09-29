@@ -1,13 +1,5 @@
 language: python
 
-# Build on both osx VM and Ubuntu container.
-matrix:
-  include:
-    - os: osx
-      language: objective-c
-      osx_image: xcode9
-      env: TRAVIS_PYTHON_VERSION=3.6
-
 python:
   - "2.7"
   - "3.4"
@@ -16,7 +8,6 @@ python:
 
 before_install:
   - which python; python --version
-
 
 install:
   - pip install -r requirements.txt
