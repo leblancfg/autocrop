@@ -22,3 +22,7 @@ def test_crop_noise_returns_none():
     noise = cv2.imread(loc)
     assert crop(noise) == None
 
+def test_obama_has_a_face():
+    loc = 'tests/data/obama.jpg'
+    obama = cv2.imread(loc)
+    assert len(crop(obama, 500, 500)) == 500
