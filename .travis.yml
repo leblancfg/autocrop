@@ -1,17 +1,20 @@
-# https://travis-ci.org/tornadoweb/tornado
-dist: trusty
-
-# Use containers instead of full VMs for faster startup.
-sudo: false
-
 language: python
+
+# Build on both osx VM and Ubuntu container.
+matrix:
+  include:
+    - os: linux
+    - os: osx
+
 python:
   - "2.7"
   - "3.4"
   - "3.5"
   - "3.6"
+
 install:
   - pip install -r requirements.txt
   - pip install .
+
 script:
   - pytest
