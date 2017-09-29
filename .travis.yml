@@ -4,29 +4,9 @@ language: python
 matrix:
   include:
     - os: osx
-      language: generic
-      osx_image: xcode8.3
-      env:
-        - MB_PYTHON_VERSION=2.7
-        - ENABLE_CONTRIB=0
-    - os: osx
-      language: generic
-      osx_image: xcode8.3
-      env:
-        - MB_PYTHON_VERSION=3.4
-        - ENABLE_CONTRIB=0
-    - os: osx
-      language: generic
-      osx_image: xcode8.3
-      env:
-        - MB_PYTHON_VERSION=3.5
-        - ENABLE_CONTRIB=0
-    - os: osx
-      language: generic
-      osx_image: xcode8.3
-      env:
-        - MB_PYTHON_VERSION=3.6
-        - ENABLE_CONTRIB=0
+      language: objective-c
+      osx_image: xcode9
+      env: TRAVIS_PYTHON_VERSION=3.6
 
 python:
   - "2.7"
@@ -34,9 +14,14 @@ python:
   - "3.5"
   - "3.6"
 
+before_install:
+  - which python; python --version
+
+
 install:
   - pip install -r requirements.txt
   - pip install .
+  - pip install pytest
 
 script:
   - pytest
