@@ -13,10 +13,7 @@ import sys
 
 from .__version__ import __title__, __description__, __author__, __version__
 
-
-# Internal variables
-fixexp = True                 # Flag to fix underexposition
-marker = False                # Flag for gamma correct
+fixexp = True  # Flag to fix underexposition
 INPUT_FILETYPES = ['*.jpg', '*.jpeg', '*.bmp', '*.dib', '*.jp2',
                    '*.png', '*.webp', '*.pbm', '*.pgm', '*.ppm',
                    '*.sr', '*.ras', '*.tiff', '*.tif']
@@ -105,7 +102,6 @@ def crop(image, fwidth=500, fheight=500):
         # Check if under-exposed
         uexp = cv2.calcHist([gray], [0], None, [256], [0,256])
         if sum(uexp[-26:]) < GAMMA_THRES * sum(uexp) :
-            marker = True
             image = gamma(image, GAMMA)
     return image
 
@@ -146,9 +142,10 @@ def main(path, fheight, fwidth):
 
 def cli():
     parser = argparse.ArgumentParser(description='Automatically crops faces from batches of pictures')
-    parser.add_argument('-p', '--path', default='photos', help='Path where images to crop are located')
-    parser.add_argument('-w', '--width', type=int, default=500, help='Width of the cropped files in pixels')
-    parser.add_argument('-H', '--height', type=int, default=500, help='Height of the cropped files in pixels')
+    parser.add_argument('-p', '--path', default='photos', help='Folder where images to crop are located. Default: photos/')
+    parser.add_argument('-w', '--width', type=int, default=500, help='Width of cropped files in px. Default: 500')
+    parser.add_argument('-H', '--height', type=int, default=500, help='Height of cropped files in px. Default: 500')
+    parser.add_argument('-v', '--version', action='version', version='%(prog)s version {}'.format(__version__))
 
     args = parser.parse_args()
     print('Processing images in folder:', args.path)

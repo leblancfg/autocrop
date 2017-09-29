@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 import os.path
 
-from autocrop.autocrop import gamma, main, crop
+from autocrop.autocrop import gamma, main, crop, cli
 import pytest
 
 
@@ -26,3 +26,4 @@ def test_obama_has_a_face():
     loc = 'tests/data/obama.jpg'
     obama = cv2.imread(loc)
     assert len(crop(obama, 500, 500)) == 500
+
