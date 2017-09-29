@@ -38,7 +38,7 @@ Move your pictures to be cropped in the *photos* directory, then run the script 
     python autocrop.py
 
 ## Requirements
-The script works on Python 2.7 and 3+, and on Windows, macOS and Linux. It has not been tested otherwise.
+The script works on Python 2.7 and 3.4+, and on Windows, macOS and Linux. It has not been tested otherwise.
 
 ## More Info
 Check out:
