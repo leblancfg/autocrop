@@ -1,4 +1,4 @@
-# autocrop [![Build Status](https://travis-ci.org/leblancfg/autocrop.svg?branch=master)](https://travis-ci.org/leblancfg/autocrop) 
+# autocrop [![Build Status](https://travis-ci.org/leblancfg/autocrop.svg?branch=master)](https://travis-ci.org/leblancfg/autocrop) [![PyPI version](https://badge.fury.io/py/autocrop.svg)](https://badge.fury.io/py/autocrop)
 
 <p align="center"><img title="obama_crop" src="https://cloud.githubusercontent.com/assets/15659410/10975709/3e38de48-83b6-11e5-8885-d95da758ca17.png"></p>
 
