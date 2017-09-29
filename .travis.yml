@@ -3,8 +3,30 @@ language: python
 # Build on both osx VM and Ubuntu container.
 matrix:
   include:
-    - os: linux
     - os: osx
+      language: generic
+      osx_image: xcode8.3
+      env:
+        - MB_PYTHON_VERSION=2.7
+        - ENABLE_CONTRIB=0
+    - os: osx
+      language: generic
+      osx_image: xcode8.3
+      env:
+        - MB_PYTHON_VERSION=3.4
+        - ENABLE_CONTRIB=0
+    - os: osx
+      language: generic
+      osx_image: xcode8.3
+      env:
+        - MB_PYTHON_VERSION=3.5
+        - ENABLE_CONTRIB=0
+    - os: osx
+      language: generic
+      osx_image: xcode8.3
+      env:
+        - MB_PYTHON_VERSION=3.6
+        - ENABLE_CONTRIB=0
 
 python:
   - "2.7"
