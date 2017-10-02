@@ -8,7 +8,7 @@ python:
 
 before_install:
   - which python; python --version
-  - pip install requirements-test.txt
+  - pip install -r requirements-test.txt
   # Stop the build if it doesn't pass syntax and complexity checks
   - flake8 . --count --show-source --max-complexity=8 --statistics
 
