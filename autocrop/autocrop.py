@@ -11,21 +11,22 @@ import os
 import shutil
 import sys
 
-from .__version__ import __title__, __description__, __author__, __version__
+from .__version__ import __version__
 
 fixexp = True  # Flag to fix underexposition
 INPUT_FILETYPES = ['*.jpg', '*.jpeg', '*.bmp', '*.dib', '*.jp2',
                    '*.png', '*.webp', '*.pbm', '*.pgm', '*.ppm',
                    '*.sr', '*.ras', '*.tiff', '*.tif']
 INCREMENT = 0.06
-GAMMA_THRES = 0.001 
+GAMMA_THRES = 0.001
 GAMMA = 0.90
 FACE_RATIO = 6
 
 # Load XML Resource
-cascFile= 'haarcascade_frontalface_default.xml'
+cascFile = 'haarcascade_frontalface_default.xml'
 d = os.path.dirname(sys.modules['autocrop'].__file__)
 cascPath = os.path.join(d, cascFile)
+
 
 # Define directory change within context
 @contextmanager
@@ -37,10 +38,12 @@ def cd(newdir):
     finally:
         os.chdir(prevdir)
 
+
 # Define simple gamma correction fn
 def gamma(img, correction):
     img = cv2.pow(img/255.0, correction)
     return np.uint8(img*255)
+
 
 def crop(image, fwidth=500, fheight=500):
     """Given a ndarray image with a face, returns cropped array.
@@ -69,11 +72,11 @@ def crop(image, fwidth=500, fheight=500):
         scaleFactor=1.1,
         minNeighbors=5,
         minSize=(minface, minface),
-        flags = cv2.CASCADE_FIND_BIGGEST_OBJECT | cv2.CASCADE_DO_ROUGH_SEARCH
+        flags=cv2.CASCADE_FIND_BIGGEST_OBJECT | cv2.CASCADE_DO_ROUGH_SEARCH
     )
 
     # Handle no faces
-    if len(faces) == 0: 
+    if len(faces) == 0:
         return None
 
     # Make padding from probable biggest face
@@ -81,33 +84,37 @@ def crop(image, fwidth=500, fheight=500):
     pad = h / FACE_RATIO
 
     # Make sure padding is contained within picture
-    while True:  # decreases pad by 6% increments to fit crop into image. Can lead to very small faces.
-        if y-2*pad < 0 or y+h+pad > height or int(x-1.5*pad) < 0 or x+w+int(1.5*pad) > width:
+    # decreases pad by 6% increments to fit crop into image.
+    # Can lead to very small faces.
+    while True:
+        if (y-2*pad < 0 or y+h+pad > height or
+                int(x-1.5*pad) < 0 or x+w+int(1.5*pad) > width):
             pad = (1 - INCREMENT) * pad
         else:
             break
 
     # Crop the image from the original
-    h1 = int(x-1.5*pad) 
+    h1 = int(x-1.5*pad)
     h2 = int(x+w+1.5*pad)
     v1 = int(y-2*pad)
     v2 = int(y+h+pad)
     image = image[v1:v2, h1:h2]
 
     # Resize the damn thing
-    image = cv2.resize(image, (fheight, fwidth), interpolation = cv2.INTER_AREA)
+    image = cv2.resize(image, (fheight, fwidth), interpolation=cv2.INTER_AREA)
 
     # ====== Dealing with underexposition ======
-    if fixexp == True:
+    if fixexp:
         # Check if under-exposed
-        uexp = cv2.calcHist([gray], [0], None, [256], [0,256])
-        if sum(uexp[-26:]) < GAMMA_THRES * sum(uexp) :
+        uexp = cv2.calcHist([gray], [0], None, [256], [0, 256])
+        if sum(uexp[-26:]) < GAMMA_THRES * sum(uexp):
             image = gamma(image, GAMMA)
     return image
 
+
 def main(path, fheight, fwidth):
     """Given path containing image files to process, will
-    1) copy them to `path/bkp`, and 
+    1) copy them to `path/bkp`, and
     2) create face-cropped versions and place them in `path/crop`
     """
     errors = 0
@@ -121,12 +128,12 @@ def main(path, fheight, fwidth):
             shutil.copy(file, 'bkp')
 
             # Perform the actual crop
-            input  = cv2.imread(file)
+            input = cv2.imread(file)
             image = crop(input, fwidth, fheight)
 
             # Make sure there actually was a face in there
-            if image == None:
-                print(' No faces can be detected in file {0}.'.format(str(file)))
+            if image is None:
+                print('No faces can be detected in file {}.'.format(str(file)))
                 errors += 1
                 continue
 
@@ -140,15 +147,24 @@ def main(path, fheight, fwidth):
     # Stop and print timer
     print(' {0} files have been cropped'.format(len(files_grabbed) - errors))
 
+
 def cli():
-    parser = argparse.ArgumentParser(description='Automatically crops faces from batches of pictures')
-    parser.add_argument('-p', '--path', default='photos', help='Folder where images to crop are located. Default: photos/')
-    parser.add_argument('-w', '--width', type=int, default=500, help='Width of cropped files in px. Default: 500')
-    parser.add_argument('-H', '--height', type=int, default=500, help='Height of cropped files in px. Default: 500')
-    parser.add_argument('-v', '--version', action='version', version='%(prog)s version {}'.format(__version__))
+    help_d = dict(
+            description='Automatically crops faces from batches of pictures',
+            path='Folder where images to crop are located. Default=photos/',
+            width='Width of cropped files in px. Default=500',
+            height='Height of cropped files in px. Default=500')
+
+    parser = argparse.ArgumentParser(description=help_d.description)
+    parser.add_argument('-p', '--path', default='photos', help=help_d.path)
+    parser.add_argument('-w', '--width', type=int,
+                        default=500, help=help_d.width)
+    parser.add_argument('-H', '--height',
+                        type=int, default=500, help=help_d.height)
+    parser.add_argument('-v', '--version', action='version',
+                        version='%(prog)s version {}'.format(__version__))
 
     args = parser.parse_args()
     print('Processing images in folder:', args.path)
 
     main(args.path, args.height, args.width)
-
