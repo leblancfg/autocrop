@@ -124,6 +124,7 @@ def main(path, fheight, fwidth):
             files_grabbed.extend(glob.glob(files))
 
         for file in files_grabbed:
+            print('processing file {}.'.format(str(file)))
             # Copy to /bkp
             shutil.copy(file, 'bkp')
 
@@ -149,18 +150,18 @@ def main(path, fheight, fwidth):
 
 
 def cli():
-    help_d = dict(
-            description='Automatically crops faces from batches of pictures',
-            path='Folder where images to crop are located. Default=photos/',
-            width='Width of cropped files in px. Default=500',
-            height='Height of cropped files in px. Default=500')
+    help_d = {
+            'description':'Automatically crops faces from batches of pictures',
+            'path':'Folder where images to crop are located. Default=photos/',
+            'width':'Width of cropped files in px. Default=500',
+            'height':'Height of cropped files in px. Default=500'}
 
-    parser = argparse.ArgumentParser(description=help_d.description)
-    parser.add_argument('-p', '--path', default='photos', help=help_d.path)
+    parser = argparse.ArgumentParser(description=help_d['description'])
+    parser.add_argument('-p', '--path', default='photos', help=help_d['path'])
     parser.add_argument('-w', '--width', type=int,
-                        default=500, help=help_d.width)
+                        default=500, help=help_d['width'])
     parser.add_argument('-H', '--height',
-                        type=int, default=500, help=help_d.height)
+                        type=int, default=500, help=help_d['height'])
     parser.add_argument('-v', '--version', action='version',
                         version='%(prog)s version {}'.format(__version__))
 
