@@ -132,8 +132,8 @@ def main(path, fheight, fwidth):
             image = crop(input, fwidth, fheight)
 
             # Make sure there actually was a face in there
-            # if image is None:
-            if image.all() is None:
+            # Silly kludge: if image is None:
+            if isinstance(image, type(None)):
                 print('No faces can be detected in file {}.'.format(str(file)))
                 errors += 1
                 continue
@@ -146,7 +146,7 @@ def main(path, fheight, fwidth):
             shutil.move(cropfilename, 'crop')
 
     # Stop and print timer
-    print(' {0} files have been cropped'.format(len(files_grabbed) - errors))
+    print(' {} files have been cropped'.format(len(files_grabbed) - errors))
 
 
 def cli():
