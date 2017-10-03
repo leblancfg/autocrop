@@ -151,12 +151,12 @@ def main(path, fheight, fwidth):
 
 def cli():
     help_d = {
-            'description': 'Automatically crops faces from batches of pictures',
+            'desc': 'Automatically crops faces from batches of pictures',
             'path': 'Folder where images to crop are located. Default=photos/',
             'width': 'Width of cropped files in px. Default=500',
             'height': 'Height of cropped files in px. Default=500'}
 
-    parser = argparse.ArgumentParser(description=help_d['description'])
+    parser = argparse.ArgumentParser(description=help_d['desc'])
     parser.add_argument('-p', '--path', default='photos', help=help_d['path'])
     parser.add_argument('-w', '--width', type=int,
                         default=500, help=help_d['width'])
