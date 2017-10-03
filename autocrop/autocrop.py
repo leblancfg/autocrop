@@ -132,7 +132,7 @@ def main(path, fheight, fwidth):
             image = crop(input, fwidth, fheight)
 
             # Make sure there actually was a face in there
-            if image is None:
+            if image.all() is None:
                 print('No faces can be detected in file {}.'.format(str(file)))
                 errors += 1
                 continue
