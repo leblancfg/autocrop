@@ -124,6 +124,7 @@ def main(path, fheight, fwidth):
             files_grabbed.extend(glob.glob(files))
 
         for file in files_grabbed:
+            print('processing file {}.'.format(str(file)))
             # Copy to /bkp
             shutil.copy(file, 'bkp')
 
@@ -132,8 +133,7 @@ def main(path, fheight, fwidth):
             image = crop(input, fwidth, fheight)
 
             # Make sure there actually was a face in there
-            # if image is None:
-            if image.all() is None:
+            if image is None:
                 print('No faces can be detected in file {}.'.format(str(file)))
                 errors += 1
                 continue
