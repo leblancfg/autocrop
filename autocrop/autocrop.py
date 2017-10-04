@@ -125,7 +125,7 @@ def main(path, fheight, fwidth):
 
         for file in files_grabbed:
             # Copy to /bkp
-            shutil.copy(file, 'bkp')
+            shutil.copy(file, 'bkp/')
 
             # Perform the actual crop
             input = cv2.imread(file)
@@ -143,13 +143,13 @@ def main(path, fheight, fwidth):
             cv2.imwrite(cropfilename, image)
 
             # Move files to /crop
-            shutil.move(cropfilename, 'crop')
+            shutil.move(cropfilename, 'crop/')
 
     # Stop and print timer
     print(' {} files have been cropped'.format(len(files_grabbed) - errors))
 
 
-def cli():
+def parse_args(args):
     help_d = {
             'desc': 'Automatically crops faces from batches of pictures',
             'path': 'Folder where images to crop are located. Default=photos/',
@@ -165,7 +165,11 @@ def cli():
     parser.add_argument('-v', '--version', action='version',
                         version='%(prog)s version {}'.format(__version__))
 
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def cli():
+    args = parse_args(sys.argv[1:])
     print('Processing images in folder:', args.path)
 
     main(args.path, args.height, args.width)
