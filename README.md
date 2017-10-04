@@ -6,6 +6,7 @@
 Perfect for batch work for ID cards or profile picture processing for your website, autocrop will output images centered around the biggest face detected.
 
 ## Use
+From the command line:
 
     usage: autocrop [-h] [-p PATH] [-w WIDTH] [-H HEIGHT] [-v]
 
@@ -18,6 +19,15 @@ Perfect for batch work for ID cards or profile picture processing for your websi
       -H HEIGHT, --height HEIGHT
                             height of cropped files in px. Default: 500
       -v, --version         show program's version number and exit
+
+* Example: `autocrop -p pics -w 400 -H 400`.
+
+### What it does
+The previous command will:
+1. Create a copy of all images found in the top level of `pics` to `pics/bkp`,
+2. Crop to 400x400 pixels all images found in the top level of `pics` to `pics/crop`.
+    
+Images where a face can't be detected will be left in `pics`.
 
 ## Installation
 Simple! In your command line, type:
@@ -54,7 +64,7 @@ Autocrop is currently being tested on:
 * OS:
     - Linux
     - macOS
-    - Windows
+    - Windows    
     
 ## More Info
 Check out:
@@ -63,3 +73,13 @@ Check out:
 
 Adapted from:
 * http://photo.stackexchange.com/questions/60411/how-can-i-batch-crop-based-on-face-location
+
+## Contributing
+
+* Fork the repository on GitHub.
+* Make a branch off of master and commit your changes to it.
+* Run the tests with `pytest`.
+* Always run `flake8 .` before submitting to check your coding style, as your CI will fail otherwise.
+* Submit a Pull Request to the master branch on GitHub.
+
+If you'd like to have a development environment for autocrop, you should create a virtualenv and then do `pip install -e .` from within the directory.
