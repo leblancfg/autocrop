@@ -77,12 +77,16 @@ Adapted from:
 ## Contributing
 Pull requests are always welcome. I don't have much time to put into this project as "I've already scratched my own itch", but realize it can be useful to larger community. If you'd like to contribute to the codebase:
 
-1. Fork the repository on GitHub and clone it on your local machine, e.g. `git clone https://github.com/your_username/autocrop`
-2. Make a branch off of master and make the changes you have in mind, e.g. `git checkout -b issue-007`
+1. Fork the repository on GitHub and clone it on your local machine,
+    * `git clone https://github.com/your_username/autocrop`
+2. Make a branch off of master and make the changes you have in mind,
+    * `git checkout -b issue-007`
 3. Run the tests with `pytest` in the root-level directory to make sure you didn't mistakenly break anything else.
-4. Commit your changes: one item per commit if possible, e.g. `git commit -a -m 'fixed issue 007'`
+4. Commit your changes: one item per commit if possible,
+    * `git commit -a -m 'fixed issue 007'`
 5. Once development is done, always run `flake8 .` to check your coding style, as [PEP8 is enforced and will fail your CI](https://www.caktusgroup.com/blog/2015/08/15/making-clean-code-part-your-build-process/) otherwise.
-6. Push the modified codebase back to your forked version on Github, e.g. `git push origin issue-007`
+6. Push the modified codebase back to your forked version on Github,
+    * `git push origin issue-007`
 7. On GitHub, submit a Pull Request to the master branch.
 
 If you'd like to have a development environment for autocrop, you should create a virtualenv and then do `pip install -e .` from within the directory.
