@@ -2,13 +2,17 @@
 
 """Tests for autocrop"""
 
+import sys
+import shutil
+from glob import glob
+
 import cv2
 import numpy as np
 
-from autocrop.autocrop import gamma, crop
+from autocrop.autocrop import gamma, crop, main, cli
 
 
-def test_gamma_can_do_sqrt():
+def test_gamma_brightens_image():
     """This function is so tightly coupled to cv2 it's probably useless.
     Still might flag cv2 or numpy boo-boos."""
     matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
@@ -26,3 +30,16 @@ def test_obama_has_a_face():
     loc = 'tests/data/obama.jpg'
     obama = cv2.imread(loc)
     assert len(crop(obama, 500, 500)) == 500
+
+
+def test_cli_default_args():
+    # TODO: Copy images to data/copy
+    input_loc = 'tests/data/copy'
+    output_loc = 'tests/data/crop'
+    sys.argv = ['autocrop', '-i', input_loc, '-p', output_loc]
+    cli()
+    assert len(glob(output_loc)) == 7
+
+
+def test_uppercase_filetypes():
+    assert main() == main()

@@ -58,3 +58,6 @@ target/
 
 # Vim nonsense
 *.swp
+
+# Don't store developper notes
+notes.md

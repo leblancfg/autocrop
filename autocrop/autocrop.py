@@ -5,7 +5,7 @@ from __future__ import print_function
 import argparse
 from contextlib import contextmanager
 import cv2
-import glob
+from glob import glob
 import numpy as np
 import os
 import shutil
@@ -121,7 +121,9 @@ def main(path, fheight, fwidth):
     with cd(path):
         files_grabbed = []
         for files in INPUT_FILETYPES:
-            files_grabbed.extend(glob.glob(files))
+            # Handle e.g. both jpg and JPG
+            files_grabbed.extend(glob(files))
+            files_grabbed.extend(glob(files.upper()))
 
         for file in files_grabbed:
             # Copy to /bkp
@@ -132,7 +134,6 @@ def main(path, fheight, fwidth):
             image = crop(input, fwidth, fheight)
 
             # Make sure there actually was a face in there
-            # Silly kludge: if image is None:
             if isinstance(image, type(None)):
                 print('No faces can be detected in file {}.'.format(str(file)))
                 errors += 1
@@ -154,7 +155,8 @@ def parse_args(args):
             'desc': 'Automatically crops faces from batches of pictures',
             'path': 'Folder where images to crop are located. Default=photos/',
             'width': 'Width of cropped files in px. Default=500',
-            'height': 'Height of cropped files in px. Default=500'}
+            'height': 'Height of cropped files in px. Default=500',
+            }
 
     parser = argparse.ArgumentParser(description=help_d['desc'])
     parser.add_argument('-p', '--path', default='photos', help=help_d['path'])
