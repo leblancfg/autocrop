@@ -159,15 +159,25 @@ def parse_args(args):
             }
 
     parser = argparse.ArgumentParser(description=help_d['desc'])
-    parser.add_argument('-p', '--path', default='photos', help=help_d['path'])
-    parser.add_argument('-w', '--width', type=int,
+    parser.add_argument('-o', '--output', '-p', '--path',
+                        default='.', help=help_d['path'])
+    parser.add_argument('-w', '--width', type=size,
                         default=500, help=help_d['width'])
     parser.add_argument('-H', '--height',
-                        type=int, default=500, help=help_d['height'])
+                        type=size, default=500, help=help_d['height'])
     parser.add_argument('-v', '--version', action='version',
                         version='%(prog)s version {}'.format(__version__))
 
     return parser.parse_args()
+
+
+def size(i):
+    """Returns valid only if input is a positive integer under 1e5"""
+    i = int(i)
+    if i > 0 and i < 1e5:
+        return i
+    else:
+        raise argparse.ArgumentTypeError('Invalid pixel size')
 
 
 def cli():
