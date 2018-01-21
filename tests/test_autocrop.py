@@ -102,8 +102,8 @@ def test_confirmation_get_from_user(from_user, response, output):
 #     cli()
 #     out, err = capsys.readouterr()
 #     assert out == question
-# 
-# 
+#
+#
 # def test_cli_no_path_args_overwrites_images_in_pwd():
 #     # TODO: Copy images to data/copy
 #     sys.argv = ['autocrop', '-w', '400']
