@@ -2,15 +2,19 @@
 
 """Tests for autocrop"""
 
+import builtins
+from io import StringIO
 import sys
-# import shutil
-# from glob import glob
+try:
+    import mock
+except ImportError:
+    from unittest import mock
 
 import pytest
 import cv2
 import numpy as np
 
-from autocrop.autocrop import gamma, crop, cli, size
+from autocrop.autocrop import gamma, crop, cli, size, confirmation
 
 
 def test_gamma_brightens_image():
@@ -75,15 +79,31 @@ def test_cli_width_minus_14_not_valid():
         cli()
         assert e.type == SystemExit
         assert 'Invalid pixel' in str(e)
-#
-#
-# def test_cli_no_input_and_output_prompts_overwrite():
+
+
+@pytest.mark.parametrize("from_user, response, output", [
+    (['x', 'x', 'No'], False, "Please respond with 'y' or 'n'\n" * 2),
+    (['y'], True, ''),
+    (['n'], False, ''),
+    (['x', 'y'], True, "Please respond with 'y' or 'n'\n"),
+])
+def test_confirmation_get_from_user(from_user, response, output):
+    question = "Overwrite images files?"
+    with mock.patch.object(builtins, 'input', lambda x: from_user.pop(0)):
+        with mock.patch('sys.stdout', new_callable=StringIO):
+            assert response == confirmation(question)
+            assert output == sys.stdout.getvalue()
+
+
+# def test_cli_no_input_and_output_prompts_overwrite(capsys, monkeypatch):
+#     monkeypatch.setattr('autocrop.confirmation', lambda x: '')
+#     question = "Overwrite images files in "
 #     sys.argv = ['autocrop']
-#     with pytest.raises(Exception):
-#         cli()
-#     assert len(glob(output_loc)) == 7
-#
-#
+#     cli()
+#     out, err = capsys.readouterr()
+#     assert out == question
+# 
+# 
 # def test_cli_no_path_args_overwrites_images_in_pwd():
 #     # TODO: Copy images to data/copy
 #     sys.argv = ['autocrop', '-w', '400']

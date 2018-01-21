@@ -150,38 +150,107 @@ def main(path, fheight, fwidth):
     print(' {} files have been cropped'.format(len(files_grabbed) - errors))
 
 
-def parse_args(args):
-    help_d = {
-            'desc': 'Automatically crops faces from batches of pictures',
-            'path': 'Folder where images to crop are located. Default=photos/',
-            'width': 'Width of cropped files in px. Default=500',
-            'height': 'Height of cropped files in px. Default=500',
-            }
-
-    parser = argparse.ArgumentParser(description=help_d['desc'])
-    parser.add_argument('-o', '--output', '-p', '--path',
-                        default='.', help=help_d['path'])
-    parser.add_argument('-w', '--width', type=size,
-                        default=500, help=help_d['width'])
-    parser.add_argument('-H', '--height',
-                        type=size, default=500, help=help_d['height'])
-    parser.add_argument('-v', '--version', action='version',
-                        version='%(prog)s version {}'.format(__version__))
-
-    return parser.parse_args()
+def path(p):
+    """Returns valid only if input is a valid directory"""
+    p = os.path.abspath(p)
+    if os.path.isdir(p):
+        return p
+    else:
+        raise argparse.ArgumentTypeError('Invalid path name')
 
 
 def size(i):
     """Returns valid only if input is a positive integer under 1e5"""
-    i = int(i)
+    try:
+        i = int(i)
+    except TypeError:
+        raise argparse.ArgumentTypeError('Invalid pixel size')
+
     if i > 0 and i < 1e5:
         return i
     else:
         raise argparse.ArgumentTypeError('Invalid pixel size')
 
 
+def confirmation(question, default=True):
+    """Ask a yes/no question via standard input and return the answer.
+
+    If invalid input is given, the user will be asked until
+    they acutally give valid input.
+
+    Args:
+        question(str):
+            A question that is presented to the user.
+        default(bool|None):
+            The default value when enter is pressed with no value.
+            When None, there is no default value and the query
+            will loop.
+    Returns:
+        A bool indicating whether user has entered yes or no.
+
+    Side Effects:
+        Blocks program execution until valid input(y/n) is given.
+    """
+    try:
+        input_ = raw_input
+    except NameError:
+        input_ = input
+
+    yes_list = ["yes", "y"]
+    no_list = ["no", "n"]
+
+    default_dict = {  # default => prompt default string
+        None: "[y/n]",
+        True: "[Y/n]",
+        False: "[y/N]",
+    }
+
+    default_str = default_dict[default]
+    prompt_str = "%s %s " % (question, default_str)
+
+    while True:
+        choice = input_(prompt_str).lower()
+
+        if not choice and default is not None:
+            return default
+        if choice in yes_list:
+            return True
+        if choice in no_list:
+            return False
+
+        notification_str = "Please respond with 'y' or 'n'"
+        print(notification_str)
+
+
+def parse_args(args):
+    help_d = {
+            'desc': 'Automatically crops faces from batches of pictures',
+            'input': 'Folder with images to crop are located. Default: cwd',
+            'output': 'Folder where images to crop are located. Default: cwd',
+            'width': 'Width of cropped files in px. Default=500',
+            'height': 'Height of cropped files in px. Default=500',
+            }
+
+    parser = argparse.ArgumentParser(description=help_d['desc'])
+    parser.add_argument('-o', '--output', '-p', '--path', type=path,
+                        default='.', help=help_d['output'])
+    parser.add_argument('-i', '--input', default='.', type=path,
+                        help=help_d['input'])
+    parser.add_argument('-w', '--width', type=size,
+                        default=500, help=help_d['width'])
+    parser.add_argument('-H', '--height',
+                        type=size, default=500, help=help_d['height'])
+    parser.add_argument('-v', '--version', action='version',
+                        version='%(prog)s version {}'.format(__version__))
+    return parser.parse_args()
+
+
 def cli():
     args = parse_args(sys.argv[1:])
+    if args.input == args.output:
+        question = "Overwrite images files?"
+        if not confirmation(question):
+            sys.exit()
     print('Processing images in folder:', args.path)
 
     main(args.path, args.height, args.width)
