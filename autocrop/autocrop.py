@@ -248,7 +248,7 @@ def parse_args(args):
 def cli():
     args = parse_args(sys.argv[1:])
     if args.input == args.output:
-        question = "Overwrite images files?"
+        question = "Overwrite image files?"
         if not confirmation(question):
             sys.exit()
     print('Processing images in folder:', args.path)
