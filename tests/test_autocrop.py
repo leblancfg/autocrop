@@ -99,45 +99,39 @@ def test_cli_width_minus_14_not_valid():
 ])
 def test_confirmation_get_from_user(from_user, response, output):
     question = "Overwrite image files?"
-    input_f = 'autocrop.autocrop.compat_input'
+    input_str = 'autocrop.autocrop.compat_input'
 
-    with mock.patch(input_f, lambda x: from_user.pop(0)):
+    with mock.patch(input_str, lambda x: from_user.pop(0)):
         sio = io.StringIO if PY3 else io.BytesIO
         with mock.patch('sys.stdout', new_callable=sio):
             assert response == confirmation(question)
             assert output == sys.stdout.getvalue()
 
 
-@pytest.mark.parametrize("argv, called, response", [
-    (['-o', 'output'], False, True),
-    ([], True, False),
-    ([], True, True),
-    (['-i', 'crop', '-o', 'crop'], True, False),
-])
-def test_user_gets_prompted_if_i_equals_o(argv, called, response):
-    global confirmation
-    original_confirm = confirmation
-    confirmation = mock.Mock(return_value=response)
-    with mock.patch('sys.argv', [''] + argv):
-        if called and not response:
-            with pytest.raises(SystemExit):
-                cli()
-        else:
-            cli()
-
-        assert confirmation.called == called
-    confirmation = original_confirm
+@mock.patch('autocrop.autocrop.main', lambda *args: None)
+@mock.patch('autocrop.autocrop.confirmation')
+def test_user_gets_prompted_if_no_output_is_given(mock_confirm):
+    mock_confirm.return_value = False
+    argv = ['-i', 'tests/data']
+    sys.argv = [''] + argv
+    with pytest.raises(SystemExit) as e:
+        assert mock_confirm.call_count == 0
+        cli()
+        assert mock_confirm.call_count == 1
+        assert e.type == SystemExit
 
 
-# def test_cli_no_input_and_output_prompts_overwrite(capsys, monkeypatch):
-#     monkeypatch.setattr('autocrop.confirmation', lambda x: '')
-#     question = "Overwrite images files in "
-#     sys.argv = ['autocrop']
-#     cli()
-#     out, err = capsys.readouterr()
-#     assert out == question
-#
-#
+@mock.patch('autocrop.autocrop.main', lambda *args: None)
+@mock.patch('autocrop.autocrop.confirmation')
+def test_user_does_not_get_prompted_if_output_is_given(mock_confirm):
+    mock_confirm.return_value = False
+    argv = ['-i', 'tests/data', '-o', 'crop']
+    sys.argv = [''] + argv
+    assert mock_confirm.call_count == 0
+    cli()
+    assert mock_confirm.call_count == 0
+
+
 # def test_cli_no_path_args_overwrites_images_in_pwd():
 #     # TODO: Copy images to data/copy
 #     sys.argv = ['autocrop', '-w', '400']

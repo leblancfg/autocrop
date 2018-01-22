@@ -13,7 +13,7 @@ import sys
 
 from .__version__ import __version__
 
-fixexp = True  # Flag to fix underexposition
+FIXEXP = True  # Flag to fix underexposition
 INPUT_FILETYPES = ['*.jpg', '*.jpeg', '*.bmp', '*.dib', '*.jp2',
                    '*.png', '*.webp', '*.pbm', '*.pgm', '*.ppm',
                    '*.sr', '*.ras', '*.tiff', '*.tif']
@@ -21,6 +21,7 @@ INCREMENT = 0.06
 GAMMA_THRES = 0.001
 GAMMA = 0.90
 FACE_RATIO = 6
+QUESTION_OVERWRITE = "Overwrite image files?"
 
 # Load XML Resource
 cascFile = 'haarcascade_frontalface_default.xml'
@@ -104,7 +105,7 @@ def crop(image, fwidth=500, fheight=500):
     image = cv2.resize(image, (fheight, fwidth), interpolation=cv2.INTER_AREA)
 
     # ====== Dealing with underexposition ======
-    if fixexp:
+    if FIXEXP:
         # Check if under-exposed
         uexp = cv2.calcHist([gray], [0], None, [256], [0, 256])
         if sum(uexp[-26:]) < GAMMA_THRES * sum(uexp):
@@ -255,7 +256,7 @@ def parse_args(args):
 
     parser = argparse.ArgumentParser(description=help_d['desc'])
     parser.add_argument('-o', '--output', '-p', '--path', type=output_path,
-                        default='.', help=help_d['output'])
+                        default=None, help=help_d['output'])
     parser.add_argument('-i', '--input', default='.', type=input_path,
                         help=help_d['input'])
     parser.add_argument('-w', '--width', type=size,
@@ -269,10 +270,8 @@ def parse_args(args):
 
 def cli():
     args = parse_args(sys.argv[1:])
-    if args.input == args.output:
-        question = "Overwrite image files?"
-        if not confirmation(question):
+    if args.output is None:
+        if not confirmation(QUESTION_OVERWRITE):
             sys.exit()
     print('Processing images in folder:', args.input)
-
     main(args.input, args.output, args.height, args.width)
