@@ -96,8 +96,9 @@ def test_cli_width_minus_14_not_valid():
 ])
 def test_confirmation_get_from_user(from_user, response, output):
     question = "Overwrite image files?"
+    input_f = 'autocrop.autocrop.compat_input'
 
-    with mock.patch('autocrop.autocrop.compat_input', lambda x: from_user.pop(0)):
+    with mock.patch(input_f, lambda x: from_user.pop(0)):
         sio = io.StringIO if PY3 else io.BytesIO
         with mock.patch('sys.stdout', new_callable=sio):
             assert response == confirmation(question)
