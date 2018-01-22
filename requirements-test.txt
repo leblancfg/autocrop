@@ -1,4 +1,4 @@
 future
 pytest
 flake8
-six
+mock
