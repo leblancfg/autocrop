@@ -224,8 +224,8 @@ def confirmation(question, default=True):
 
     default_dict = {  # default => prompt default string
         None: "[y/n]",
-        True: "[Y/n]",
-        False: "[y/N]",
+        True: "[Y]/n",
+        False: "y/[N]",
     }
 
     default_str = default_dict[default]

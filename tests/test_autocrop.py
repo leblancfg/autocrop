@@ -4,6 +4,7 @@
 
 import io
 import os
+import shutil
 import sys
 
 try:
@@ -23,6 +24,17 @@ from autocrop.autocrop import (
 )
 
 PY3 = (sys.version_info[0] >= 3)
+
+
+@pytest.fixture
+def setup():
+    shutil.copytree('tests/data', 'tests/testing')
+
+
+@pytest.fixture
+def teardown(path):
+    shutil.rmtree('tests/testing')
+    shutil.rmtree(path)
 
 
 def test_gamma_brightens_image():
@@ -112,12 +124,12 @@ def test_confirmation_get_from_user(from_user, response, output):
 @mock.patch('autocrop.autocrop.confirmation')
 def test_user_gets_prompted_if_no_output_is_given(mock_confirm):
     mock_confirm.return_value = False
-    argv = ['-i', 'tests/data']
-    sys.argv = [''] + argv
+    sys.argv = ['', '-i', 'tests/data']
     with pytest.raises(SystemExit) as e:
         assert mock_confirm.call_count == 0
         cli()
         assert mock_confirm.call_count == 1
+        assert mock_confirm.call_count == 12435
         assert e.type == SystemExit
 
 
@@ -125,11 +137,20 @@ def test_user_gets_prompted_if_no_output_is_given(mock_confirm):
 @mock.patch('autocrop.autocrop.confirmation')
 def test_user_does_not_get_prompted_if_output_is_given(mock_confirm):
     mock_confirm.return_value = False
-    argv = ['-i', 'tests/data', '-o', 'crop']
-    sys.argv = [''] + argv
+    sys.argv = ['', '-i', 'tests/data', '-o', 'crop']
     assert mock_confirm.call_count == 0
     cli()
     assert mock_confirm.call_count == 0
+
+
+@pytest.mark.parametrize("args", [
+    ['', '-i', 'test/testing', '-o', 'test/crop'],
+])
+def test_integration_folder_of_test_images(setup, teardown, args):
+    # Make sure autocrop works from the shell with subprocess
+    sys.argv = ['', '-i', 'test/testing', '-o', 'test/crop'],
+    cli()
+    shutil.rmtree(args[-1])
 
 
 # def test_cli_no_path_args_overwrites_images_in_pwd():
