@@ -91,11 +91,11 @@ def test_confirmation_get_from_user(from_user, response, output):
     question = "Overwrite image files?"
     # Check whether Python 2 or 3
     try:
-        str_input = raw_input  # useless variable
-        str_input = 'raw_input'
+        str_input = raw_input
+        b, str_input = __builtins__, 'raw_input'
     except NameError:
-        str_input = 'input'
-    with mock.patch.object(builtins, str_input, lambda x: from_user.pop(0)):
+        b, str_input = builtins, 'input'
+    with mock.patch.object(b, str_input, lambda x: from_user.pop(0)):
         with mock.patch('sys.stdout', new_callable=StringIO):
             assert response == confirmation(question)
             assert output == sys.stdout.getvalue()
