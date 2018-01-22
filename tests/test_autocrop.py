@@ -3,6 +3,7 @@
 """Tests for autocrop"""
 
 import io
+import os
 import sys
 
 try:
@@ -78,6 +79,7 @@ def test_cli_width_0_not_valid():
         cli()
         assert e.type == SystemExit
         assert 'Invalid pixel' in str(e)
+    os.rmdir('./crop')
 
 
 def test_cli_width_minus_14_not_valid():
@@ -86,6 +88,7 @@ def test_cli_width_minus_14_not_valid():
         cli()
         assert e.type == SystemExit
         assert 'Invalid pixel' in str(e)
+    os.rmdir('./crop')
 
 
 @pytest.mark.parametrize("from_user, response, output", [
@@ -103,6 +106,27 @@ def test_confirmation_get_from_user(from_user, response, output):
         with mock.patch('sys.stdout', new_callable=sio):
             assert response == confirmation(question)
             assert output == sys.stdout.getvalue()
+
+
+@pytest.mark.parametrize("argv, called, response", [
+    (['-o', 'output'], False, True),
+    ([], True, False),
+    ([], True, True),
+    (['-i', 'crop', '-o', 'crop'], True, False),
+])
+def test_user_gets_prompted_if_i_equals_o(argv, called, response):
+    global confirmation
+    original_confirm = confirmation
+    confirmation = mock.Mock(return_value=response)
+    with mock.patch('sys.argv', [''] + argv):
+        if called and not response:
+            with pytest.raises(SystemExit):
+                cli()
+        else:
+            cli()
+
+        assert confirmation.called == called
+    confirmation = original_confirm
 
 
 # def test_cli_no_input_and_output_prompts_overwrite(capsys, monkeypatch):

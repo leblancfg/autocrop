@@ -112,13 +112,23 @@ def crop(image, fwidth=500, fheight=500):
     return image
 
 
-def main(path, fheight, fwidth):
-    """Given path containing image files to process, will
-    1) copy them to `path/bkp`, and
-    2) create face-cropped versions and place them in `path/crop`
+def main(input_d, output_d, fheight, fwidth):
+    """Crops folder of images to the desired height and width if a face is found
+
+    If input_d == output_d, overwrites all files where face was found.
+
+    Args:
+        input_d (str): Directory to crop images from.
+        output_d (str): Directory where cropped images are placed.
+        fheight (int): Height (px) to which to crop the image.
+        fwidth (int): Width (px) to which to crop the image.
+
+    Side Effects:
+        Creates image files in output directory.
     """
     errors = 0
-    with cd(path):
+    # TODO: Do all work based off absolute paths
+    with cd(input_d):
         files_grabbed = []
         for files in INPUT_FILETYPES:
             # Handle e.g. both jpg and JPG
@@ -150,13 +160,22 @@ def main(path, fheight, fwidth):
     print(' {} files have been cropped'.format(len(files_grabbed) - errors))
 
 
-def path(p):
-    """Returns valid only if input is a valid directory"""
+def input_path(p):
+    """Returns absolute path, only if input is a valid directory"""
     p = os.path.abspath(p)
     if os.path.isdir(p):
         return p
     else:
         raise argparse.ArgumentTypeError('Invalid path name')
+
+
+def output_path(p):
+    """Returns absolute path, if input is a valid directory name.
+    If directory doesn't exist, creates it."""
+    p = os.path.abspath(p)
+    if not os.path.isdir(p):
+        os.makedirs(p)
+    return p
 
 
 def size(i):
@@ -235,9 +254,9 @@ def parse_args(args):
             }
 
     parser = argparse.ArgumentParser(description=help_d['desc'])
-    parser.add_argument('-o', '--output', '-p', '--path', type=path,
+    parser.add_argument('-o', '--output', '-p', '--path', type=output_path,
                         default='.', help=help_d['output'])
-    parser.add_argument('-i', '--input', default='.', type=path,
+    parser.add_argument('-i', '--input', default='.', type=input_path,
                         help=help_d['input'])
     parser.add_argument('-w', '--width', type=size,
                         default=500, help=help_d['width'])
@@ -254,6 +273,6 @@ def cli():
         question = "Overwrite image files?"
         if not confirmation(question):
             sys.exit()
-    print('Processing images in folder:', args.path)
+    print('Processing images in folder:', args.input)
 
-    main(args.path, args.height, args.width)
+    main(args.input, args.output, args.height, args.width)
