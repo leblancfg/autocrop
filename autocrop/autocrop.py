@@ -172,6 +172,14 @@ def size(i):
         raise argparse.ArgumentTypeError('Invalid pixel size')
 
 
+def compat_input(s=''):
+    """Compatibility function to permit testing for Python 2 and 3"""
+    try:
+        return raw_input(s)
+    except NameError:
+        return input(s)
+
+
 def confirmation(question, default=True):
     """Ask a yes/no question via standard input and return the answer.
 
@@ -191,11 +199,6 @@ def confirmation(question, default=True):
     Side Effects:
         Blocks program execution until valid input(y/n) is given.
     """
-    try:
-        input_ = raw_input
-    except NameError:
-        input_ = input
-
     yes_list = ["yes", "y"]
     no_list = ["no", "n"]
 
@@ -209,7 +212,7 @@ def confirmation(question, default=True):
     prompt_str = "%s %s " % (question, default_str)
 
     while True:
-        choice = input_(prompt_str).lower()
+        choice = compat_input(prompt_str).lower()
 
         if not choice and default is not None:
             return default

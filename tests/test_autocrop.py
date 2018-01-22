@@ -4,10 +4,6 @@
 
 import io
 import sys
-try:
-    import builtins
-except ImportError:
-    import __builtin__ as builtins
 
 try:
     import mock
@@ -17,7 +13,13 @@ import pytest
 import cv2
 import numpy as np
 
-from autocrop.autocrop import gamma, crop, cli, size, confirmation
+from autocrop.autocrop import (
+        gamma,
+        crop,
+        cli,
+        size,
+        confirmation,
+)
 
 PY3 = (sys.version_info[0] >= 3)
 
@@ -95,14 +97,7 @@ def test_cli_width_minus_14_not_valid():
 def test_confirmation_get_from_user(from_user, response, output):
     question = "Overwrite image files?"
 
-    # Check whether Python 2 or 3
-    try:
-        str_input = raw_input
-        b, str_input = __builtin__, 'raw_input'
-    except NameError:
-        b, str_input = builtins, 'input'
-
-    with mock.patch.object(b, str_input, lambda x: from_user.pop(0)):
+    with mock.patch('autocrop.autocrop.compat_input', lambda x: from_user.pop(0)):
         sio = io.StringIO if PY3 else io.BytesIO
         with mock.patch('sys.stdout', new_callable=sio):
             assert response == confirmation(question)
