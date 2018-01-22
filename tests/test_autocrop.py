@@ -2,22 +2,24 @@
 
 """Tests for autocrop"""
 
-import builtins
+import io
 import sys
 try:
-    from cStringIO import StringIO
+    import builtins
 except ImportError:
-    from io import StringIO
+    import __builtin__ as builtins
+
 try:
     import mock
 except ImportError:
     from unittest import mock
-
 import pytest
 import cv2
 import numpy as np
 
 from autocrop.autocrop import gamma, crop, cli, size, confirmation
+
+PY3 = (sys.version_info[0] >= 3)
 
 
 def test_gamma_brightens_image():
@@ -101,7 +103,8 @@ def test_confirmation_get_from_user(from_user, response, output):
         b, str_input = builtins, 'input'
 
     with mock.patch.object(b, str_input, lambda x: from_user.pop(0)):
-        with mock.patch('sys.stdout', new_callable=StringIO):
+        sio = io.StringIO if PY3 else io.BytesIO
+        with mock.patch('sys.stdout', new_callable=sio):
             assert response == confirmation(question)
             assert output == sys.stdout.getvalue()
 
