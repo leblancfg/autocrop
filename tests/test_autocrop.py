@@ -92,7 +92,7 @@ def test_confirmation_get_from_user(from_user, response, output):
     # Check whether Python 2 or 3
     try:
         str_input = raw_input
-        b, str_input = __builtins__, 'raw_input'
+        b, str_input = __builtin__, 'raw_input'
     except NameError:
         b, str_input = builtins, 'input'
     with mock.patch.object(b, str_input, lambda x: from_user.pop(0)):
