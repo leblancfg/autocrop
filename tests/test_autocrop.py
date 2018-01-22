@@ -3,8 +3,11 @@
 """Tests for autocrop"""
 
 import builtins
-from io import StringIO
 import sys
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
 try:
     import mock
 except ImportError:
@@ -89,12 +92,14 @@ def test_cli_width_minus_14_not_valid():
 ])
 def test_confirmation_get_from_user(from_user, response, output):
     question = "Overwrite image files?"
+
     # Check whether Python 2 or 3
     try:
         str_input = raw_input
         b, str_input = __builtin__, 'raw_input'
     except NameError:
         b, str_input = builtins, 'input'
+
     with mock.patch.object(b, str_input, lambda x: from_user.pop(0)):
         with mock.patch('sys.stdout', new_callable=StringIO):
             assert response == confirmation(question)
