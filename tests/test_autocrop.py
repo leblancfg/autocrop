@@ -84,6 +84,16 @@ def test_size_minus_14_not_valid():
         assert 'Invalid pixel' in str(e)
 
 
+@mock.patch('autocrop.autocrop.main')
+def test_cli_width_140_is_valid(mock_main):
+    mock_main.return_value = None
+    # Dummy folder for testing
+    sys.argv = ['autocrop', '-w', '140', '-o', 'readme']
+    assert mock_main.call_count == 0
+    cli()
+    assert mock_main.call_count == 1
+
+
 def test_cli_width_0_not_valid():
     sys.argv = ['autocrop', '-w', '0']
     with pytest.raises(SystemExit) as e:
@@ -143,11 +153,14 @@ def test_user_does_not_get_prompted_if_output_is_given(mock_confirm):
 
 @pytest.mark.parametrize("args", [
     ['', '-i', 'tests/testing', '-o', 'tests/crop'],
+    ['', '-i', 'tests/testing', '-o', 'tests/crop', '-w', '140'],
 ])
 def test_integration_folder_of_test_images(integration, args):
     sys.argv = args
-    output_d = args[-1]
+    output_d = 'tests/crop'
     cli()
+    import time
+    time.sleep(30)
     cropped_images = [f for f in os.listdir(output_d)]
     assert len(cropped_images) == 6
 

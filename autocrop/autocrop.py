@@ -46,7 +46,6 @@ def crop(image, fwidth=500, fheight=500):
     ndarray, int, int -> ndarray
     """
     # Rather: check shape and if/then
-    print(image.shape)
     try:
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     except cv2.error as e:
@@ -124,6 +123,7 @@ def main(input_d, output_d, fheight=500, fwidth=500):
     str, str, int, int -> None
     """
     errors = 0
+    print(input_d, output_d, fheight, fwidth)
     files = [os.path.join(input_d, f) for f in os.listdir(input_d)
              if any(f.endswith(t) for t in INPUT_FILETYPES)]
 
@@ -172,6 +172,10 @@ def output_path(p):
 def size(i):
     """Returns valid only if input is a positive integer under 1e5"""
     error = 'Invalid pixel size'
+    try:
+        i = int(i)
+    except:
+        raise argparse.ArgumentTypeError(error)
     if i > 0 and i < 1e5:
         return i
     else:
