@@ -159,8 +159,6 @@ def test_integration_folder_of_test_images(integration, args):
     sys.argv = args
     output_d = 'tests/crop'
     cli()
-    import time
-    time.sleep(30)
     cropped_images = [f for f in os.listdir(output_d)]
     assert len(cropped_images) == 6
 
