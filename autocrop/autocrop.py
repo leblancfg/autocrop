@@ -174,7 +174,7 @@ def size(i):
     error = 'Invalid pixel size'
     try:
         i = int(i)
-    except:
+    except TypeError:
         raise argparse.ArgumentTypeError(error)
     if i > 0 and i < 1e5:
         return i
