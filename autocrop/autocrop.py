@@ -48,7 +48,7 @@ def crop(image, fwidth=500, fheight=500):
     # Rather: check shape and if/then
     try:
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    except cv2.error as e:
+    except cv2.error:
         gray = image
 
     # Scale the image
