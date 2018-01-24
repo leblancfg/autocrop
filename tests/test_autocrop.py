@@ -19,6 +19,7 @@ from autocrop.autocrop import (
         gamma,
         crop,
         cli,
+        main,
         size,
         confirmation,
 )
@@ -28,12 +29,19 @@ PY3 = (sys.version_info[0] >= 3)
 
 @pytest.fixture()
 def integration():
-    path_i = 'tests/testing'
+    # Setup
+    path_i = 'tests/test'
     path_o = 'tests/crop'
     shutil.copytree('tests/data', path_i)
+
     yield
+
+    # Teardown
     shutil.rmtree(path_i)
-    shutil.rmtree(path_o)
+    try:
+        shutil.rmtree(path_o)
+    except FileNotFoundError:
+        pass
 
 
 def test_gamma_brightens_image():
@@ -84,14 +92,40 @@ def test_size_minus_14_not_valid():
     assert 'Invalid pixel' in str(e)
 
 
+@mock.patch('autocrop.autocrop.input_path', lambda p: p)
+@mock.patch('autocrop.autocrop.main')
+def test_cli_no_args_means_cwd(mock_main):
+    mock_main.return_value = None
+    sys.argv = ['', '--no-confirm']
+    cli()
+    args, _ = mock_main.call_args
+    assert args == ('.', None, 500, 500)
+
+
+@mock.patch('autocrop.autocrop.input_path', lambda p: p)
 @mock.patch('autocrop.autocrop.main')
 def test_cli_width_140_is_valid(mock_main):
     mock_main.return_value = None
-    # Dummy folder for testing
-    sys.argv = ['autocrop', '-w', '140', '-o', 'readme']
+    sys.argv = ['autocrop', '-w', '140', '--no-confirm']
     assert mock_main.call_count == 0
     cli()
     assert mock_main.call_count == 1
+
+
+def test_cli_invalid_input_path_errors_out():
+    sys.argv = ['autocrop', '-i', 'asdfasdf']
+    with pytest.raises(SystemExit) as e:
+        cli()
+    assert e.type == SystemExit
+    assert 'SystemExit' in str(e)
+
+
+def test_cli_no_images_in_input_path():
+    sys.argv = ['autocrop', '-i', 'tests']
+    with pytest.raises(SystemExit) as e:
+        cli()
+    assert e.type == SystemExit
+    assert 'SystemExit' in str(e)
 
 
 def test_cli_width_0_not_valid():
@@ -141,46 +175,67 @@ def test_user_gets_prompted_if_no_output_is_given(mock_confirm):
 
 @mock.patch('autocrop.autocrop.main', lambda *args: None)
 @mock.patch('autocrop.autocrop.confirmation')
-def test_user_does_not_get_prompted_if_output_is_given(mock_confirm):
+def test_user_gets_prompted_if_output_same_as_input(mock_confirm):
+    mock_confirm.return_value = False
+    sys.argv = ['', '-i', 'tests/data']
+    with pytest.raises(SystemExit) as e:
+        assert mock_confirm.call_count == 0
+        cli()
+    assert mock_confirm.call_count == 1
+    assert e.type == SystemExit
+
+
+def test_main_overwrites_when_same_input_and_output(integration):
+    sys.argv = ['', '--no-confirm', '-i', 'tests/test', '-o', 'tests/test']
+    cli()
+    output_files = os.listdir(sys.argv[-1])
+    assert len(output_files) == 10
+
+
+@mock.patch('autocrop.autocrop.crop')
+def test_main_overwrites_when_no_output(mock_crop, integration):
+    mock_crop.return_value = None
+    assert mock_crop.call_count == 0
+    main('tests/test', None)
+    assert mock_crop.call_count == 9
+
+
+@mock.patch('autocrop.autocrop.main', lambda *args: None)
+@mock.patch('autocrop.autocrop.output_path', lambda p: p)
+@mock.patch('autocrop.autocrop.confirmation')
+def test_user_does_not_get_prompted_if_output_d_is_given(mock_confirm):
     mock_confirm.return_value = False
     sys.argv = ['', '-i', 'tests/data', '-o', 'tests/crop']
     assert mock_confirm.call_count == 0
     cli()
     assert mock_confirm.call_count == 0
-    os.rmdir('tests/crop')
 
 
-@pytest.mark.parametrize("args", [
-    ['', '-i', 'tests/testing', '-o', 'tests/crop'],
-    ['', '-i', 'tests/testing', '-o', 'tests/crop', '-w', '140'],
-])
-def test_integration_folder_of_test_images(integration, args):
-    sys.argv = args
-    output_d = 'tests/crop'
+@mock.patch('autocrop.autocrop.main', lambda *args: None)
+@mock.patch('autocrop.autocrop.confirmation')
+def test_user_does_not_get_prompted_if_no_confirm(mock_confirm):
+    mock_confirm.return_value = False
+    sys.argv = ['', '-i', 'tests/data', '--no-confirm']
+    assert mock_confirm.call_count == 0
     cli()
-    output_files = [f for f in os.listdir(output_d)]
-    assert len(output_files) == 6
+    assert mock_confirm.call_count == 0
 
 
-# def test_cli_no_path_args_overwrites_images_in_pwd():
-#     # TODO: Copy images to data/copy
-#     sys.argv = ['autocrop', '-w', '400']
-#     input_loc = 'tests/data/copy'
-#     output_loc = 'tests/data/crop'
-#
-#     cli()
-#     assert len(glob(output_loc)) == 7
-#
-#
-# def test_cli_default_args_in_parent_dir():
-#     # TODO: Copy images to data/copy
-#     sys.argv = ['autocrop', '-i', input_loc, '-p', output_loc]
-#     input_loc = 'tests/data/copy'
-#     output_loc = 'tests/data/crop'
-#
-#     cli()
-#     assert len(glob(output_loc)) == 7
-#
-#
-# def test_uppercase_filetypes():
-#     assert main() == main()
+@mock.patch('autocrop.autocrop.crop', lambda *args: None)
+def test_images_files_copied_over_if_output_dir_specified(integration):
+    sys.argv = ['', '-i', 'tests/test', '-o', 'tests/crop']
+    cli()
+    output_files = os.listdir(sys.argv[-1])
+    assert len(output_files) == 9
+
+
+@mock.patch('autocrop.autocrop.confirmation', lambda *args: True)
+def test_image_files_overwritten_if_no_output_dir(integration):
+    sys.argv = ['', '-i', 'tests/test']
+    cli()
+    # We have the same number of files
+    output_files = os.listdir(sys.argv[-1])
+    assert len(output_files) == 10
+    # Images with a face have been cropped
+    shape = cv2.imread('tests/test/king.jpg').shape
+    assert shape == (500, 500, 3)

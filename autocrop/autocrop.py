@@ -6,6 +6,7 @@ import argparse
 import cv2
 import numpy as np
 import os
+import shutil
 import sys
 
 from .__version__ import __version__
@@ -108,7 +109,8 @@ def crop(image, fwidth=500, fheight=500):
 def main(input_d, output_d, fheight=500, fwidth=500):
     """Crops folder of images to the desired height and width if a face is found
 
-    If input_d == output_d, overwrites all files where face was found.
+    If input_d == output_d or output_d is None, overwrites all files
+    where the biggest face was found.
 
     Args:
         input_d (str): Directory to crop images from.
@@ -121,14 +123,23 @@ def main(input_d, output_d, fheight=500, fwidth=500):
     Side Effects:
         Creates image files in output directory.
 
-    str, str, int, int -> None
+    str, str, (int), (int) -> None
     """
     errors = 0
-    print(input_d, output_d, fheight, fwidth)
     files = [os.path.join(input_d, f) for f in os.listdir(input_d)
              if any(f.endswith(t) for t in INPUT_FILETYPES)]
 
+    # Guard against calling the function directly
     assert len(files) > 0
+
+    if output_d is not None:
+        filenames = [os.path.basename(f) for f in files]
+        target_files = [os.path.join(output_d, fn) for fn in filenames]
+        for i, o in zip(files, target_files):
+            shutil.copyfile(i, o)
+        files = target_files
+    else:
+        output_d = input_d
 
     for f in files:
         filename = os.path.basename(f)
@@ -139,7 +150,7 @@ def main(input_d, output_d, fheight=500, fwidth=500):
 
         # Make sure there actually was a face in there
         if isinstance(image, type(None)):
-            print('No faces can be detected in {}.'.format(str(f)))
+            print('No faces can be detected in {}.'.format(filename))
             errors += 1
             continue
 
@@ -147,18 +158,22 @@ def main(input_d, output_d, fheight=500, fwidth=500):
         output_filename = os.path.join(output_d, filename)
         cv2.imwrite(output_filename, image)
 
-    # Stop and print timer
+    # Stop and print status
     print(' {} files have been cropped'.format(len(files) - errors))
 
 
 def input_path(p):
     """Returns absolute path, only if input is a valid directory"""
-    error = 'Input folder does not exist'
+    no_folder = 'Input folder does not exist'
+    no_images = 'Input folder does not contain any image files'
     p = os.path.abspath(p)
-    if os.path.isdir(p):
-        return p
+    if not os.path.isdir(p):
+        raise argparse.ArgumentTypeError(no_folder)
+    filetypes = set(os.path.splitext(f)[-1] for f in os.listdir(p))
+    if not any(t in INPUT_FILETYPES for t in filetypes):
+        raise argparse.ArgumentTypeError(no_images)
     else:
-        raise argparse.ArgumentTypeError(error)
+        return p
 
 
 def output_path(p):
@@ -245,6 +260,7 @@ Default: current working directory''',
 Default: current working directory''',
             'width': 'Width of cropped files in px. Default=500',
             'height': 'Height of cropped files in px. Default=500',
+            'y': 'Bypass any confirmation prompts',
             }
 
     parser = argparse.ArgumentParser(description=help_d['desc'])
@@ -258,13 +274,17 @@ Default: current working directory''',
                         type=size, default=500, help=help_d['height'])
     parser.add_argument('-v', '--version', action='version',
                         version='%(prog)s version {}'.format(__version__))
+    parser.add_argument('--no-confirm', action='store_true', help=help_d['y'])
     return parser.parse_args()
 
 
 def cli():
     args = parse_args(sys.argv[1:])
-    if args.output is None:
-        if not confirmation(QUESTION_OVERWRITE):
-            sys.exit()
+    if not args.no_confirm:
+        if args.output is None or args.input == args.output:
+            if not confirmation(QUESTION_OVERWRITE):
+                sys.exit()
+    if args.input == args.output:
+        args.output = None
     print('Processing images in folder:', args.input)
     main(args.input, args.output, args.height, args.width)
