@@ -16,7 +16,7 @@ NAME = 'autocrop'
 DESCRIPTION = 'Automatically crops faces from batches of pictures'
 URL = 'https://github.com/leblancfg/autocrop'
 EMAIL = 'leblancfg@gmail.com'
-AUTHOR = 'Francois Leblanc'
+AUTHOR = 'François Leblanc'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
@@ -29,17 +29,16 @@ REQUIRED = [
 # Except, perhaps the License and Trove Classifiers!
 # If you do change the License, remember to change the Trove Classifier
 
-here = os.path.abspath(os.path.dirname(__file__))
+HERE = os.path.abspath(os.path.dirname(__file__))
 
 # Import the README and use it as the long-description.
 # Note: this will only work if 'README.rst' is present in your MANIFEST.in file
-# XXX: Changed rst to md
-with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
+with io.open(os.path.join(HERE, 'README.rst'), encoding='utf-8') as f:
     long_description = '\n' + f.read()
 
 # Load the package's __version__.py module as a dictionary.
 about = {}
-with open(os.path.join(here, NAME, '__version__.py')) as f:
+with open(os.path.join(HERE, NAME, '__version__.py')) as f:
     exec(f.read(), about)
 
 
@@ -63,7 +62,7 @@ class UploadCommand(Command):
     def run(self):
         try:
             self.status('Removing previous builds…')
-            rmtree(os.path.join(here, 'dist'))
+            rmtree(os.path.join(HERE, 'dist'))
         except OSError:
             pass
 
@@ -77,7 +76,7 @@ class UploadCommand(Command):
         sys.exit()
 
 
-# Where the magic happens:
+# WHERE the magic happens:
 setup(
     name=NAME,
     version=about['__version__'],
