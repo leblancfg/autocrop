@@ -63,25 +63,25 @@ def test_size_140_is_valid():
 def test_size_0_not_valid():
     with pytest.raises(Exception) as e:
         size(0)
-        assert 'Invalid pixel' in str(e)
+    assert 'Invalid pixel' in str(e)
 
 
 def test_size_million_not_valid():
     with pytest.raises(Exception) as e:
         size(1e6)
-        assert 'Invalid pixel' in str(e)
+    assert 'Invalid pixel' in str(e)
 
 
-def test_size_asdf_not_valid():
+def test_size_asdf_gives_ValueError():
     with pytest.raises(Exception) as e:
         size('asdf')
-        assert 'Invalid pixel' in str(e)
+    assert 'ValueError' in str(e)
 
 
 def test_size_minus_14_not_valid():
     with pytest.raises(Exception) as e:
         size(-14)
-        assert 'Invalid pixel' in str(e)
+    assert 'Invalid pixel' in str(e)
 
 
 @mock.patch('autocrop.autocrop.main')
@@ -135,9 +135,8 @@ def test_user_gets_prompted_if_no_output_is_given(mock_confirm):
     with pytest.raises(SystemExit) as e:
         assert mock_confirm.call_count == 0
         cli()
-        assert mock_confirm.call_count == 1
-        assert mock_confirm.call_count == 12435
-        assert e.type == SystemExit
+    assert mock_confirm.call_count == 1
+    assert e.type == SystemExit
 
 
 @mock.patch('autocrop.autocrop.main', lambda *args: None)
@@ -159,8 +158,8 @@ def test_integration_folder_of_test_images(integration, args):
     sys.argv = args
     output_d = 'tests/crop'
     cli()
-    cropped_images = [f for f in os.listdir(output_d)]
-    assert len(cropped_images) == 6
+    output_files = [f for f in os.listdir(output_d)]
+    assert len(output_files) == 6
 
 
 # def test_cli_no_path_args_overwrites_images_in_pwd():

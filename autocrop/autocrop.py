@@ -11,10 +11,11 @@ import sys
 from .__version__ import __version__
 
 FIXEXP = True  # Flag to fix underexposition
+MINFACE = 8  # Minimum face size ratio; too low and we get false positives
 INCREMENT = 0.06
 GAMMA_THRES = 0.001
 GAMMA = 0.90
-FACE_RATIO = 6
+FACE_RATIO = 6  # Face / padding ratio
 QUESTION_OVERWRITE = "Overwrite image files?"
 FILETYPES = ['.jpg', '.jpeg', '.bmp', '.dib', '.jp2',
              '.png', '.webp', '.pbm', '.pgm', '.ppm',
@@ -45,7 +46,7 @@ def crop(image, fwidth=500, fheight=500):
 
     ndarray, int, int -> ndarray
     """
-    # Rather: check shape and if/then
+    # Some grayscale color profiles can throw errors, catch them
     try:
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     except cv2.error:
@@ -53,7 +54,7 @@ def crop(image, fwidth=500, fheight=500):
 
     # Scale the image
     height, width = (image.shape[:2])
-    minface = int(np.sqrt(height*height + width*width) / 8)
+    minface = int(np.sqrt(height**2 + width**2) / MINFACE)
 
     # Create the haar cascade
     faceCascade = cv2.CascadeClassifier(cascPath)
@@ -64,14 +65,14 @@ def crop(image, fwidth=500, fheight=500):
         scaleFactor=1.1,
         minNeighbors=5,
         minSize=(minface, minface),
-        flags=cv2.CASCADE_FIND_BIGGEST_OBJECT | cv2.CASCADE_DO_ROUGH_SEARCH
+        flags=cv2.CASCADE_FIND_BIGGEST_OBJECT | cv2.CASCADE_DO_ROUGH_SEARCH,
     )
 
     # Handle no faces
     if len(faces) == 0:
         return None
 
-    # Make padding from probable biggest face
+    # Make padding from biggest face found
     x, y, w, h = faces[-1]
     pad = h / FACE_RATIO
 
