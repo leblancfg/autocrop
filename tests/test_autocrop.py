@@ -40,7 +40,7 @@ def integration():
     shutil.rmtree(path_i)
     try:
         shutil.rmtree(path_o)
-    except FileNotFoundError:
+    except IOError:
         pass
 
 
