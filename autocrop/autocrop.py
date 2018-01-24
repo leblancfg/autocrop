@@ -239,8 +239,10 @@ def confirmation(question, default=True):
 def parse_args(args):
     help_d = {
             'desc': 'Automatically crops faces from batches of pictures',
-            'input': 'Folder with images to crop are located. Default: cwd',
-            'output': 'Folder where images to crop are located. Default: cwd',
+            'input': '''Folder where images to crop are located.
+Default: current working directory''',
+            'output': '''Folder where cropped images will be placed.
+Default: current working directory''',
             'width': 'Width of cropped files in px. Default=500',
             'height': 'Height of cropped files in px. Default=500',
             }
