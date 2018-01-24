@@ -1,9 +1,9 @@
 # autocrop
-[![Travis Build Status](https://img.shields.io/travis/leblancfg/autocrop/master.svg)](https://travis-ci.org/leblancfg/autocrop) [![AppVeyor Build Status](https://img.shields.io/appveyor/ci/leblancfg/autocrop/master.svg?label=%22Windows%22)](https://ci.appveyor.com/project/leblancfg/autocrop/branch/master) [![PyPI version](https://badge.fury.io/py/autocrop.svg)](https://badge.fury.io/py/autocrop) 
+[![Travis Build Status](https://img.shields.io/travis/leblancfg/autocrop/master.svg)](https://travis-ci.org/leblancfg/autocrop) [![AppVeyor Build Status](https://img.shields.io/appveyor/ci/leblancfg/autocrop/master.svg?label=%22Windows%22)](https://ci.appveyor.com/project/leblancfg/autocrop/branch/master) [![PyPI version](https://badge.fury.io/py/autocrop.svg)](https://badge.fury.io/py/autocrop) [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/leblancfg/autocrop/master)
 
 <p align="center"><img title="obama_crop" src="https://cloud.githubusercontent.com/assets/15659410/10975709/3e38de48-83b6-11e5-8885-d95da758ca17.png"></p>
 
-Perfect for batch work for ID cards or profile picture processing for your website, autocrop will output images centered around the biggest face detected.
+Perfect for profile picture processing for your website or batch work for ID cards, autocrop will output images centered around the biggest face detected.
 
 ## Use
 From the command line:
@@ -46,9 +46,6 @@ pip install autocrop
 ### Gotchas
 Autocrop uses OpenCV to perform face detection, which is installed through binary [wheels](http://pythonwheels.com/). If you *already* have OpenCV 3+ installed, you may wish to uninstall the additional OpenCV installation: `pip uninstall opencv-python`.
 
-### conda
-Development of a `conda-forge` package for the [Anaconda Python distribution](https://www.anaconda.com/download/) is also currently slated for development. Please leave feedback on [issue #7](https://github.com/leblancfg/autocrop/issues/7) if you are insterested in helping out.
-
 ### Installing directly
 In some cases, you may wish the package directly, instead of through [PyPI](https://pypi.python.org/pypi):
 
@@ -58,6 +55,9 @@ git clone https://github.com/leblancfg/autocrop
 cd autocrop
 pip install .
 ~~~
+
+### conda
+Development of a `conda-forge` package for the [Anaconda Python distribution](https://www.anaconda.com/download/) is also currently slated for development. Please leave feedback on [issue #7](https://github.com/leblancfg/autocrop/issues/7) if you are insterested in helping out.
 
 ## Requirements
 Best practice for your projects is of course to [use virtual environments](http://docs.python-guide.org/en/latest/dev/virtualenvs/). At the very least, you will need to [have pip installed](https://pip.pypa.io/en/stable/installing/).
