@@ -3,41 +3,28 @@
 from __future__ import print_function
 
 import argparse
-from contextlib import contextmanager
 import cv2
-from glob import glob
 import numpy as np
 import os
-import shutil
 import sys
 
 from .__version__ import __version__
 
 FIXEXP = True  # Flag to fix underexposition
-INPUT_FILETYPES = ['*.jpg', '*.jpeg', '*.bmp', '*.dib', '*.jp2',
-                   '*.png', '*.webp', '*.pbm', '*.pgm', '*.ppm',
-                   '*.sr', '*.ras', '*.tiff', '*.tif']
 INCREMENT = 0.06
 GAMMA_THRES = 0.001
 GAMMA = 0.90
 FACE_RATIO = 6
 QUESTION_OVERWRITE = "Overwrite image files?"
+FILETYPES = ['.jpg', '.jpeg', '.bmp', '.dib', '.jp2',
+             '.png', '.webp', '.pbm', '.pgm', '.ppm',
+             '.sr', '.ras', '.tiff', '.tif']
+INPUT_FILETYPES = FILETYPES + [s.upper() for s in FILETYPES]
 
 # Load XML Resource
 cascFile = 'haarcascade_frontalface_default.xml'
 d = os.path.dirname(sys.modules['autocrop'].__file__)
 cascPath = os.path.join(d, cascFile)
-
-
-# Define directory change within context
-@contextmanager
-def cd(newdir):
-    prevdir = os.getcwd()
-    os.chdir(os.path.expanduser(newdir))
-    try:
-        yield
-    finally:
-        os.chdir(prevdir)
 
 
 # Define simple gamma correction fn
@@ -58,7 +45,11 @@ def crop(image, fwidth=500, fheight=500):
 
     ndarray, int, int -> ndarray
     """
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    # Rather: check shape and if/then
+    try:
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    except cv2.error:
+        gray = image
 
     # Scale the image
     height, width = (image.shape[:2])
@@ -113,7 +104,7 @@ def crop(image, fwidth=500, fheight=500):
     return image
 
 
-def main(input_d, output_d, fheight, fwidth):
+def main(input_d, output_d, fheight=500, fwidth=500):
     """Crops folder of images to the desired height and width if a face is found
 
     If input_d == output_d, overwrites all files where face was found.
@@ -122,52 +113,51 @@ def main(input_d, output_d, fheight, fwidth):
         input_d (str): Directory to crop images from.
         output_d (str): Directory where cropped images are placed.
         fheight (int): Height (px) to which to crop the image.
+                       Default: 500px
         fwidth (int): Width (px) to which to crop the image.
+                       Default: 500px
 
     Side Effects:
         Creates image files in output directory.
+
+    str, str, int, int -> None
     """
     errors = 0
-    # TODO: Do all work based off absolute paths
-    with cd(input_d):
-        files_grabbed = []
-        for files in INPUT_FILETYPES:
-            # Handle e.g. both jpg and JPG
-            files_grabbed.extend(glob(files))
-            files_grabbed.extend(glob(files.upper()))
+    print(input_d, output_d, fheight, fwidth)
+    files = [os.path.join(input_d, f) for f in os.listdir(input_d)
+             if any(f.endswith(t) for t in INPUT_FILETYPES)]
 
-        for file in files_grabbed:
-            # Copy to /bkp
-            shutil.copy(file, 'bkp/')
+    assert len(files) > 0
 
-            # Perform the actual crop
-            input = cv2.imread(file)
-            image = crop(input, fwidth, fheight)
+    for f in files:
+        filename = os.path.basename(f)
 
-            # Make sure there actually was a face in there
-            if isinstance(image, type(None)):
-                print('No faces can be detected in file {}.'.format(str(file)))
-                errors += 1
-                continue
+        # Perform the actual crop
+        input_img = cv2.imread(f)
+        image = crop(input_img, fwidth, fheight)
 
-            # Write cropfile
-            cropfilename = '{0}'.format(str(file))
-            cv2.imwrite(cropfilename, image)
+        # Make sure there actually was a face in there
+        if isinstance(image, type(None)):
+            print('No faces can be detected in {}.'.format(str(f)))
+            errors += 1
+            continue
 
-            # Move files to /crop
-            shutil.move(cropfilename, 'crop/')
+        # Write cropfile
+        output_filename = os.path.join(output_d, filename)
+        cv2.imwrite(output_filename, image)
 
     # Stop and print timer
-    print(' {} files have been cropped'.format(len(files_grabbed) - errors))
+    print(' {} files have been cropped'.format(len(files) - errors))
 
 
 def input_path(p):
     """Returns absolute path, only if input is a valid directory"""
+    error = 'Input folder does not exist'
     p = os.path.abspath(p)
     if os.path.isdir(p):
         return p
     else:
-        raise argparse.ArgumentTypeError('Invalid path name')
+        raise argparse.ArgumentTypeError(error)
 
 
 def output_path(p):
@@ -181,15 +171,15 @@ def output_path(p):
 
 def size(i):
     """Returns valid only if input is a positive integer under 1e5"""
+    error = 'Invalid pixel size'
     try:
         i = int(i)
     except TypeError:
-        raise argparse.ArgumentTypeError('Invalid pixel size')
-
+        raise argparse.ArgumentTypeError(error)
     if i > 0 and i < 1e5:
         return i
     else:
-        raise argparse.ArgumentTypeError('Invalid pixel size')
+        raise argparse.ArgumentTypeError(error)
 
 
 def compat_input(s=''):

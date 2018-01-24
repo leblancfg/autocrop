@@ -26,15 +26,14 @@ from autocrop.autocrop import (
 PY3 = (sys.version_info[0] >= 3)
 
 
-@pytest.fixture
-def setup():
-    shutil.copytree('tests/data', 'tests/testing')
-
-
-@pytest.fixture
-def teardown(path):
-    shutil.rmtree('tests/testing')
-    shutil.rmtree(path)
+@pytest.fixture()
+def integration():
+    path_i = 'tests/testing'
+    path_o = 'tests/crop'
+    shutil.copytree('tests/data', path_i)
+    yield
+    shutil.rmtree(path_i)
+    shutil.rmtree(path_o)
 
 
 def test_gamma_brightens_image():
@@ -85,22 +84,30 @@ def test_size_minus_14_not_valid():
         assert 'Invalid pixel' in str(e)
 
 
+@mock.patch('autocrop.autocrop.main')
+def test_cli_width_140_is_valid(mock_main):
+    mock_main.return_value = None
+    # Dummy folder for testing
+    sys.argv = ['autocrop', '-w', '140', '-o', 'readme']
+    assert mock_main.call_count == 0
+    cli()
+    assert mock_main.call_count == 1
+
+
 def test_cli_width_0_not_valid():
-    sys.argv = ['autocrop', '-o', './crop', '-w', '0']
+    sys.argv = ['autocrop', '-w', '0']
     with pytest.raises(SystemExit) as e:
         cli()
-        assert e.type == SystemExit
-        assert 'Invalid pixel' in str(e)
-    os.rmdir('./crop')
+    assert e.type == SystemExit
+    assert 'SystemExit' in str(e)
 
 
 def test_cli_width_minus_14_not_valid():
-    sys.argv = ['autocrop', '-o', './crop', '-w', '-14']
+    sys.argv = ['autocrop', '-w', '-14']
     with pytest.raises(SystemExit) as e:
         cli()
-        assert e.type == SystemExit
-        assert 'Invalid pixel' in str(e)
-    os.rmdir('./crop')
+    assert e.type == SystemExit
+    assert 'SystemExit' in str(e)
 
 
 @pytest.mark.parametrize("from_user, response, output", [
@@ -137,20 +144,23 @@ def test_user_gets_prompted_if_no_output_is_given(mock_confirm):
 @mock.patch('autocrop.autocrop.confirmation')
 def test_user_does_not_get_prompted_if_output_is_given(mock_confirm):
     mock_confirm.return_value = False
-    sys.argv = ['', '-i', 'tests/data', '-o', 'crop']
+    sys.argv = ['', '-i', 'tests/data', '-o', 'tests/crop']
     assert mock_confirm.call_count == 0
     cli()
     assert mock_confirm.call_count == 0
+    os.rmdir('tests/crop')
 
 
 @pytest.mark.parametrize("args", [
-    ['', '-i', 'test/testing', '-o', 'test/crop'],
+    ['', '-i', 'tests/testing', '-o', 'tests/crop'],
+    ['', '-i', 'tests/testing', '-o', 'tests/crop', '-w', '140'],
 ])
-def test_integration_folder_of_test_images(setup, teardown, args):
-    # Make sure autocrop works from the shell with subprocess
-    sys.argv = ['', '-i', 'test/testing', '-o', 'test/crop'],
+def test_integration_folder_of_test_images(integration, args):
+    sys.argv = args
+    output_d = 'tests/crop'
     cli()
-    shutil.rmtree(args[-1])
+    cropped_images = [f for f in os.listdir(output_d)]
+    assert len(cropped_images) == 6
 
 
 # def test_cli_no_path_args_overwrites_images_in_pwd():
