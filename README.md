@@ -13,17 +13,18 @@ From the command line:
 	Automatically crops faces from batches of pictures
 
 	optional arguments:
-	  -h, --help            show this help message and exit
-	  -o OUTPUT, --output OUTPUT, -p OUTPUT, --path OUTPUT
-							Folder where images to crop are located. Optional.
-	  -i INPUT, --input INPUT
-							Folder with images to crop are located.
-							Default: current working directory
-	  -w WIDTH, --width WIDTH
-							Width of cropped files in px. Default=500
-	  -H HEIGHT, --height HEIGHT
-							Height of cropped files in px. Default=500
-	  -v, --version         show program's version number and exit
+	  -h, --help            Show this help message and exit
+	  -o, --output, -p, --path
+				Folder where cropped images will be placed.
+				Default: current working directory
+	  -i, --input
+				Folder where images to crop are located.
+				Default: current working directory
+	  -w, --width
+				Width of cropped files in px. Default=500
+	  -H, --height
+				Height of cropped files in px. Default=500
+	  -v, --version         Show program's version number and exit
 
 * Example: `autocrop -i pics -o crop -w 400 -H 400`.
 
@@ -88,7 +89,7 @@ We have all the love in the world for extra contributors if you'd like to contri
 * Install the extra dev packages with `pip install -r requirements-test.txt`
 * Make a branch off of master, commit and test your changes to it.
 
-Pull requests are testing on continuous integration (CI) servers before they are green-lit for merging with the master branch.
+Pull requests are tested on continuous integration (CI) servers before they are green-lit to merge with the master branch.
 * Run the tests with `pytest`.
 * Always run `flake8 .` before submitting to check your coding style, as your CI will fail otherwise.
 * Submit a Pull Request to the master branch on GitHub.
