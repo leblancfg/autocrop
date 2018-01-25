@@ -1,3 +1,9 @@
+# Don't trigger build if only the README has changed.
+skip_commits:
+  files:
+    - *.md
+    - *.rst
+
 environment:
 
   matrix:
@@ -37,5 +43,5 @@ test_script:
   # the interpreter you're using - Appveyor does not do anything special
   # to put the Python version you want to use on PATH.
   # - "build.cmd %PYTHON%\\python.exe setup.py test"
-  - "%PYTHON%\\python.exe -m pytest"
+  - "%PYTHON%\\python.exe -m pytest --cov autocrop -v --cov-report term-missin"
 
