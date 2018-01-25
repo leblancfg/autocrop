@@ -2,3 +2,5 @@ future
 pytest
 flake8
 mock
+pytest-cov
+codecov
