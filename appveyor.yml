@@ -1,9 +1,3 @@
-# Don't trigger build if only the README has changed.
-skip_commits:
-  files:
-    - *.md
-    - *.rst
-
 environment:
 
   matrix:
