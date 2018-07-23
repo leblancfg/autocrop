@@ -24,9 +24,12 @@ From the command line:
 				Width of cropped files in px. Default=500
 	  -H, --height
 				Height of cropped files in px. Default=500
+	  --auto-width          Ignore width & calculate based on height & aspect ratio
+	  --auto-height         Ignore height & calculate based on height & aspect ratio
 	  -v, --version         Show program's version number and exit
 
 * Example: `autocrop -i pics -o crop -w 400 -H 400`.
+* Example Auto Height: `autocrop -i pics -o crop -w 400 --auto-height`.
 
 ### What it does
 The previous command will:
