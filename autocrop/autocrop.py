@@ -35,13 +35,15 @@ def gamma(img, correction):
     return np.uint8(img*255)
 
 
-def crop(image, fwidth=500, fheight=500):
+def crop(image, fwidth=500, fheight=500, autowidth=False, autoheight=False):
     """Given a ndarray image with a face, returns cropped array.
 
     Arguments:
         - image, the numpy array of the image to be processed.
         - fwidth, the final width (px) of the cropped img. Default: 500
         - fheight, the final height (px) of the cropped img. Default: 500
+        - autowidth, respect hieght & calculate width by aspect ratio
+        - autoheight, respect width & calculate width by aspect ratio
     Returns:
         - image, a cropped numpy array
 
@@ -94,6 +96,12 @@ def crop(image, fwidth=500, fheight=500):
     v2 = int(y+h+pad)
     image = image[v1:v2, h1:h2]
 
+    # Check if auto calc. with aspect ratio is needed
+    if(autowidth):
+        fwidth = fheight * (h2-h1)/(v2-v1)
+    elif(autoheight):
+        fheight = fwidth * (v2-v1)/(h2-h1)
+
     # Resize the damn thing
     image = cv2.resize(image, (fheight, fwidth), interpolation=cv2.INTER_AREA)
 
@@ -106,7 +114,7 @@ def crop(image, fwidth=500, fheight=500):
     return image
 
 
-def main(input_d, output_d, fheight=500, fwidth=500):
+def main(input_d, output_d, fheight=500, fwidth=500, autowidth=False, autoheight=False):
     """Crops folder of images to the desired height and width if a face is found
 
     If input_d == output_d or output_d is None, overwrites all files
@@ -146,7 +154,7 @@ def main(input_d, output_d, fheight=500, fwidth=500):
 
         # Perform the actual crop
         input_img = cv2.imread(f)
-        image = crop(input_img, fwidth, fheight)
+        image = crop(input_img, fwidth, fheight, autowidth, autoheight)
 
         # Make sure there actually was a face in there
         if isinstance(image, type(None)):
@@ -261,6 +269,8 @@ Default: current working directory''',
             'width': 'Width of cropped files in px. Default=500',
             'height': 'Height of cropped files in px. Default=500',
             'y': 'Bypass any confirmation prompts',
+            'auto-width': 'Ignore width and calculate from height and aspect ratio',
+            'auto-height': 'Ignore height and calculate from width and aspect ratio',
             }
 
     parser = argparse.ArgumentParser(description=help_d['desc'])
@@ -275,6 +285,8 @@ Default: current working directory''',
     parser.add_argument('-v', '--version', action='version',
                         version='%(prog)s version {}'.format(__version__))
     parser.add_argument('--no-confirm', action='store_true', help=help_d['y'])
+    parser.add_argument('--auto-width', action='store_true', help=help_d['auto-width'])
+    parser.add_argument('--auto-height', action='store_true', help=help_d['auto-height'])
     return parser.parse_args()
 
 
@@ -287,4 +299,4 @@ def cli():
     if args.input == args.output:
         args.output = None
     print('Processing images in folder:', args.input)
-    main(args.input, args.output, args.height, args.width)
+    main(args.input, args.output, args.height, args.width, args.auto_width, args.auto_height)
