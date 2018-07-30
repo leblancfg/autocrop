@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 """Tests for autocrop"""
 
@@ -99,7 +100,8 @@ def test_cli_no_args_means_cwd(mock_main):
     sys.argv = ['', '--no-confirm']
     cli()
     args, _ = mock_main.call_args
-    assert args == ('.', None, 500, 500)
+    assert args == ('.', None, 500, 500, 50,
+                    False, False, False, False)
 
 
 @mock.patch('autocrop.autocrop.input_path', lambda p: p)
