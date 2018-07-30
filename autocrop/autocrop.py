@@ -35,13 +35,19 @@ def gamma(img, correction):
     return np.uint8(img*255)
 
 
-def crop(image, fwidth=500, fheight=500):
+def crop(image, fheight=500, fwidth=500, facePercent=50,
+         padUp=False, padDown=False, padLeft=False, padRight=False):
     """Given a ndarray image with a face, returns cropped array.
 
     Arguments:
         - image, the numpy array of the image to be processed.
         - fwidth, the final width (px) of the cropped img. Default: 500
         - fheight, the final height (px) of the cropped img. Default: 500
+        - facePercent, percentage of face height to image height. Default: 50
+        - padUp, Padding from top
+        - padDown, Padding to bottom
+        - padLeft, Padding from left
+        - padRight, Padding to right
     Returns:
         - image, a cropped numpy array
 
@@ -75,27 +81,83 @@ def crop(image, fwidth=500, fheight=500):
 
     # Make padding from biggest face found
     x, y, w, h = faces[-1]
-    pad = h / FACE_RATIO
 
-    # Make sure padding is contained within picture
-    # decreases pad by 6% increments to fit crop into image.
-    # Can lead to very small faces.
-    while True:
-        if (y-2*pad < 0 or y+h+pad > height or
-                int(x-1.5*pad) < 0 or x+w+int(1.5*pad) > width):
-            pad = (1 - INCREMENT) * pad
-        else:
-            break
+    manual_padding = (padUp and
+                      padDown and
+                      padLeft and
+                      padRight and
+                      padUp >= 0 and
+                      padDown >= 0 and
+                      padLeft >= 0 and
+                      padRight >= 0)
 
-    # Crop the image from the original
-    h1 = int(x-1.5*pad)
-    h2 = int(x+w+1.5*pad)
-    v1 = int(y-2*pad)
-    v2 = int(y+h+pad)
-    image = image[v1:v2, h1:h2]
+    if manual_padding is False:
+        # enfoce face percent
+        if facePercent > 100:
+            facePercent = 100
+        if facePercent == 0:
+            facePercent = 50
+        # Adjust output height based on Face percent
+        height_crop = h * 100.0 / facePercent
 
-    # Resize the damn thing
-    image = cv2.resize(image, (fheight, fwidth), interpolation=cv2.INTER_AREA)
+        # Ensure height is within boundries
+        if height_crop > height:
+            height_crop = height
+
+        aspect_ratio = float(fwidth) / float(fheight)
+        # Calculate width based on aspect ratio
+        width_crop = aspect_ratio * float(height_crop)
+
+        # Calculate padding by centering face
+        xpad = (width_crop - w) / 2
+        ypad = (height_crop - h) / 2
+
+        # Calc. positions of crop
+        h1 = float(x - xpad)
+        h2 = float(x + w + xpad)
+        v1 = float(y - ypad)
+        v2 = float(y + h + ypad)
+
+        # Move crop inside photo boundaries
+        while h1 < 0:
+            h1 = h1 + 1
+            h2 = h2 + 1
+        while v1 < 0:
+            v1 = v1 + 1
+            v2 = v2 + 1
+        while v2 > height:
+            v2 = v2 - 1
+            h2 = h2 - 1 * aspect_ratio
+        while h2 > width:
+            h2 = h2 - 1
+            v2 = v2 - 1 / aspect_ratio
+
+        # Actual cropping
+        image = image[int(v1):int(v2), int(h1):int(h2)]
+
+        # Resize
+        image = cv2.resize(image, (fwidth, fheight),
+                           interpolation=cv2.INTER_AREA)
+
+    else:
+        # Crop with padding / Don't resize
+        h1 = int(x - padLeft)
+        h2 = int(x + w + padRight)
+        v1 = int(y - padUp)
+        v2 = int(y + h + padDown)
+
+        # Fix photo constrains
+        if h1 < 0:
+            h1 = 0
+        if h2 > width:
+            h2 = width
+        if v1 < 0:
+            v1 = 0
+        if v2 > height:
+            v2 = height
+
+        # Actual cropping
+        image = image[v1:v2, h1:h2]
 
     # ====== Dealing with underexposition ======
     if FIXEXP:
@@ -106,7 +168,15 @@ def crop(image, fwidth=500, fheight=500):
     return image
 
 
-def main(input_d, output_d, fheight=500, fwidth=500):
+def main(input_d,
+         output_d,
+         fheight=500,
+         fwidth=500,
+         facePercent=50,
+         padUp=False,
+         padDown=False,
+         padLeft=False,
+         padRight=False):
     """Crops folder of images to the desired height and width if a face is found
 
     If input_d == output_d or output_d is None, overwrites all files
@@ -119,7 +189,8 @@ def main(input_d, output_d, fheight=500, fwidth=500):
                        Default: 500px
         fwidth (int): Width (px) to which to crop the image.
                        Default: 500px
-
+        facePercent (int) : Percentage of face from height,
+                       Default: 50
     Side Effects:
         Creates image files in output directory.
 
@@ -146,7 +217,14 @@ def main(input_d, output_d, fheight=500, fwidth=500):
 
         # Perform the actual crop
         input_img = cv2.imread(f)
-        image = crop(input_img, fwidth, fheight)
+        image = crop(input_img,
+                     fheight,
+                     fwidth,
+                     facePercent,
+                     padUp,
+                     padDown,
+                     padLeft,
+                     padRight)
 
         # Make sure there actually was a face in there
         if isinstance(image, type(None)):
@@ -261,6 +339,11 @@ Default: current working directory''',
             'width': 'Width of cropped files in px. Default=500',
             'height': 'Height of cropped files in px. Default=500',
             'y': 'Bypass any confirmation prompts',
+            'facePercent': 'Percentage of face to image height',
+            'padUp': 'Add padding up to face cropped',
+            'padDown': 'Add padding down to face cropped',
+            'padLeft': 'Add padding left to face cropped',
+            'padRight': 'Add padding right to face cropped',
             }
 
     parser = argparse.ArgumentParser(description=help_d['desc'])
@@ -275,6 +358,17 @@ Default: current working directory''',
     parser.add_argument('-v', '--version', action='version',
                         version='%(prog)s version {}'.format(__version__))
     parser.add_argument('--no-confirm', action='store_true', help=help_d['y'])
+    parser.add_argument('--padUp', type=size,
+                        default=False, help=help_d['padUp'])
+    parser.add_argument('--padDown', type=size,
+                        default=False, help=help_d['padDown'])
+    parser.add_argument('--padLeft', type=size,
+                        default=False, help=help_d['padLeft'])
+    parser.add_argument('--padRight', type=size,
+                        default=False, help=help_d['padRight'])
+    parser.add_argument('--facePercent', type=size,
+                        default=50, help=help_d['facePercent'])
+
     return parser.parse_args()
 
 
@@ -287,4 +381,12 @@ def cli():
     if args.input == args.output:
         args.output = None
     print('Processing images in folder:', args.input)
-    main(args.input, args.output, args.height, args.width)
+    main(args.input,
+         args.output,
+         args.height,
+         args.width,
+         args.facePercent,
+         args.padUp,
+         args.padDown,
+         args.padLeft,
+         args.padRight)

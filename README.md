@@ -24,9 +24,20 @@ From the command line:
 				Width of cropped files in px. Default=500
 	  -H, --height
 				Height of cropped files in px. Default=500
+	  --facePercent   Percentage of Face height to image height (zoom factor)
+	  --padUp         Ignore height & calculate based on height & aspect ratio
+	  --padDown       Ignore height & calculate based on height & aspect ratio
+	  --padLeft       Ignore height & calculate based on height & aspect ratio
+	  --padRight      Ignore height & calculate based on height & aspect ratio
 	  -v, --version         Show program's version number and exit
 
-* Example: `autocrop -i pics -o crop -w 400 -H 400`.
+
+### Mode 1: Crop / Resize to fit
+Params (width, height, facePercent)
+* Example: `autocrop -i pics -o crop -w 400 -H 400 --facePercent 50`.
+### Mode 2: Crop + Pad / no resize
+Params (padUp, padDown, padLeft, padRight)
+* Example: `autocrop -i pics -o crop --padUp 50 --padDown 500 --padRight 80 --padLeft 80`.
 
 ### What it does
 The previous command will:
