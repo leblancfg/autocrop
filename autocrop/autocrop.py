@@ -35,6 +35,56 @@ def gamma(img, correction):
     return np.uint8(img*255)
 
 
+def crop_positions(imgh, imgw, x, y, w, h,
+                   fheight, fwidth, facePercent,
+                   padUp, padDown, padLeft, padRight):
+    # Check padding values
+    padUp = 50 if (padUp is False or padUp < 0) else padUp
+    padDown = 50 if (padDown is False or padDown < 0) else padDown
+    padLeft = 50 if (padLeft is False or padLeft < 0) else padLeft
+    padRight = 50 if (padRight is False or padRight < 0) else padRight
+
+    # enfoce face percent
+    facePercent = 100 if facePercent > 100 else facePercent
+    facePercent = 50 if facePercent <= 0 else facePercent
+
+    # Adjust output height based on Face percent
+    height_crop = h * 100.0 / facePercent
+
+    # Ensure height is within boundaries
+    height_crop = imgh if height_crop > imgh else height_crop
+
+    aspect_ratio = float(fwidth) / float(fheight)
+    # Calculate width based on aspect ratio
+    width_crop = aspect_ratio * float(height_crop)
+
+    # Calculate padding by centering face
+    xpad = (width_crop - w) / 2
+    ypad = (height_crop - h) / 2
+
+    # Calc. positions of crop
+    h1 = float(x - (xpad * padLeft / (padLeft + padRight)))
+    h2 = float(x + w + (xpad * padRight / (padLeft + padRight)))
+    v1 = float(y - (ypad * padUp / (padUp + padDown)))
+    v2 = float(y + h + (ypad * padDown / (padUp + padDown)))
+
+    # Move crop inside photo boundaries
+    while h1 < 0:
+        h1 = h1 + 1
+        h2 = h2 + 1
+    while v1 < 0:
+        v1 = v1 + 1
+        v2 = v2 + 1
+    while v2 > imgh:
+        v2 = v2 - 1
+        h2 = h2 - 1 * aspect_ratio
+    while h2 > imgw:
+        h2 = h2 - 1
+        v2 = v2 - 1 / aspect_ratio
+
+    return [int(v1), int(v2), int(h1), int(h2)]
+
+
 def crop(image, fheight=500, fwidth=500, facePercent=50,
          padUp=False, padDown=False, padLeft=False, padRight=False):
     """Given a ndarray image with a face, returns cropped array.
@@ -82,82 +132,15 @@ def crop(image, fheight=500, fwidth=500, facePercent=50,
     # Make padding from biggest face found
     x, y, w, h = faces[-1]
 
-    manual_padding = (padUp and
-                      padDown and
-                      padLeft and
-                      padRight and
-                      padUp >= 0 and
-                      padDown >= 0 and
-                      padLeft >= 0 and
-                      padRight >= 0)
+    pos = crop_positions(height, width, x, y, w, h,
+                         fheight, fwidth, facePercent,
+                         padUp, padDown, padLeft, padRight)
+    # Actual cropping
+    image = image[pos[0]:pos[1], pos[2]:pos[3]]
 
-    if manual_padding is False:
-        # enfoce face percent
-        if facePercent > 100:
-            facePercent = 100
-        if facePercent == 0:
-            facePercent = 50
-        # Adjust output height based on Face percent
-        height_crop = h * 100.0 / facePercent
-
-        # Ensure height is within boundries
-        if height_crop > height:
-            height_crop = height
-
-        aspect_ratio = float(fwidth) / float(fheight)
-        # Calculate width based on aspect ratio
-        width_crop = aspect_ratio * float(height_crop)
-
-        # Calculate padding by centering face
-        xpad = (width_crop - w) / 2
-        ypad = (height_crop - h) / 2
-
-        # Calc. positions of crop
-        h1 = float(x - xpad)
-        h2 = float(x + w + xpad)
-        v1 = float(y - ypad)
-        v2 = float(y + h + ypad)
-
-        # Move crop inside photo boundaries
-        while h1 < 0:
-            h1 = h1 + 1
-            h2 = h2 + 1
-        while v1 < 0:
-            v1 = v1 + 1
-            v2 = v2 + 1
-        while v2 > height:
-            v2 = v2 - 1
-            h2 = h2 - 1 * aspect_ratio
-        while h2 > width:
-            h2 = h2 - 1
-            v2 = v2 - 1 / aspect_ratio
-
-        # Actual cropping
-        image = image[int(v1):int(v2), int(h1):int(h2)]
-
-        # Resize
-        image = cv2.resize(image, (fwidth, fheight),
-                           interpolation=cv2.INTER_AREA)
-
-    else:
-        # Crop with padding / Don't resize
-        h1 = int(x - padLeft)
-        h2 = int(x + w + padRight)
-        v1 = int(y - padUp)
-        v2 = int(y + h + padDown)
-
-        # Fix photo constrains
-        if h1 < 0:
-            h1 = 0
-        if h2 > width:
-            h2 = width
-        if v1 < 0:
-            v1 = 0
-        if v2 > height:
-            v2 = height
-
-        # Actual cropping
-        image = image[v1:v2, h1:h2]
+    # Resize
+    image = cv2.resize(image, (fwidth, fheight),
+                       interpolation=cv2.INTER_AREA)
 
     # ====== Dealing with underexposition ======
     if FIXEXP:
