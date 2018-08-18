@@ -58,9 +58,13 @@ target/
 
 # Vim nonsense
 *.swp
+*.swo
 
 # Don't store developper notes
 notes.md
 
 # Stupid macOS
 .DS_Store
+
+# Jupyter Notebooks
+.ipynb_checkpoints
