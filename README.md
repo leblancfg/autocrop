@@ -33,7 +33,7 @@ From the command line:
 
 
 Params (width, height, facePercent)
-* Example: 
+* Example:
 `autocrop -i pics -o crop -w 400 -H 400 --facePercent 50`.
 * Example more padding down:
  `autocrop -i pics -o crop -w 400 -H 400 --facePercent 50 --padUp 20 --padDown 50`.
@@ -81,8 +81,8 @@ Autocrop is currently being tested on:
 * OS:
     - Linux
     - macOS
-    - Windows    
-    
+    - Windows
+
 ## More Info
 Check out:
 * http://docs.opencv.org/master/d7/d8b/tutorial_py_face_detection.html#gsc.tab=0
@@ -92,18 +92,7 @@ Adapted from:
 * http://photo.stackexchange.com/questions/60411/how-can-i-batch-crop-based-on-face-location
 
 ## Contributing
+
 Although autocrop is essentially a CLI wrapper around a single OpenCV function, it is actively developed. It has active users throughout the world.
 
-We have all the love in the world for extra contributors if you'd like to contribute to the codebase. Please follow these steps:
-* Fork the repository on GitHub.
-* Install the extra dev packages with `pip install -r requirements-test.txt`
-* Make a branch off of master, commit and test your changes to it.
-
-Pull requests are tested on continuous integration (CI) servers before they are green-lit to merge with the master branch.
-* Run the tests with `pytest`.
-* Always run `flake8 .` before submitting to check your coding style, as your CI will fail otherwise.
-* Submit a Pull Request to the master branch on GitHub.
-
-If you have any questions regarding this, please reach me at leblancfg@gmail.com. We'll make sure we get through the steps correctly.
-
-If you'd like to have a development environment for autocrop, you should create a virtualenv and then do `pip install -e .` from within the directory.
+If you would like to contribute, please consult the [contribution docs](CONTRIBUTING.md).
