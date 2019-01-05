@@ -153,6 +153,7 @@ def crop(image, fheight=500, fwidth=500, facePercent=50,
 
 def main(input_d,
          output_d,
+         reject_d,
          fheight=500,
          fwidth=500,
          facePercent=50,
@@ -168,6 +169,8 @@ def main(input_d,
     Args:
         input_d (str): Directory to crop images from.
         output_d (str): Directory where cropped images are placed.
+        reject_d (str): Directory where images that cannot be cropped are
+                        placed.
         fheight (int): Height (px) to which to crop the image.
                        Default: 500px
         fwidth (int): Width (px) to which to crop the image.
@@ -179,27 +182,28 @@ def main(input_d,
 
     str, str, (int), (int) -> None
     """
-    errors = 0
-    files = [os.path.join(input_d, f) for f in os.listdir(input_d)
-             if any(f.endswith(t) for t in INPUT_FILETYPES)]
+    reject_count = 0
+    output_count = 0
+    input_files = [
+        os.path.join(input_d, f) for f in os.listdir(input_d)
+        if any(f.endswith(t) for t in INPUT_FILETYPES)
+    ]
+    if output_d is None:
+        output_d = input_d
+    if reject_d is None:
+        reject_d = input_d
 
     # Guard against calling the function directly
-    assert len(files) > 0
+    input_count = len(input_files)
+    assert input_count > 0
 
-    if output_d is not None:
-        filenames = [os.path.basename(f) for f in files]
-        target_files = [os.path.join(output_d, fn) for fn in filenames]
-        for i, o in zip(files, target_files):
-            shutil.copyfile(i, o)
-        files = target_files
-    else:
-        output_d = input_d
+    for input_filename in input_files:
+        basename = os.path.basename(input_filename)
+        output_filename = os.path.join(output_d, basename)
+        reject_filename = os.path.join(reject_d, basename)
 
-    for f in files:
-        filename = os.path.basename(f)
-
-        # Perform the actual crop
-        input_img = cv2.imread(f)
+        # Attempt the crop
+        input_img = cv2.imread(input_filename)
         image = crop(input_img,
                      fheight,
                      fwidth,
@@ -209,22 +213,29 @@ def main(input_d,
                      padLeft,
                      padRight)
 
-        # Make sure there actually was a face in there
+        # Did the crop produce a valid image
         if isinstance(image, type(None)):
-            print('No faces can be detected in {}.'.format(filename))
-            errors += 1
-            continue
-
-        # Write cropfile
-        output_filename = os.path.join(output_d, filename)
-        cv2.imwrite(output_filename, image)
+            if input_filename != reject_filename:
+                # Move the file to the reject directory
+                shutil.move(input_filename, reject_filename)
+            print('No face detected: {}'.format(reject_filename))
+            reject_count += 1
+        else:
+            if input_filename != output_filename:
+                # Move the file to the output directory
+                shutil.move(input_filename, output_filename)
+            # Write the cropped image
+            cv2.imwrite(output_filename, image)
+            print('Face detected:    {}'.format(output_filename))
+            output_count += 1
 
     # Stop and print status
-    print(' {} files have been cropped'.format(len(files) - errors))
+    print('{} input files, {} faces cropped, {} rejected'.format(
+        input_count, output_count, reject_count))
 
 
 def input_path(p):
-    """Returns absolute path, only if input is a valid directory"""
+    """Returns path, only if input is a valid directory"""
     no_folder = 'Input folder does not exist'
     no_images = 'Input folder does not contain any image files'
     p = os.path.abspath(p)
@@ -238,7 +249,7 @@ def input_path(p):
 
 
 def output_path(p):
-    """Returns absolute path, if input is a valid directory name.
+    """Returns path, if input is a valid directory name.
     If directory doesn't exist, creates it."""
     p = os.path.abspath(p)
     if not os.path.isdir(p):
@@ -315,10 +326,17 @@ def confirmation(question, default=True):
 def parse_args(args):
     help_d = {
             'desc': 'Automatically crops faces from batches of pictures',
-            'input': '''Folder where images to crop are located.
-Default: current working directory''',
-            'output': '''Folder where cropped images will be placed.
-Default: current working directory''',
+            'input': '''Folder where images to crop are located. Default:
+                     current working directory''',
+            'output': '''Folder where cropped images will be moved to.
+
+                      Default: current working directory, meaning images are
+                      cropped in place.''',
+            'reject': '''Folder where images that could not be cropped will be
+                       moved to.
+
+                      Default: current working directory, meaning images that
+                      are not cropped will be left in place.''',
             'width': 'Width of cropped files in px. Default=500',
             'height': 'Height of cropped files in px. Default=500',
             'y': 'Bypass any confirmation prompts',
@@ -330,10 +348,12 @@ Default: current working directory''',
             }
 
     parser = argparse.ArgumentParser(description=help_d['desc'])
-    parser.add_argument('-o', '--output', '-p', '--path', type=output_path,
-                        default=None, help=help_d['output'])
     parser.add_argument('-i', '--input', default='.', type=input_path,
                         help=help_d['input'])
+    parser.add_argument('-o', '--output', '-p', '--path', type=output_path,
+                        default=None, help=help_d['output'])
+    parser.add_argument('-r', '--reject', type=output_path, default=None,
+                        help=help_d['reject'])
     parser.add_argument('-w', '--width', type=size,
                         default=500, help=help_d['width'])
     parser.add_argument('-H', '--height',
@@ -366,6 +386,7 @@ def cli():
     print('Processing images in folder:', args.input)
     main(args.input,
          args.output,
+         args.reject,
          args.height,
          args.width,
          args.facePercent,
