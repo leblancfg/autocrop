@@ -100,8 +100,9 @@ def test_cli_no_args_means_cwd(mock_main):
     sys.argv = ['', '--no-confirm']
     cli()
     args, _ = mock_main.call_args
-    assert args == ('.', None, 500, 500, 50,
-                    False, False, False, False)
+    assert args == (
+        '.', None, None, 500, 500, 50, False, False, False, False
+    )
 
 
 @mock.patch('autocrop.autocrop.input_path', lambda p: p)
@@ -198,7 +199,7 @@ def test_main_overwrites_when_same_input_and_output(integration):
 def test_main_overwrites_when_no_output(mock_crop, integration):
     mock_crop.return_value = None
     assert mock_crop.call_count == 0
-    main('tests/test', None)
+    main('tests/test', None, None)
     assert mock_crop.call_count == 9
 
 
@@ -227,6 +228,7 @@ def test_user_does_not_get_prompted_if_no_confirm(mock_confirm):
 def test_images_files_copied_over_if_output_dir_specified(integration):
     sys.argv = ['', '-i', 'tests/test', '-o', 'tests/crop']
     cli()
+    assert os.listdir('tests/test') == 'tests/test'
     output_files = os.listdir(sys.argv[-1])
     assert len(output_files) == 9
 
