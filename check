@@ -3,7 +3,7 @@
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-FLAKE="flake8 --count ."
+FLAKE="flake8 --exclude=./env --count ."
 PYTEST="pytest"
 
 printf "${RED}Running \`$FLAKE\`${NC}\n"
