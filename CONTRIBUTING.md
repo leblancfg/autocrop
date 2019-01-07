@@ -1,14 +1,70 @@
-## Contributing
+# Contributing
 
- Please follow these steps:
-* Fork the repository on GitHub.
-* Install the extra dev packages with `pip install -r requirements-test.txt`
-* Make a branch off of master, commit and test your changes to it.
+## Development Setup
 
-Pull requests are tested on continuous integration (CI) servers before they are green-lit to merge with the master branch.
-* Run the tests and check your coding style by running the `./check` script in the root project directory
-* Submit a Pull Request to the master branch on GitHub.
+This project works with [virtualenv](https://virtualenv.pypa.io/en/latest/).
 
-If you have any questions regarding this, please reach me at leblancfg@gmail.com. We'll make sure we get through the steps correctly.
+To start things off, run:
 
-If you'd like to have a development environment for autocrop, you should create a virtualenv and then do `pip install -e .` from within the directory.
+```
+$ python3 -m venv env
+$ source env/bin/activate
+```
+
+Then, run:
+
+```
+$ pip install -U setuptools
+$ pip install -r requirements-test.txt
+$ pip install -e .
+```
+
+You can then run `autocrop` like so:
+
+```
+$ autocrop
+```
+
+As long as the virtual environment has been activated, this will command will
+use the files in your local Git checkout. This makes it super easy to work on
+the code and test your changes.
+
+To set up your virtual environment again in future, just run:
+
+```
+$ source env/bin/activate
+```
+
+## Tests
+
+Pull requests are tested using continuous integration (CI) which will
+green-light changes.
+
+Specifically, we:
+
+* Use [flake8](http://flake8.pycqa.org/en/latest/) for coding style tests
+* Run a test suite using [pytest](https://docs.pytest.org/en/latest/)
+
+You can run the tests locally, like so:
+
+```
+$ ./check
+```
+
+## Pull Requests
+
+Please follow these steps:
+
+* Fork the [autocrop](https://github.com/leblancfg/autocrop) repository to your
+  personal GitHub account
+* Branch off of `master` for every change you want to make
+* Develop changes on your branch
+* Test your changes (see previous section)
+* Modify the tests and documentation as necessary
+* When your changes are ready, make a pull request to the upstream
+  [autocrop](https://github.com/leblancfg/autocrop) repository
+
+## Contact
+
+If you have any questions, please email me at
+[leblancfg@gmail.com](mailto:leblancfg@gmail.com).
