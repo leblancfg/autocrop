@@ -1,7 +1,19 @@
 # Contributing
+All contributions, bug reports, bug fixes, documentation improvements, enhancements, and ideas are welcome.
+
+Please follow these steps:
+
+* Fork the [autocrop](https://github.com/leblancfg/autocrop) repository to your
+  personal GitHub account and clone it locally
+* Install the development setup (see section below)
+* Branch off of `master` for every change you want to make
+* Develop changes on your branch
+* Test your changes (see section below)
+* Modify the tests and documentation as necessary
+* When your changes are ready, make a pull request to the upstream
+  [autocrop](https://github.com/leblancfg/autocrop) repository
 
 ## Development Setup
-
 This project works with [virtualenv](https://virtualenv.pypa.io/en/latest/).
 
 To start things off, run:
@@ -48,21 +60,9 @@ Specifically, we:
 You can run the tests locally, like so:
 
 ```
-$ ./check
+$ make check
 ```
 
-## Pull Requests
-
-Please follow these steps:
-
-* Fork the [autocrop](https://github.com/leblancfg/autocrop) repository to your
-  personal GitHub account
-* Branch off of `master` for every change you want to make
-* Develop changes on your branch
-* Test your changes (see previous section)
-* Modify the tests and documentation as necessary
-* When your changes are ready, make a pull request to the upstream
-  [autocrop](https://github.com/leblancfg/autocrop) repository
 
 ## Contact
 
