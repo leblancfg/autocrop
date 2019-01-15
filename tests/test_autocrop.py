@@ -32,16 +32,18 @@ def integration():
     # Setup
     path_i = 'tests/test'
     path_o = 'tests/crop'
+    path_r = 'tests/reject'
     shutil.copytree('tests/data', path_i)
 
     yield
 
     # Teardown
     shutil.rmtree(path_i)
-    try:
-        shutil.rmtree(path_o)
-    except OSError:
-        pass
+    for path in [path_o, path_r]:
+        try:
+            shutil.rmtree(path)
+        except OSError:
+            pass
 
 
 def test_gamma_brightens_image():
