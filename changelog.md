@@ -1,13 +1,18 @@
 # Autocrop changelog
 
-## 0.3.0
-
+## 0.3.1
 ### Changes
 * Add `-r`, `--reject` flag to specify directory where the images that autocrop *couldn't* find a face in are directed to.
 * Instead of having the target files copied then cropped, they are instead cropped and saved to their respective target folder.
 
-## 0.2.0
+## 0.3.0
+### Changes
+* Added support for padding (`padLeft`, etc.) in the CLI.
 
+### Bugfix
+* Fixed warp on crop for `-w` and `-h` values
+
+## 0.2.0
 ### Changes
 * Add `-o`, `--output` flag to specify directory where cropped images are to be dumped.
 	- Error out if output folder set to current directory, i.e. `-o .`
