@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# -*- coding: utf-8 -*-
 
 """Tests for autocrop"""
 
@@ -225,12 +224,22 @@ def test_user_does_not_get_prompted_if_no_confirm(mock_confirm):
 
 
 @mock.patch('autocrop.autocrop.crop', lambda *args: None)
-def test_images_files_copied_over_if_output_dir_specified(integration):
+def test_noface_files_copied_over_if_output_d_specified(integration):
     sys.argv = ['', '-i', 'tests/test', '-o', 'tests/crop']
     cli()
-    assert os.listdir('tests/test') == 'tests/test'
     output_files = os.listdir(sys.argv[-1])
     assert len(output_files) == 9
+
+
+@mock.patch('autocrop.autocrop.crop', lambda *args: None)
+def test_nofaces_copied_to_reject_d_if_both_reject_and_output_d(integration):
+    sys.argv = ['', '-i', 'tests/test', '-o',
+                'tests/crop', '-r', 'tests/reject']
+    cli()
+    output_files = os.listdir('tests/crop')
+    reject_files = os.listdir('tests/reject')
+    assert len(output_files) == 0
+    assert len(reject_files) == 9
 
 
 @mock.patch('autocrop.autocrop.confirmation', lambda *args: True)
