@@ -190,8 +190,10 @@ def main(input_d,
     ]
     if output_d is None:
         output_d = input_d
-    if reject_d is None:
+    if reject_d is None and output_d is None:
         reject_d = input_d
+    if reject_d is None:
+        reject_d = output_d
 
     # Guard against calling the function directly
     input_count = len(input_files)
