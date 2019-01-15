@@ -1,6 +1,6 @@
 # Autocrop changelog
 
-## 0.2.1
+## 0.3.0
 
 ### Changes
 * Add `-r`, `--reject` flag to specify directory where the images that autocrop *couldn't* find a face in are directed to.
