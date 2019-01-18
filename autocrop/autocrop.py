@@ -4,10 +4,13 @@ from __future__ import print_function
 
 import argparse
 import cv2
+import io
 import numpy as np
 import os
 import shutil
 import sys
+
+from PIL import Image
 
 from .__version__ import __version__
 
@@ -18,10 +21,21 @@ GAMMA_THRES = 0.001
 GAMMA = 0.90
 FACE_RATIO = 6  # Face / padding ratio
 QUESTION_OVERWRITE = "Overwrite image files?"
-FILETYPES = ['.jpg', '.jpeg', '.bmp', '.dib', '.jp2',
-             '.png', '.webp', '.pbm', '.pgm', '.ppm',
-             '.sr', '.ras', '.tiff', '.tif']
-INPUT_FILETYPES = FILETYPES + [s.upper() for s in FILETYPES]
+
+# File types supported by OpenCV
+CV2_FILETYPES = [
+    '.bmp', '.dib', '.jp2', '.jpe', '.jpeg', '.jpg', '.pbm', '.pgm', '.png',
+    '.ppm', '.ras', '.sr', '.tif', '.tiff' '.webp'
+]
+
+# File types supported by Pillow
+PILLOW_FILETYPES = [
+    '.eps', '.gif', '.icns', '.ico', '.im', '.msp', '.pcx', '.sgi', '.spi',
+    '.xbm'
+]
+
+COMBINED_FILETYPES = CV2_FILETYPES + PILLOW_FILETYPES
+INPUT_FILETYPES = COMBINED_FILETYPES + [s.upper() for s in COMBINED_FILETYPES]
 
 # Load XML Resource
 cascFile = 'haarcascade_frontalface_default.xml'
@@ -203,9 +217,20 @@ def main(input_d,
         basename = os.path.basename(input_filename)
         output_filename = os.path.join(output_d, basename)
         reject_filename = os.path.join(reject_d, basename)
+        extension = os.path.splitext(basename)[1]
+
+        input_img = None
+
+        if extension in CV2_FILETYPES:
+            # Try with cv2
+            input_img = cv2.imread(input_filename)
+
+        if extension in PILLOW_FILETYPES:
+            # Try with PIL
+            with Image.open(input_filename) as img_orig:
+                input_img = np.asarray(img_orig)
 
         # Attempt the crop
-        input_img = cv2.imread(input_filename)
         image = crop(input_img,
                      fheight,
                      fwidth,
@@ -226,8 +251,13 @@ def main(input_d,
             if input_filename != output_filename:
                 # Move the file to the output directory
                 shutil.move(input_filename, output_filename)
-            # Write the cropped image
-            cv2.imwrite(output_filename, image)
+            # Encode the image as an in-memory PNG
+            img_png = cv2.imencode(".png", image)[1].tostring()
+            # Read the PNG data
+            img_new = Image.open(io.BytesIO(img_png))
+            # Write the new image (converting the format to match the output
+            # filename if necessary)
+            img_new.save(output_filename)
             print('Face detected:    {}'.format(output_filename))
             output_count += 1
 

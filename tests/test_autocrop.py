@@ -193,7 +193,9 @@ def test_main_overwrites_when_same_input_and_output(integration):
     sys.argv = ['', '--no-confirm', '-i', 'tests/test', '-o', 'tests/test']
     cli()
     output_files = os.listdir(sys.argv[-1])
-    assert len(output_files) == 10
+    from pprint import pprint
+    pprint(output_files)
+    assert len(output_files) == 11
 
 
 @mock.patch('autocrop.autocrop.crop')
@@ -201,7 +203,7 @@ def test_main_overwrites_when_no_output(mock_crop, integration):
     mock_crop.return_value = None
     assert mock_crop.call_count == 0
     main('tests/test', None, None)
-    assert mock_crop.call_count == 9
+    assert mock_crop.call_count == 10
 
 
 @mock.patch('autocrop.autocrop.main', lambda *args: None)
@@ -230,7 +232,7 @@ def test_noface_files_copied_over_if_output_d_specified(integration):
     sys.argv = ['', '-i', 'tests/test', '-o', 'tests/crop']
     cli()
     output_files = os.listdir(sys.argv[-1])
-    assert len(output_files) == 9
+    assert len(output_files) == 10
 
 
 @mock.patch('autocrop.autocrop.crop', lambda *args: None)
@@ -241,7 +243,7 @@ def test_nofaces_copied_to_reject_d_if_both_reject_and_output_d(integration):
     output_files = os.listdir('tests/crop')
     reject_files = os.listdir('tests/reject')
     assert len(output_files) == 0
-    assert len(reject_files) == 9
+    assert len(reject_files) == 10
 
 
 @mock.patch('autocrop.autocrop.confirmation', lambda *args: True)
@@ -250,7 +252,7 @@ def test_image_files_overwritten_if_no_output_dir(integration):
     cli()
     # We have the same number of files
     output_files = os.listdir(sys.argv[-1])
-    assert len(output_files) == 10
+    assert len(output_files) == 11
     # Images with a face have been cropped
     shape = cv2.imread('tests/test/king.jpg').shape
     assert shape == (500, 500, 3)

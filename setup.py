@@ -21,7 +21,8 @@ AUTHOR = 'François Leblanc'
 # What packages are required for this module to be executed?
 REQUIRED = [
     'numpy>=1.10',
-    'opencv-python>=3, <4'
+    'opencv-python>=3, <4',
+    'Pillow>5',
 ]
 
 # The rest you shouldn't have to touch too much :)
