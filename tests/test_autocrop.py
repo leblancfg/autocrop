@@ -232,7 +232,15 @@ def test_noface_files_copied_over_if_output_d_specified(integration):
 
 @mock.patch("autocrop.autocrop.crop", lambda *args: None)
 def test_nofaces_copied_to_reject_d_if_both_reject_and_output_d(integration):
-    sys.argv = ["", "-i", "tests/test", "-o", "tests/crop", "-r", "tests/reject"]
+    sys.argv = [
+        "",
+        "-i",
+        "tests/test",
+        "-o",
+        "tests/crop",
+        "-r",
+        "tests/reject",
+    ]
     cli()
     output_files = os.listdir("tests/crop")
     reject_files = os.listdir("tests/reject")

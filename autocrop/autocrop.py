@@ -259,7 +259,14 @@ def main(
 
         # Attempt the crop
         image = crop(
-            input_img, fheight, fwidth, facePercent, padUp, padDown, padLeft, padRight
+            input_img,
+            fheight,
+            fwidth,
+            facePercent,
+            padUp,
+            padDown,
+            padLeft,
+            padRight,
         )
 
         # Did the crop produce a valid image
@@ -420,8 +427,12 @@ def parse_args(args):
     parser.add_argument(
         "-r", "--reject", type=output_path, default=None, help=help_d["reject"]
     )
-    parser.add_argument("-w", "--width", type=size, default=500, help=help_d["width"])
-    parser.add_argument("-H", "--height", type=size, default=500, help=help_d["height"])
+    parser.add_argument(
+        "-w", "--width", type=size, default=500, help=help_d["width"]
+    )
+    parser.add_argument(
+        "-H", "--height", type=size, default=500, help=help_d["height"]
+    )
     parser.add_argument(
         "-v",
         "--version",
@@ -429,10 +440,18 @@ def parse_args(args):
         version="%(prog)s version {}".format(__version__),
     )
     parser.add_argument("--no-confirm", action="store_true", help=help_d["y"])
-    parser.add_argument("--padUp", type=size, default=False, help=help_d["padUp"])
-    parser.add_argument("--padDown", type=size, default=False, help=help_d["padDown"])
-    parser.add_argument("--padLeft", type=size, default=False, help=help_d["padLeft"])
-    parser.add_argument("--padRight", type=size, default=False, help=help_d["padRight"])
+    parser.add_argument(
+        "--padUp", type=size, default=False, help=help_d["padUp"]
+    )
+    parser.add_argument(
+        "--padDown", type=size, default=False, help=help_d["padDown"]
+    )
+    parser.add_argument(
+        "--padLeft", type=size, default=False, help=help_d["padLeft"]
+    )
+    parser.add_argument(
+        "--padRight", type=size, default=False, help=help_d["padRight"]
+    )
     parser.add_argument(
         "--facePercent", type=size, default=50, help=help_d["facePercent"]
     )
