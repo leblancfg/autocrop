@@ -171,7 +171,7 @@ def crop(
         padRight,
     )
     # Actual cropping
-    image = image[pos[0] : pos[1], pos[2] : pos[3]]
+    image = image[pos[0]: pos[1], pos[2]: pos[3]]
 
     # Resize
     image = cv2.resize(image, (fwidth, fheight), interpolation=cv2.INTER_AREA)
