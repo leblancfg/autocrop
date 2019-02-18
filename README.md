@@ -46,6 +46,31 @@ The previous command will:
 Images where a face can't be detected will be left in `crop`.
 If no output folder is added, asks for confirmation and destructively crops images in-place.
 
+### Supported file types
+
+The following file types are supported:
+
+- EPS files (`.eps`)
+- GIF files (`.gif`) (only the first frame of an animated GIF is used)
+- JPEG 2000 files (`.j2k`, `.j2p`, `.jp2`, `.jpx`)
+- JPEG files (`.jpeg`, `.jpg`, `.jpe`)
+- LabEye IM files (`.im`)
+- macOS ICNS files (`.icns`)
+- Microsoft Paint bitmap files (`.msp`)
+- MSP files (`.msp`)
+- MSP files (`.msp`)
+- PCX files (`.pcx`)
+- Portable Network Graphics (`.png`)
+- Portable Pixmap files (`.pbm`, `.pgm`, `.ppm`)
+- SGI files (`.sgi`)
+- SPIDER files (`.spi`)
+- TGA files (`.tga`)
+- TIFF files (`.tif`, `.tiff`)
+- WebP (`.webp`)
+- Windows bitmap files (`.bmp`, `.dib`)
+- Windows ICO files (`.ico`)
+- X bitmap files (`.xbm`)
+
 ## Installation
 Simple! In your command line, type:
 

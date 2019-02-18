@@ -4,40 +4,55 @@ from __future__ import print_function
 
 import argparse
 import cv2
+import io
 import numpy as np
 import os
 import shutil
 import sys
 
-from .__version__ import __version__
+from PIL import Image
 
-FIXEXP = True  # Flag to fix underexposition
-MINFACE = 8  # Minimum face size ratio; too low and we get false positives
-INCREMENT = 0.06
-GAMMA_THRES = 0.001
-GAMMA = 0.90
-FACE_RATIO = 6  # Face / padding ratio
-QUESTION_OVERWRITE = "Overwrite image files?"
-FILETYPES = ['.jpg', '.jpeg', '.bmp', '.dib', '.jp2',
-             '.png', '.webp', '.pbm', '.pgm', '.ppm',
-             '.sr', '.ras', '.tiff', '.tif']
-INPUT_FILETYPES = FILETYPES + [s.upper() for s in FILETYPES]
+from .__version__ import __version__
+from .constants import (
+    FIXEXP,
+    MINFACE,
+    GAMMA_THRES,
+    GAMMA,
+    QUESTION_OVERWRITE,
+    CV2_FILETYPES,
+    PILLOW_FILETYPES,
+    CASCFILE,
+)
+
+COMBINED_FILETYPES = CV2_FILETYPES + PILLOW_FILETYPES
+INPUT_FILETYPES = COMBINED_FILETYPES + [s.upper() for s in COMBINED_FILETYPES]
 
 # Load XML Resource
-cascFile = 'haarcascade_frontalface_default.xml'
-d = os.path.dirname(sys.modules['autocrop'].__file__)
-cascPath = os.path.join(d, cascFile)
+d = os.path.dirname(sys.modules["autocrop"].__file__)
+cascPath = os.path.join(d, CASCFILE)
 
 
 # Define simple gamma correction fn
 def gamma(img, correction):
-    img = cv2.pow(img/255.0, correction)
-    return np.uint8(img*255)
+    img = cv2.pow(img / 255.0, correction)
+    return np.uint8(img * 255)
 
 
-def crop_positions(imgh, imgw, x, y, w, h,
-                   fheight, fwidth, facePercent,
-                   padUp, padDown, padLeft, padRight):
+def crop_positions(
+    imgh,
+    imgw,
+    x,
+    y,
+    w,
+    h,
+    fheight,
+    fwidth,
+    facePercent,
+    padUp,
+    padDown,
+    padLeft,
+    padRight,
+):
     # Check padding values
     padUp = 50 if (padUp is False or padUp < 0) else padUp
     padDown = 50 if (padDown is False or padDown < 0) else padDown
@@ -85,8 +100,16 @@ def crop_positions(imgh, imgw, x, y, w, h,
     return [int(v1), int(v2), int(h1), int(h2)]
 
 
-def crop(image, fheight=500, fwidth=500, facePercent=50,
-         padUp=False, padDown=False, padLeft=False, padRight=False):
+def crop(
+    image,
+    fheight=500,
+    fwidth=500,
+    facePercent=50,
+    padUp=False,
+    padDown=False,
+    padLeft=False,
+    padRight=False,
+):
     """Given a ndarray image with a face, returns cropped array.
 
     Arguments:
@@ -110,8 +133,8 @@ def crop(image, fheight=500, fwidth=500, facePercent=50,
         gray = image
 
     # Scale the image
-    height, width = (image.shape[:2])
-    minface = int(np.sqrt(height**2 + width**2) / MINFACE)
+    height, width = image.shape[:2]
+    minface = int(np.sqrt(height ** 2 + width ** 2) / MINFACE)
 
     # Create the haar cascade
     faceCascade = cv2.CascadeClassifier(cascPath)
@@ -132,15 +155,26 @@ def crop(image, fheight=500, fwidth=500, facePercent=50,
     # Make padding from biggest face found
     x, y, w, h = faces[-1]
 
-    pos = crop_positions(height, width, x, y, w, h,
-                         fheight, fwidth, facePercent,
-                         padUp, padDown, padLeft, padRight)
+    pos = crop_positions(
+        height,
+        width,
+        x,
+        y,
+        w,
+        h,
+        fheight,
+        fwidth,
+        facePercent,
+        padUp,
+        padDown,
+        padLeft,
+        padRight,
+    )
     # Actual cropping
-    image = image[pos[0]:pos[1], pos[2]:pos[3]]
+    image = image[pos[0] : pos[1], pos[2] : pos[3]]
 
     # Resize
-    image = cv2.resize(image, (fwidth, fheight),
-                       interpolation=cv2.INTER_AREA)
+    image = cv2.resize(image, (fwidth, fheight), interpolation=cv2.INTER_AREA)
 
     # ====== Dealing with underexposition ======
     if FIXEXP:
@@ -151,16 +185,32 @@ def crop(image, fheight=500, fwidth=500, facePercent=50,
     return image
 
 
-def main(input_d,
-         output_d,
-         reject_d,
-         fheight=500,
-         fwidth=500,
-         facePercent=50,
-         padUp=False,
-         padDown=False,
-         padLeft=False,
-         padRight=False):
+def open_file(input_filename):
+    """Given a filename, returns a numpy array"""
+    extension = os.path.splitext(input_filename)[1]
+
+    if extension in CV2_FILETYPES:
+        # Try with cv2
+        return cv2.imread(input_filename)
+    if extension in PILLOW_FILETYPES:
+        # Try with PIL
+        with Image.open(input_filename) as img_orig:
+            return np.asarray(img_orig)
+    return None
+
+
+def main(
+    input_d,
+    output_d,
+    reject_d,
+    fheight=500,
+    fwidth=500,
+    facePercent=50,
+    padUp=False,
+    padDown=False,
+    padLeft=False,
+    padRight=False,
+):
     """Crops folder of images to the desired height and width if a face is found
 
     If input_d == output_d or output_d is None, overwrites all files
@@ -185,7 +235,8 @@ def main(input_d,
     reject_count = 0
     output_count = 0
     input_files = [
-        os.path.join(input_d, f) for f in os.listdir(input_d)
+        os.path.join(input_d, f)
+        for f in os.listdir(input_d)
         if any(f.endswith(t) for t in INPUT_FILETYPES)
     ]
     if output_d is None:
@@ -204,42 +255,46 @@ def main(input_d,
         output_filename = os.path.join(output_d, basename)
         reject_filename = os.path.join(reject_d, basename)
 
+        input_img = open_file(input_filename)
+
         # Attempt the crop
-        input_img = cv2.imread(input_filename)
-        image = crop(input_img,
-                     fheight,
-                     fwidth,
-                     facePercent,
-                     padUp,
-                     padDown,
-                     padLeft,
-                     padRight)
+        image = crop(
+            input_img, fheight, fwidth, facePercent, padUp, padDown, padLeft, padRight
+        )
 
         # Did the crop produce a valid image
         if isinstance(image, type(None)):
             if input_filename != reject_filename:
                 # Move the file to the reject directory
                 shutil.move(input_filename, reject_filename)
-            print('No face detected: {}'.format(reject_filename))
+            print("No face detected: {}".format(reject_filename))
             reject_count += 1
         else:
             if input_filename != output_filename:
                 # Move the file to the output directory
                 shutil.move(input_filename, output_filename)
-            # Write the cropped image
-            cv2.imwrite(output_filename, image)
-            print('Face detected:    {}'.format(output_filename))
+            # Encode the image as an in-memory PNG
+            img_png = cv2.imencode(".png", image)[1].tostring()
+            # Read the PNG data
+            img_new = Image.open(io.BytesIO(img_png))
+            # Write the new image (converting the format to match the output
+            # filename if necessary)
+            img_new.save(output_filename)
+            print("Face detected:    {}".format(output_filename))
             output_count += 1
 
     # Stop and print status
-    print('{} input files, {} faces cropped, {} rejected'.format(
-        input_count, output_count, reject_count))
+    print(
+        "{} input files, {} faces cropped, {} rejected".format(
+            input_count, output_count, reject_count
+        )
+    )
 
 
 def input_path(p):
     """Returns path, only if input is a valid directory"""
-    no_folder = 'Input folder does not exist'
-    no_images = 'Input folder does not contain any image files'
+    no_folder = "Input folder does not exist"
+    no_images = "Input folder does not contain any image files"
     p = os.path.abspath(p)
     if not os.path.isdir(p):
         raise argparse.ArgumentTypeError(no_folder)
@@ -261,7 +316,7 @@ def output_path(p):
 
 def size(i):
     """Returns valid only if input is a positive integer under 1e5"""
-    error = 'Invalid pixel size'
+    error = "Invalid pixel size"
     try:
         i = int(i)
     except TypeError:
@@ -272,7 +327,7 @@ def size(i):
         raise argparse.ArgumentTypeError(error)
 
 
-def compat_input(s=''):
+def compat_input(s=""):
     """Compatibility function to permit testing for Python 2 and 3"""
     try:
         return raw_input(s)
@@ -327,52 +382,60 @@ def confirmation(question, default=True):
 
 def parse_args(args):
     help_d = {
-            'desc': 'Automatically crops faces from batches of pictures',
-            'input': '''Folder where images to crop are located. Default:
-                     current working directory''',
-            'output': '''Folder where cropped images will be moved to.
+        "desc": "Automatically crops faces from batches of pictures",
+        "input": """Folder where images to crop are located. Default:
+                     current working directory""",
+        "output": """Folder where cropped images will be moved to.
 
                       Default: current working directory, meaning images are
-                      cropped in place.''',
-            'reject': '''Folder where images that could not be cropped will be
+                      cropped in place.""",
+        "reject": """Folder where images that could not be cropped will be
                        moved to.
 
                       Default: current working directory, meaning images that
-                      are not cropped will be left in place.''',
-            'width': 'Width of cropped files in px. Default=500',
-            'height': 'Height of cropped files in px. Default=500',
-            'y': 'Bypass any confirmation prompts',
-            'facePercent': 'Percentage of face to image height',
-            'padUp': 'Add padding up to face cropped',
-            'padDown': 'Add padding down to face cropped',
-            'padLeft': 'Add padding left to face cropped',
-            'padRight': 'Add padding right to face cropped',
-            }
+                      are not cropped will be left in place.""",
+        "width": "Width of cropped files in px. Default=500",
+        "height": "Height of cropped files in px. Default=500",
+        "y": "Bypass any confirmation prompts",
+        "facePercent": "Percentage of face to image height",
+        "padUp": "Add padding up to face cropped",
+        "padDown": "Add padding down to face cropped",
+        "padLeft": "Add padding left to face cropped",
+        "padRight": "Add padding right to face cropped",
+    }
 
-    parser = argparse.ArgumentParser(description=help_d['desc'])
-    parser.add_argument('-i', '--input', default='.', type=input_path,
-                        help=help_d['input'])
-    parser.add_argument('-o', '--output', '-p', '--path', type=output_path,
-                        default=None, help=help_d['output'])
-    parser.add_argument('-r', '--reject', type=output_path, default=None,
-                        help=help_d['reject'])
-    parser.add_argument('-w', '--width', type=size,
-                        default=500, help=help_d['width'])
-    parser.add_argument('-H', '--height',
-                        type=size, default=500, help=help_d['height'])
-    parser.add_argument('-v', '--version', action='version',
-                        version='%(prog)s version {}'.format(__version__))
-    parser.add_argument('--no-confirm', action='store_true', help=help_d['y'])
-    parser.add_argument('--padUp', type=size,
-                        default=False, help=help_d['padUp'])
-    parser.add_argument('--padDown', type=size,
-                        default=False, help=help_d['padDown'])
-    parser.add_argument('--padLeft', type=size,
-                        default=False, help=help_d['padLeft'])
-    parser.add_argument('--padRight', type=size,
-                        default=False, help=help_d['padRight'])
-    parser.add_argument('--facePercent', type=size,
-                        default=50, help=help_d['facePercent'])
+    parser = argparse.ArgumentParser(description=help_d["desc"])
+    parser.add_argument(
+        "-i", "--input", default=".", type=input_path, help=help_d["input"]
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        "-p",
+        "--path",
+        type=output_path,
+        default=None,
+        help=help_d["output"],
+    )
+    parser.add_argument(
+        "-r", "--reject", type=output_path, default=None, help=help_d["reject"]
+    )
+    parser.add_argument("-w", "--width", type=size, default=500, help=help_d["width"])
+    parser.add_argument("-H", "--height", type=size, default=500, help=help_d["height"])
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version="%(prog)s version {}".format(__version__),
+    )
+    parser.add_argument("--no-confirm", action="store_true", help=help_d["y"])
+    parser.add_argument("--padUp", type=size, default=False, help=help_d["padUp"])
+    parser.add_argument("--padDown", type=size, default=False, help=help_d["padDown"])
+    parser.add_argument("--padLeft", type=size, default=False, help=help_d["padLeft"])
+    parser.add_argument("--padRight", type=size, default=False, help=help_d["padRight"])
+    parser.add_argument(
+        "--facePercent", type=size, default=50, help=help_d["facePercent"]
+    )
 
     return parser.parse_args()
 
@@ -385,14 +448,16 @@ def cli():
                 sys.exit()
     if args.input == args.output:
         args.output = None
-    print('Processing images in folder:', args.input)
-    main(args.input,
-         args.output,
-         args.reject,
-         args.height,
-         args.width,
-         args.facePercent,
-         args.padUp,
-         args.padDown,
-         args.padLeft,
-         args.padRight)
+    print("Processing images in folder:", args.input)
+    main(
+        args.input,
+        args.output,
+        args.reject,
+        args.height,
+        args.width,
+        args.facePercent,
+        args.padUp,
+        args.padDown,
+        args.padLeft,
+        args.padRight,
+    )
