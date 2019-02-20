@@ -401,6 +401,7 @@ def parse_args(args):
 
                       Default: current working directory, meaning images that
                       are not cropped will be left in place.""",
+        "preserve": "Preserve file created date and modified date.",
         "width": "Width of cropped files in px. Default=500",
         "height": "Height of cropped files in px. Default=500",
         "y": "Bypass any confirmation prompts",
