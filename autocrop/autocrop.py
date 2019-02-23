@@ -257,17 +257,22 @@ def main(
 
         input_img = open_file(input_filename)
 
+        image = None
         # Attempt the crop
-        image = crop(
-            input_img,
-            fheight,
-            fwidth,
-            facePercent,
-            padUp,
-            padDown,
-            padLeft,
-            padRight,
-        )
+        try:
+            image = crop(
+                input_img,
+                fheight,
+                fwidth,
+                facePercent,
+                padUp,
+                padDown,
+                padLeft,
+                padRight,
+            )
+        except:
+            print("Error:            {}".format(input_filename))
+            continue
 
         # Did the crop produce a valid image
         if isinstance(image, type(None)):
