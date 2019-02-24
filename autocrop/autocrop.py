@@ -187,7 +187,7 @@ def crop(
 
 def open_file(input_filename):
     """Given a filename, returns a numpy array"""
-    extension = os.path.splitext(input_filename)[1]
+    extension = os.path.splitext(input_filename)[1].lower()
 
     if extension in CV2_FILETYPES:
         # Try with cv2
