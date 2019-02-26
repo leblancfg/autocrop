@@ -17,6 +17,9 @@ From the command line:
 	  -o, --output, -p, --path
 				Folder where cropped images will be placed.
 				Default: current working directory
+		-r, --reject
+				Folder where images without detected faces will be placed.
+				Default: output directory
 	  -i, --input
 				Folder where images to crop are located.
 				Default: current working directory
@@ -35,6 +38,8 @@ From the command line:
 Params (width, height, facePercent)
 * Example:
 `autocrop -i pics -o crop -w 400 -H 400 --facePercent 50`.
+* Example with reject folder:
+`autocrop -i pics -o crop -r nofaces -w 400 -H 400 --facePercent 50`.
 * Example more padding down:
  `autocrop -i pics -o crop -w 400 -H 400 --facePercent 50 --padUp 20 --padDown 50`.
 
