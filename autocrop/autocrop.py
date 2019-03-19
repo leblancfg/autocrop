@@ -32,6 +32,10 @@ d = os.path.dirname(sys.modules["autocrop"].__file__)
 cascPath = os.path.join(d, CASCFILE)
 
 
+def ReadError(Exception):
+    pass
+
+
 # Define simple gamma correction fn
 def gamma(img, correction):
     img = cv2.pow(img / 255.0, correction)
@@ -133,7 +137,10 @@ def crop(
         gray = image
 
     # Scale the image
-    height, width = image.shape[:2]
+    try:
+        height, width = image.shape[:2]
+    except AttributeError:
+        raise ReadError()
     minface = int(np.sqrt(height ** 2 + width ** 2) / MINFACE)
 
     # Create the haar cascade
@@ -197,6 +204,28 @@ def open_file(input_filename):
         with Image.open(input_filename) as img_orig:
             return np.asarray(img_orig)
     return None
+
+
+def output(input_filename, output_filename, image):
+    """Move the input file to the output location and write over it with the
+    cropped image data."""
+    if input_filename != output_filename:
+        # Move the file to the output directory
+        shutil.move(input_filename, output_filename)
+    # Encode the image as an in-memory PNG
+    img_png = cv2.imencode(".png", image)[1].tostring()
+    # Read the PNG data
+    img_new = Image.open(io.BytesIO(img_png))
+    # Write the new image (converting the format to match the output
+    # filename if necessary)
+    img_new.save(output_filename)
+
+
+def reject(input_filename, reject_filename):
+    """Move the input file to the reject location."""
+    if input_filename != reject_filename:
+        # Move the file to the reject directory
+        shutil.move(input_filename, reject_filename)
 
 
 def main(
@@ -270,28 +299,17 @@ def main(
                 padLeft,
                 padRight,
             )
-        except:
-            print("Error:            {}".format(input_filename))
+        except ReadError:
+            print("Read error:       {}".format(input_filename))
             continue
 
-        # Did the crop produce a valid image
+        # Did the crop produce an invalid image?
         if isinstance(image, type(None)):
-            if input_filename != reject_filename:
-                # Move the file to the reject directory
-                shutil.move(input_filename, reject_filename)
+            reject(input_filename, output_filename)
             print("No face detected: {}".format(reject_filename))
             reject_count += 1
         else:
-            if input_filename != output_filename:
-                # Move the file to the output directory
-                shutil.move(input_filename, output_filename)
-            # Encode the image as an in-memory PNG
-            img_png = cv2.imencode(".png", image)[1].tostring()
-            # Read the PNG data
-            img_new = Image.open(io.BytesIO(img_png))
-            # Write the new image (converting the format to match the output
-            # filename if necessary)
-            img_new.save(output_filename)
+            output(image, input_filename, output_filename)
             print("Face detected:    {}".format(output_filename))
             output_count += 1
 
