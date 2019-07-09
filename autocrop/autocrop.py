@@ -32,6 +32,11 @@ d = os.path.dirname(sys.modules["autocrop"].__file__)
 cascPath = os.path.join(d, CASCFILE)
 
 
+# Load custom exception to catch a certain failure type
+def ImageReadError(Exception):
+    pass
+
+
 # Define simple gamma correction fn
 def gamma(img, correction):
     img = cv2.pow(img / 255.0, correction)
@@ -133,7 +138,10 @@ def crop(
         gray = image
 
     # Scale the image
-    height, width = image.shape[:2]
+    try:
+        height, width = image.shape[:2]
+    except AttributeError:
+        raise ImageReadError
     minface = int(np.sqrt(height ** 2 + width ** 2) / MINFACE)
 
     # Create the haar cascade
@@ -187,7 +195,7 @@ def crop(
 
 def open_file(input_filename):
     """Given a filename, returns a numpy array"""
-    extension = os.path.splitext(input_filename)[1]
+    extension = os.path.splitext(input_filename)[1].lower()
 
     if extension in CV2_FILETYPES:
         # Try with cv2
@@ -197,6 +205,28 @@ def open_file(input_filename):
         with Image.open(input_filename) as img_orig:
             return np.asarray(img_orig)
     return None
+
+
+def output(input_filename, output_filename, image):
+    """Move the input file to the output location and write over it with the
+    cropped image data."""
+    if input_filename != output_filename:
+        # Move the file to the output directory
+        shutil.move(input_filename, output_filename)
+    # Encode the image as an in-memory PNG
+    img_png = cv2.imencode(".png", image)[1].tostring()
+    # Read the PNG data
+    img_new = Image.open(io.BytesIO(img_png))
+    # Write the new image (converting the format to match the output
+    # filename if necessary)
+    img_new.save(output_filename)
+
+
+def reject(input_filename, reject_filename):
+    """Move the input file to the reject location."""
+    if input_filename != reject_filename:
+        # Move the file to the reject directory
+        shutil.move(input_filename, reject_filename)
 
 
 def main(
@@ -250,43 +280,38 @@ def main(
     input_count = len(input_files)
     assert input_count > 0
 
+    # Main loop
     for input_filename in input_files:
         basename = os.path.basename(input_filename)
         output_filename = os.path.join(output_d, basename)
         reject_filename = os.path.join(reject_d, basename)
 
         input_img = open_file(input_filename)
+        image = None
 
         # Attempt the crop
-        image = crop(
-            input_img,
-            fheight,
-            fwidth,
-            facePercent,
-            padUp,
-            padDown,
-            padLeft,
-            padRight,
-        )
+        try:
+            image = crop(
+                input_img,
+                fheight,
+                fwidth,
+                facePercent,
+                padUp,
+                padDown,
+                padLeft,
+                padRight,
+            )
+        except ImageReadError:
+            print("Read error:       {}".format(input_filename))
+            continue
 
-        # Did the crop produce a valid image
+        # Did the crop produce an invalid image?
         if isinstance(image, type(None)):
-            if input_filename != reject_filename:
-                # Move the file to the reject directory
-                shutil.move(input_filename, reject_filename)
+            reject(input_filename, reject_filename)
             print("No face detected: {}".format(reject_filename))
             reject_count += 1
         else:
-            if input_filename != output_filename:
-                # Move the file to the output directory
-                shutil.move(input_filename, output_filename)
-            # Encode the image as an in-memory PNG
-            img_png = cv2.imencode(".png", image)[1].tostring()
-            # Read the PNG data
-            img_new = Image.open(io.BytesIO(img_png))
-            # Write the new image (converting the format to match the output
-            # filename if necessary)
-            img_new.save(output_filename)
+            output(input_filename, output_filename, image)
             print("Face detected:    {}".format(output_filename))
             output_count += 1
 

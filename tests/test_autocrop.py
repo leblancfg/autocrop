@@ -7,13 +7,13 @@ import os
 import shutil
 import sys
 
+import pytest
+import cv2
+import numpy as np
 try:
     import mock
 except ImportError:
     from unittest import mock
-import pytest
-import cv2
-import numpy as np
 
 from autocrop.autocrop import gamma, crop, cli, main, size, confirmation
 
@@ -187,9 +187,6 @@ def test_main_overwrites_when_same_input_and_output(integration):
     sys.argv = ["", "--no-confirm", "-i", "tests/test", "-o", "tests/test"]
     cli()
     output_files = os.listdir(sys.argv[-1])
-    from pprint import pprint
-
-    pprint(output_files)
     assert len(output_files) == 11
 
 
@@ -230,7 +227,6 @@ def test_noface_files_copied_over_if_output_d_specified(integration):
     assert len(output_files) == 10
 
 
-@mock.patch("autocrop.autocrop.crop", lambda *args: None)
 def test_nofaces_copied_to_reject_d_if_both_reject_and_output_d(integration):
     sys.argv = [
         "",
@@ -242,10 +238,10 @@ def test_nofaces_copied_to_reject_d_if_both_reject_and_output_d(integration):
         "tests/reject",
     ]
     cli()
-    output_files = os.listdir("tests/crop")
-    reject_files = os.listdir("tests/reject")
-    assert len(output_files) == 0
-    assert len(reject_files) == 10
+    output_files = os.listdir(sys.argv[-3])
+    reject_files = os.listdir(sys.argv[-1])
+    assert len(output_files) == 7
+    assert len(reject_files) == 3
 
 
 @mock.patch("autocrop.autocrop.confirmation", lambda *args: True)
