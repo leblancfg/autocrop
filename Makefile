@@ -5,7 +5,7 @@ pypi-test:
 	python setup.py sdist
 	twine upload dist/* -r testpypi
 
-pypi: pypi-test
+pypi:
 	twine upload dist/*
 
 check:
@@ -14,4 +14,4 @@ check:
 	@flake8 --exclude=./env --max-complexity=8 --count .
 	@pytest
 
-.PHONY: check
+.PHONY: check pypi pypi-test
