@@ -32,6 +32,11 @@ d = os.path.dirname(sys.modules["autocrop"].__file__)
 cascPath = os.path.join(d, CASCFILE)
 
 
+# Load custom exception to catch a certain failure type
+def ImageReadError(Exception):
+    pass
+
+
 # Define simple gamma correction fn
 def gamma(img, correction):
     img = cv2.pow(img / 255.0, correction)
@@ -135,9 +140,8 @@ def crop(
     # Scale the image
     try:
         height, width = image.shape[:2]
-    except AttributeError as e:
-        print("Error reading image, is it a valid image file?", e)
-        raise e
+    except AttributeError:
+        raise ImageReadError
     minface = int(np.sqrt(height ** 2 + width ** 2) / MINFACE)
 
     # Create the haar cascade
@@ -297,7 +301,7 @@ def main(
                 padLeft,
                 padRight,
             )
-        except ReadError:
+        except ImageReadError:
             print("Read error:       {}".format(input_filename))
             continue
 

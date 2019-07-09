@@ -11,7 +11,7 @@ pypi: pypi-test
 check:
 	@printf "${RED}Running flake8${NC}\n"
 	@printf "${RED}Running pytest${NC}\n"
-	@flake8 --exclude=./bin/ --max-complexity=8 --count .
+	@flake8 --exclude=./env --max-complexity=8 --count .
 	@pytest
 
 .PHONY: check
