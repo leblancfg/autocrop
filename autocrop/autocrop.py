@@ -32,10 +32,6 @@ d = os.path.dirname(sys.modules["autocrop"].__file__)
 cascPath = os.path.join(d, CASCFILE)
 
 
-def ReadError(Exception):
-    pass
-
-
 # Define simple gamma correction fn
 def gamma(img, correction):
     img = cv2.pow(img / 255.0, correction)
@@ -139,8 +135,9 @@ def crop(
     # Scale the image
     try:
         height, width = image.shape[:2]
-    except AttributeError:
-        raise ReadError()
+    except AttributeError as e:
+        print("Error reading image, is it a valid image file?", e)
+        raise e
     minface = int(np.sqrt(height ** 2 + width ** 2) / MINFACE)
 
     # Create the haar cascade
@@ -279,14 +276,15 @@ def main(
     input_count = len(input_files)
     assert input_count > 0
 
+    # Main loop
     for input_filename in input_files:
         basename = os.path.basename(input_filename)
         output_filename = os.path.join(output_d, basename)
         reject_filename = os.path.join(reject_d, basename)
 
         input_img = open_file(input_filename)
-
         image = None
+
         # Attempt the crop
         try:
             image = crop(
@@ -305,11 +303,11 @@ def main(
 
         # Did the crop produce an invalid image?
         if isinstance(image, type(None)):
-            reject(input_filename, output_filename)
+            reject(input_filename, reject_filename)
             print("No face detected: {}".format(reject_filename))
             reject_count += 1
         else:
-            output(image, input_filename, output_filename)
+            output(input_filename, output_filename, image)
             print("Face detected:    {}".format(output_filename))
             output_count += 1
 

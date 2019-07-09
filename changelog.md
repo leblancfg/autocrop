@@ -1,5 +1,10 @@
 # Autocrop changelog
 
+## 0.3.2
+### Changes
+* Autocrop now prints the filename of images where face detection failed
+* Internal refactoring and more tests
+
 ## 0.3.1
 ### Changes
 * Add `-r`, `--reject` flag to specify directory where the images that autocrop *couldn't* find a face in are directed to.
