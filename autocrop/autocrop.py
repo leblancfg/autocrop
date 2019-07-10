@@ -33,7 +33,7 @@ cascPath = os.path.join(d, CASCFILE)
 
 
 # Load custom exception to catch a certain failure type
-def ImageReadError(Exception):
+def ImageReadError(BaseException):
     pass
 
 
