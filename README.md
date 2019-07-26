@@ -62,8 +62,6 @@ The following file types are supported:
 - LabEye IM files (`.im`)
 - macOS ICNS files (`.icns`)
 - Microsoft Paint bitmap files (`.msp`)
-- MSP files (`.msp`)
-- MSP files (`.msp`)
 - PCX files (`.pcx`)
 - Portable Network Graphics (`.png`)
 - Portable Pixmap files (`.pbm`, `.pgm`, `.ppm`)
