@@ -33,7 +33,7 @@ cascPath = os.path.join(d, CASCFILE)
 
 
 # Load custom exception to catch a certain failure type
-def ImageReadError(BaseException):
+class ImageReadError(BaseException):
     pass
 
 
@@ -364,7 +364,8 @@ def compat_input(s=""):
     try:
         return raw_input(s)
     except NameError:
-        return input(s)
+        # Py2 raw_input() renamed to input() in Py3
+        return input(s)  # lgtm[py/use-of-input]
 
 
 def confirmation(question, default=True):
