@@ -23,7 +23,8 @@ CV2_FILETYPES = [
     ".ras",
     ".sr",
     ".tif",
-    ".tiff" ".webp",
+    ".tiff",
+    ".webp",
 ]
 
 # File types supported by Pillow
