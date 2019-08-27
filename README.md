@@ -13,26 +13,33 @@ From the command line:
 	Automatically crops faces from batches of pictures
 
 	optional arguments:
-	  -h, --help            Show this help message and exit
+	  -h, --help
+	  		Show this help message and exit
 	  -o, --output, -p, --path
-				Folder where cropped images will be placed.
-				Default: current working directory
+			Folder where cropped images will be placed.
+			Default: current working directory
 	  -r, --reject
-				Folder where images without detected faces will be placed.
-				Default: same as output directory
+			Folder where images without detected faces will be placed.
+			Default: same as output directory
 	  -i, --input
-				Folder where images to crop are located.
-				Default: current working directory
+			Folder where images to crop are located.
+			Default: current working directory
 	  -w, --width
-				Width of cropped files in px. Default=500
+			Width of cropped files in px. Default=500
 	  -H, --height
-				Height of cropped files in px. Default=500
-	  --facePercent   	Percentage of Face height to image height (zoom factor)
-	  --padUp         	Padding up value compared to padDown. Default=50
-	  --padDown       	Padding down value compared to padDown. Default=50
-	  --padLeft       	Padding left value compared to padRight. Default=50
-	  --padRight      	Padding right value compared to padLeft. Default=50
-	  -v, --version         Show program's version number and exit
+			Height of cropped files in px. Default=500
+	  --facePercent
+	  		Percentage of Face height to image height (zoom factor)
+	  --padUp
+	  		Padding up value compared to padDown. Default=50
+	  --padDown
+	  		Padding down value compared to padDown. Default=50
+	  --padLeft
+	  		Padding left value compared to padRight. Default=50
+	  --padRight
+	  		Padding right value compared to padLeft. Default=50
+	  -v, --version
+	  		Show program's version number and exit
 
 
 ### Examples
