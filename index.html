@@ -582,26 +582,33 @@
 <span class="nv">Automatically</span> <span class="nv">crops</span> <span class="nv">faces</span> <span class="nv">from</span> <span class="nv">batches</span> <span class="nv">of</span> <span class="nv">pictures</span>
 
 <span class="nv">optional</span> <span class="nv">arguments</span>:
-  <span class="o">-</span><span class="nv">h</span>, <span class="o">--</span><span class="nv">help</span>            <span class="k">Show</span> <span class="nv">this</span> <span class="nv">help</span> <span class="nv">message</span> <span class="nv">and</span> <span class="k">exit</span>
+  <span class="o">-</span><span class="nv">h</span>, <span class="o">--</span><span class="nv">help</span>
+        <span class="k">Show</span> <span class="nv">this</span> <span class="nv">help</span> <span class="nv">message</span> <span class="nv">and</span> <span class="k">exit</span>
   <span class="o">-</span><span class="nv">o</span>, <span class="o">--</span><span class="nv">output</span>, <span class="o">-</span><span class="nv">p</span>, <span class="o">--</span><span class="nv">path</span>
-            <span class="nv">Folder</span> <span class="nv">where</span> <span class="nv">cropped</span> <span class="nv">images</span> <span class="nv">will</span> <span class="nv">be</span> <span class="nv">placed</span>.
-            <span class="nv">Default</span>: <span class="nv">current</span> <span class="nv">working</span> <span class="nv">directory</span>
+        <span class="nv">Folder</span> <span class="nv">where</span> <span class="nv">cropped</span> <span class="nv">images</span> <span class="nv">will</span> <span class="nv">be</span> <span class="nv">placed</span>.
+        <span class="nv">Default</span>: <span class="nv">current</span> <span class="nv">working</span> <span class="nv">directory</span>
   <span class="o">-</span><span class="nv">r</span>, <span class="o">--</span><span class="nv">reject</span>
-            <span class="nv">Folder</span> <span class="nv">where</span> <span class="nv">images</span> <span class="nv">without</span> <span class="nv">detected</span> <span class="nv">faces</span> <span class="nv">will</span> <span class="nv">be</span> <span class="nv">placed</span>.
-            <span class="nv">Default</span>: <span class="nv">same</span> <span class="nv">as</span> <span class="nv">output</span> <span class="nv">directory</span>
+        <span class="nv">Folder</span> <span class="nv">where</span> <span class="nv">images</span> <span class="nv">without</span> <span class="nv">detected</span> <span class="nv">faces</span> <span class="nv">will</span> <span class="nv">be</span> <span class="nv">placed</span>.
+        <span class="nv">Default</span>: <span class="nv">same</span> <span class="nv">as</span> <span class="nv">output</span> <span class="nv">directory</span>
   <span class="o">-</span><span class="nv">i</span>, <span class="o">--</span><span class="nv">input</span>
-            <span class="nv">Folder</span> <span class="nv">where</span> <span class="nv">images</span> <span class="nv">to</span> <span class="nv">crop</span> <span class="nv">are</span> <span class="nv">located</span>.
-            <span class="nv">Default</span>: <span class="nv">current</span> <span class="nv">working</span> <span class="nv">directory</span>
+        <span class="nv">Folder</span> <span class="nv">where</span> <span class="nv">images</span> <span class="nv">to</span> <span class="nv">crop</span> <span class="nv">are</span> <span class="nv">located</span>.
+        <span class="nv">Default</span>: <span class="nv">current</span> <span class="nv">working</span> <span class="nv">directory</span>
   <span class="o">-</span><span class="nv">w</span>, <span class="o">--</span><span class="nv">width</span>
-            <span class="nv">Width</span> <span class="nv">of</span> <span class="nv">cropped</span> <span class="nv">files</span> <span class="nv">in</span> <span class="nv">px</span>. <span class="nv">Default</span><span class="o">=</span><span class="mi">500</span>
+        <span class="nv">Width</span> <span class="nv">of</span> <span class="nv">cropped</span> <span class="nv">files</span> <span class="nv">in</span> <span class="nv">px</span>. <span class="nv">Default</span><span class="o">=</span><span class="mi">500</span>
   <span class="o">-</span><span class="nv">H</span>, <span class="o">--</span><span class="nv">height</span>
-            <span class="nv">Height</span> <span class="nv">of</span> <span class="nv">cropped</span> <span class="nv">files</span> <span class="nv">in</span> <span class="nv">px</span>. <span class="nv">Default</span><span class="o">=</span><span class="mi">500</span>
-  <span class="o">--</span><span class="nv">facePercent</span>     <span class="nv">Percentage</span> <span class="nv">of</span> <span class="nv">Face</span> <span class="nv">height</span> <span class="nv">to</span> <span class="nv">image</span> <span class="nv">height</span> <span class="ss">(</span><span class="nv">zoom</span> <span class="nv">factor</span><span class="ss">)</span>
-  <span class="o">--</span><span class="nv">padUp</span>           <span class="nv">Padding</span> <span class="nv">up</span> <span class="nv">value</span> <span class="nv">compared</span> <span class="nv">to</span> <span class="nv">padDown</span>. <span class="nv">Default</span><span class="o">=</span><span class="mi">50</span>
-  <span class="o">--</span><span class="nv">padDown</span>         <span class="nv">Padding</span> <span class="nv">down</span> <span class="nv">value</span> <span class="nv">compared</span> <span class="nv">to</span> <span class="nv">padDown</span>. <span class="nv">Default</span><span class="o">=</span><span class="mi">50</span>
-  <span class="o">--</span><span class="nv">padLeft</span>         <span class="nv">Padding</span> <span class="nv">left</span> <span class="nv">value</span> <span class="nv">compared</span> <span class="nv">to</span> <span class="nv">padRight</span>. <span class="nv">Default</span><span class="o">=</span><span class="mi">50</span>
-  <span class="o">--</span><span class="nv">padRight</span>        <span class="nv">Padding</span> <span class="nv">right</span> <span class="nv">value</span> <span class="nv">compared</span> <span class="nv">to</span> <span class="nv">padLeft</span>. <span class="nv">Default</span><span class="o">=</span><span class="mi">50</span>
-  <span class="o">-</span><span class="nv">v</span>, <span class="o">--</span><span class="nv">version</span>         <span class="k">Show</span> <span class="nv">program</span><span class="s1">&#39;</span><span class="s">s version number and exit</span>
+        <span class="nv">Height</span> <span class="nv">of</span> <span class="nv">cropped</span> <span class="nv">files</span> <span class="nv">in</span> <span class="nv">px</span>. <span class="nv">Default</span><span class="o">=</span><span class="mi">500</span>
+  <span class="o">--</span><span class="nv">facePercent</span>
+        <span class="nv">Percentage</span> <span class="nv">of</span> <span class="nv">Face</span> <span class="nv">height</span> <span class="nv">to</span> <span class="nv">image</span> <span class="nv">height</span> <span class="ss">(</span><span class="nv">zoom</span> <span class="nv">factor</span><span class="ss">)</span>
+  <span class="o">--</span><span class="nv">padUp</span>
+        <span class="nv">Padding</span> <span class="nv">up</span> <span class="nv">value</span> <span class="nv">compared</span> <span class="nv">to</span> <span class="nv">padDown</span>. <span class="nv">Default</span><span class="o">=</span><span class="mi">50</span>
+  <span class="o">--</span><span class="nv">padDown</span>
+        <span class="nv">Padding</span> <span class="nv">down</span> <span class="nv">value</span> <span class="nv">compared</span> <span class="nv">to</span> <span class="nv">padDown</span>. <span class="nv">Default</span><span class="o">=</span><span class="mi">50</span>
+  <span class="o">--</span><span class="nv">padLeft</span>
+        <span class="nv">Padding</span> <span class="nv">left</span> <span class="nv">value</span> <span class="nv">compared</span> <span class="nv">to</span> <span class="nv">padRight</span>. <span class="nv">Default</span><span class="o">=</span><span class="mi">50</span>
+  <span class="o">--</span><span class="nv">padRight</span>
+        <span class="nv">Padding</span> <span class="nv">right</span> <span class="nv">value</span> <span class="nv">compared</span> <span class="nv">to</span> <span class="nv">padLeft</span>. <span class="nv">Default</span><span class="o">=</span><span class="mi">50</span>
+  <span class="o">-</span><span class="nv">v</span>, <span class="o">--</span><span class="nv">version</span>
+        <span class="k">Show</span> <span class="nv">program</span><span class="s1">&#39;</span><span class="s">s version number and exit</span>
 </pre></div>
 
 
