@@ -257,8 +257,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#what-it-does" title="What it does" class="md-nav__link">
-    What it does
+  <a href="#examples" title="Examples" class="md-nav__link">
+    Examples
   </a>
   
 </li>
@@ -478,8 +478,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#what-it-does" title="What it does" class="md-nav__link">
-    What it does
+  <a href="#examples" title="Examples" class="md-nav__link">
+    Examples
   </a>
   
 </li>
@@ -571,10 +571,9 @@
                 
                 
                 <h1 id="autocrop">autocrop</h1>
-<p><a href="https://travis-ci.org/leblancfg/autocrop"><img alt="Travis Build Status" src="https://img.shields.io/travis/leblancfg/autocrop/master.svg" /></a> <a href="https://ci.appveyor.com/project/leblancfg/autocrop/branch/master"><img alt="AppVeyor Build Status" src="https://img.shields.io/appveyor/ci/leblancfg/autocrop/master.svg?label=%22Windows%22" /></a> <a href="https://codecov.io/gh/leblancfg/autocrop"><img alt="Codecov master" src="https://img.shields.io/codecov/c/github/leblancfg/autocrop/master.svg" /></a></p>
-<p><a href="https://badge.fury.io/py/autocrop"><img alt="PyPI version" src="https://badge.fury.io/py/autocrop.svg" /></a> <a href="https://pepy.tech/project/autocrop"><img alt="Downloads" src="https://pepy.tech/badge/autocrop" /></a></p>
-<p><a href="https://lgtm.com/projects/g/leblancfg/autocrop/alerts/"><img alt="Total alerts" src="https://img.shields.io/lgtm/alerts/g/leblancfg/autocrop.svg?logo=lgtm&amp;logoWidth=18" /></a> <a href="https://lgtm.com/projects/g/leblancfg/autocrop/context:python"><img alt="Language grade: Python" src="https://img.shields.io/lgtm/grade/python/g/leblancfg/autocrop.svg?logo=lgtm&amp;logoWidth=18" /></a>
-<p align="center"><img title="obama_crop" src="https://cloud.githubusercontent.com/assets/15659410/10975709/3e38de48-83b6-11e5-8885-d95da758ca17.png"></p></p>
+<p><a href="https://travis-ci.org/leblancfg/autocrop"><img alt="Travis Build Status" src="https://img.shields.io/travis/leblancfg/autocrop/master.svg" /></a> <a href="https://ci.appveyor.com/project/leblancfg/autocrop/branch/master"><img alt="AppVeyor Build Status" src="https://img.shields.io/appveyor/ci/leblancfg/autocrop/master.svg?label=%22Windows%22" /></a> <a href="https://codecov.io/gh/leblancfg/autocrop"><img alt="Codecov master" src="https://img.shields.io/codecov/c/github/leblancfg/autocrop/master.svg" /></a> <a href="https://badge.fury.io/py/autocrop"><img alt="PyPI version" src="https://badge.fury.io/py/autocrop.svg" /></a> <a href="https://pepy.tech/project/autocrop"><img alt="Downloads" src="https://pepy.tech/badge/autocrop" /></a> <a href="https://lgtm.com/projects/g/leblancfg/autocrop/context:python"><img alt="Language grade: Python" src="https://img.shields.io/lgtm/grade/python/g/leblancfg/autocrop.svg?logo=lgtm&amp;logoWidth=18" /></a></p>
+<p align="center"><img title="obama_crop" src="https://cloud.githubusercontent.com/assets/15659410/10975709/3e38de48-83b6-11e5-8885-d95da758ca17.png"></p>
+
 <p>Perfect for profile picture processing for your website or batch work for ID cards, autocrop will output images centered around the biggest face detected.</p>
 <h2 id="use">Use</h2>
 <p>From the command line:</p>
@@ -587,9 +586,9 @@
   <span class="o">-</span><span class="nv">o</span>, <span class="o">--</span><span class="nv">output</span>, <span class="o">-</span><span class="nv">p</span>, <span class="o">--</span><span class="nv">path</span>
             <span class="nv">Folder</span> <span class="nv">where</span> <span class="nv">cropped</span> <span class="nv">images</span> <span class="nv">will</span> <span class="nv">be</span> <span class="nv">placed</span>.
             <span class="nv">Default</span>: <span class="nv">current</span> <span class="nv">working</span> <span class="nv">directory</span>
-    <span class="o">-</span><span class="nv">r</span>, <span class="o">--</span><span class="nv">reject</span>
+  <span class="o">-</span><span class="nv">r</span>, <span class="o">--</span><span class="nv">reject</span>
             <span class="nv">Folder</span> <span class="nv">where</span> <span class="nv">images</span> <span class="nv">without</span> <span class="nv">detected</span> <span class="nv">faces</span> <span class="nv">will</span> <span class="nv">be</span> <span class="nv">placed</span>.
-            <span class="nv">Default</span>: <span class="nv">output</span> <span class="nv">directory</span>
+            <span class="nv">Default</span>: <span class="nv">same</span> <span class="nv">as</span> <span class="nv">output</span> <span class="nv">directory</span>
   <span class="o">-</span><span class="nv">i</span>, <span class="o">--</span><span class="nv">input</span>
             <span class="nv">Folder</span> <span class="nv">where</span> <span class="nv">images</span> <span class="nv">to</span> <span class="nv">crop</span> <span class="nv">are</span> <span class="nv">located</span>.
             <span class="nv">Default</span>: <span class="nv">current</span> <span class="nv">working</span> <span class="nv">directory</span>
@@ -597,28 +596,32 @@
             <span class="nv">Width</span> <span class="nv">of</span> <span class="nv">cropped</span> <span class="nv">files</span> <span class="nv">in</span> <span class="nv">px</span>. <span class="nv">Default</span><span class="o">=</span><span class="mi">500</span>
   <span class="o">-</span><span class="nv">H</span>, <span class="o">--</span><span class="nv">height</span>
             <span class="nv">Height</span> <span class="nv">of</span> <span class="nv">cropped</span> <span class="nv">files</span> <span class="nv">in</span> <span class="nv">px</span>. <span class="nv">Default</span><span class="o">=</span><span class="mi">500</span>
-  <span class="o">--</span><span class="nv">facePercent</span>   <span class="nv">Percentage</span> <span class="nv">of</span> <span class="nv">Face</span> <span class="nv">height</span> <span class="nv">to</span> <span class="nv">image</span> <span class="nv">height</span> <span class="ss">(</span><span class="nv">zoom</span> <span class="nv">factor</span><span class="ss">)</span>
-  <span class="o">--</span><span class="nv">padUp</span>         <span class="nv">Padding</span> <span class="nv">up</span> <span class="nv">value</span> <span class="nv">compared</span> <span class="nv">to</span> <span class="nv">padDown</span>. <span class="nv">Default</span><span class="o">=</span><span class="mi">50</span>
-  <span class="o">--</span><span class="nv">padDown</span>       <span class="nv">Padding</span> <span class="nv">down</span> <span class="nv">value</span> <span class="nv">compared</span> <span class="nv">to</span> <span class="nv">padDown</span>. <span class="nv">Default</span><span class="o">=</span><span class="mi">50</span>
-  <span class="o">--</span><span class="nv">padLeft</span>       <span class="nv">Padding</span> <span class="nv">left</span> <span class="nv">value</span> <span class="nv">compared</span> <span class="nv">to</span> <span class="nv">padRight</span>. <span class="nv">Default</span><span class="o">=</span><span class="mi">50</span>
-  <span class="o">--</span><span class="nv">padRight</span>      <span class="nv">Padding</span> <span class="nv">right</span> <span class="nv">value</span> <span class="nv">compared</span> <span class="nv">to</span> <span class="nv">padLeft</span>. <span class="nv">Default</span><span class="o">=</span><span class="mi">50</span>
+  <span class="o">--</span><span class="nv">facePercent</span>     <span class="nv">Percentage</span> <span class="nv">of</span> <span class="nv">Face</span> <span class="nv">height</span> <span class="nv">to</span> <span class="nv">image</span> <span class="nv">height</span> <span class="ss">(</span><span class="nv">zoom</span> <span class="nv">factor</span><span class="ss">)</span>
+  <span class="o">--</span><span class="nv">padUp</span>           <span class="nv">Padding</span> <span class="nv">up</span> <span class="nv">value</span> <span class="nv">compared</span> <span class="nv">to</span> <span class="nv">padDown</span>. <span class="nv">Default</span><span class="o">=</span><span class="mi">50</span>
+  <span class="o">--</span><span class="nv">padDown</span>         <span class="nv">Padding</span> <span class="nv">down</span> <span class="nv">value</span> <span class="nv">compared</span> <span class="nv">to</span> <span class="nv">padDown</span>. <span class="nv">Default</span><span class="o">=</span><span class="mi">50</span>
+  <span class="o">--</span><span class="nv">padLeft</span>         <span class="nv">Padding</span> <span class="nv">left</span> <span class="nv">value</span> <span class="nv">compared</span> <span class="nv">to</span> <span class="nv">padRight</span>. <span class="nv">Default</span><span class="o">=</span><span class="mi">50</span>
+  <span class="o">--</span><span class="nv">padRight</span>        <span class="nv">Padding</span> <span class="nv">right</span> <span class="nv">value</span> <span class="nv">compared</span> <span class="nv">to</span> <span class="nv">padLeft</span>. <span class="nv">Default</span><span class="o">=</span><span class="mi">50</span>
   <span class="o">-</span><span class="nv">v</span>, <span class="o">--</span><span class="nv">version</span>         <span class="k">Show</span> <span class="nv">program</span><span class="s1">&#39;</span><span class="s">s version number and exit</span>
 </pre></div>
 
 
-<p>Params (width, height, facePercent)
-* Example:
-<code>autocrop -i pics -o crop -w 400 -H 400 --facePercent 50</code>.
-* Example with reject folder:
-<code>autocrop -i pics -o crop -r nofaces -w 400 -H 400 --facePercent 50</code>.
-* Example more padding down:
- <code>autocrop -i pics -o crop -w 400 -H 400 --facePercent 50 --padUp 20 --padDown 50</code>.</p>
-<h3 id="what-it-does">What it does</h3>
-<p>The previous command will:
-1. Copy all images found in the top level of <code>pics</code> to <code>crop</code>,
-2. Crop around the face and resize to 400x400 pixels all images in <code>crop</code>.</p>
-<p>Images where a face can't be detected will be left in <code>crop</code>.
-If no output folder is added, asks for confirmation and destructively crops images in-place.</p>
+<h3 id="examples">Examples</h3>
+<ul>
+<li>Crop every image in the <code>pics</code> folder, resize them to 400 px squares, and output them in the <code>crop</code> directory:<ul>
+<li><code>autocrop -i pics -o crop -w 400 -H 400</code>.</li>
+<li>Images where a face can't be detected will be left in <code>crop</code>.</li>
+</ul>
+</li>
+<li>Same as above, but output the images with undetected faces to the <code>reject</code> folder:<ul>
+<li><code>autocrop -i pics -o crop -r nofaces -w 400 -H 400</code>.</li>
+</ul>
+</li>
+<li>Same as the first example, but add more padding at the bottom:<ul>
+<li><code>autocrop -i pics -o crop -w 400 -H 400 --facePercent 50 --padUp 20 --padDown 50</code>.</li>
+</ul>
+</li>
+</ul>
+<p>If no output folder is added, asks for confirmation and destructively crops images in-place.</p>
 <h3 id="supported-file-types">Supported file types</h3>
 <p>The following file types are supported:</p>
 <ul>
