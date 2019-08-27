@@ -10,8 +10,11 @@ pypi:
 
 check:
 	@printf "${RED}Running flake8${NC}\n"
-	@printf "${RED}Running pytest${NC}\n"
 	@flake8 --exclude=./env --max-complexity=8 --count .
+	@printf "${RED}Running pytest${NC}\n"
 	@pytest
 
-.PHONY: check pypi pypi-test
+docs:
+	portray on_github_pages
+
+.PHONY: check pypi pypi-test docs
