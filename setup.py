@@ -35,7 +35,7 @@ with io.open(os.path.join(HERE, "README.md"), encoding="utf-8") as f:
 
 # Load the package's __version__.py module as a dictionary.
 about = {}
-with open(os.path.join(HERE, NAME, "__version__.py")) as f:
+with open(os.path.join(HERE, NAME, "__version__.py"),encoding="utf-8") as f:
     exec(f.read(), about)
 
 
