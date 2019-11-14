@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+from __future__ import division
 
 import argparse
 import cv2
@@ -64,15 +65,12 @@ def crop_positions(
     padLeft = 50 if (padLeft is False or padLeft < 0) else padLeft
     padRight = 50 if (padRight is False or padRight < 0) else padRight
 
-    # enfoce face percent
+    # enforce face percent
     facePercent = 100 if facePercent > 100 else facePercent
     facePercent = 50 if facePercent <= 0 else facePercent
 
     # Adjust output height based on Face percent
     height_crop = h * 100.0 / facePercent
-
-    # Ensure height is within boundaries
-    height_crop = imgh if height_crop > imgh else height_crop
 
     aspect_ratio = float(fwidth) / float(fheight)
     # Calculate width based on aspect ratio
@@ -88,19 +86,60 @@ def crop_positions(
     v1 = float(y - (ypad * padUp / (padUp + padDown)))
     v2 = float(y + h + (ypad * padDown / (padUp + padDown)))
 
-    # Move crop inside photo boundaries
-    while h1 < 0:
-        h1 = h1 + 1
-        h2 = h2 + 1
-    while v1 < 0:
-        v1 = v1 + 1
-        v2 = v2 + 1
-    while v2 > imgh:
-        v2 = v2 - 1
-        h2 = h2 - 1 * aspect_ratio
-    while h2 > imgw:
-        h2 = h2 - 1
-        v2 = v2 - 1 / aspect_ratio
+    return adjust_crop_to_boundaries(
+        imgh,
+        imgw,
+        h1,
+        h2,
+        v1,
+        v2,
+        aspect_ratio,
+        padLeft / (padLeft + padRight),
+        padLeft / (padLeft + padRight),
+        padUp / (padUp + padDown),
+        padDown / (padUp + padDown)
+    )
+
+
+# Move crop inside photo boundaries
+def adjust_crop_to_boundaries(
+        imgh,
+        imgw,
+        h1,
+        h2,
+        v1,
+        v2,
+        aspect_ratio,
+        leftPadRatio,
+        rightPadRatio,
+        topPadRatio,
+        bottomPadRatio
+):
+
+    # Calculate largest horizontal/vertical out of bound value
+    # with padding ratios in mind
+    delta_h = 0.0
+    if h1 < 0:
+        delta_h = abs(h1) / leftPadRatio
+
+    if h2 > imgw:
+        delta_h = max(delta_h, (h2 - imgw) / rightPadRatio)
+
+    delta_v = 0.0 if delta_h <= 0.0 else delta_h / aspect_ratio
+
+    if v1 < 0:
+        delta_v = max(delta_v, abs(v1) / topPadRatio)
+
+    if v2 > imgh:
+        delta_v = max(delta_v, (v2 - imgh) / bottomPadRatio)
+
+    delta_h = max(delta_h, delta_v * aspect_ratio)
+
+    # Adjust crop values accordingly
+    h1 += delta_h * leftPadRatio
+    h2 -= delta_h * rightPadRatio
+    v1 += delta_v * topPadRatio
+    v2 -= delta_v * bottomPadRatio
 
     return [int(v1), int(v2), int(h1), int(h2)]
 
