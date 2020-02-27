@@ -5,7 +5,7 @@ pypi-test:
 	python setup.py sdist
 	twine upload dist/* -r testpypi
 
-pypi: pypi-test
+pypi:
 	twine upload dist/*
 
 check:
@@ -14,4 +14,7 @@ check:
 	@printf "${RED}Running pytest${NC}\n"
 	@pytest
 
-.PHONY: check
+docs:
+	portray on_github_pages
+
+.PHONY: check pypi pypi-test docs

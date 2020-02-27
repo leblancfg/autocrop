@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+from __future__ import division
 
 import argparse
 import cv2
@@ -32,6 +33,11 @@ d = os.path.dirname(sys.modules["autocrop"].__file__)
 cascPath = os.path.join(d, CASCFILE)
 
 
+# Load custom exception to catch a certain failure type
+class ImageReadError(BaseException):
+    pass
+
+
 # Define simple gamma correction fn
 def gamma(img, correction):
     img = cv2.pow(img / 255.0, correction)
@@ -59,15 +65,12 @@ def crop_positions(
     padLeft = 50 if (padLeft is False or padLeft < 0) else padLeft
     padRight = 50 if (padRight is False or padRight < 0) else padRight
 
-    # enfoce face percent
+    # enforce face percent
     facePercent = 100 if facePercent > 100 else facePercent
     facePercent = 50 if facePercent <= 0 else facePercent
 
     # Adjust output height based on Face percent
     height_crop = h * 100.0 / facePercent
-
-    # Ensure height is within boundaries
-    height_crop = imgh if height_crop > imgh else height_crop
 
     aspect_ratio = float(fwidth) / float(fheight)
     # Calculate width based on aspect ratio
@@ -83,19 +86,60 @@ def crop_positions(
     v1 = float(y - (ypad * padUp / (padUp + padDown)))
     v2 = float(y + h + (ypad * padDown / (padUp + padDown)))
 
-    # Move crop inside photo boundaries
-    while h1 < 0:
-        h1 = h1 + 1
-        h2 = h2 + 1
-    while v1 < 0:
-        v1 = v1 + 1
-        v2 = v2 + 1
-    while v2 > imgh:
-        v2 = v2 - 1
-        h2 = h2 - 1 * aspect_ratio
-    while h2 > imgw:
-        h2 = h2 - 1
-        v2 = v2 - 1 / aspect_ratio
+    return adjust_crop_to_boundaries(
+        imgh,
+        imgw,
+        h1,
+        h2,
+        v1,
+        v2,
+        aspect_ratio,
+        padLeft / (padLeft + padRight),
+        padLeft / (padLeft + padRight),
+        padUp / (padUp + padDown),
+        padDown / (padUp + padDown)
+    )
+
+
+# Move crop inside photo boundaries
+def adjust_crop_to_boundaries(
+        imgh,
+        imgw,
+        h1,
+        h2,
+        v1,
+        v2,
+        aspect_ratio,
+        leftPadRatio,
+        rightPadRatio,
+        topPadRatio,
+        bottomPadRatio
+):
+
+    # Calculate largest horizontal/vertical out of bound value
+    # with padding ratios in mind
+    delta_h = 0.0
+    if h1 < 0:
+        delta_h = abs(h1) / leftPadRatio
+
+    if h2 > imgw:
+        delta_h = max(delta_h, (h2 - imgw) / rightPadRatio)
+
+    delta_v = 0.0 if delta_h <= 0.0 else delta_h / aspect_ratio
+
+    if v1 < 0:
+        delta_v = max(delta_v, abs(v1) / topPadRatio)
+
+    if v2 > imgh:
+        delta_v = max(delta_v, (v2 - imgh) / bottomPadRatio)
+
+    delta_h = max(delta_h, delta_v * aspect_ratio)
+
+    # Adjust crop values accordingly
+    h1 += delta_h * leftPadRatio
+    h2 -= delta_h * rightPadRatio
+    v1 += delta_v * topPadRatio
+    v2 -= delta_v * bottomPadRatio
 
     return [int(v1), int(v2), int(h1), int(h2)]
 
@@ -133,7 +177,10 @@ def crop(
         gray = image
 
     # Scale the image
-    height, width = image.shape[:2]
+    try:
+        height, width = image.shape[:2]
+    except AttributeError:
+        raise ImageReadError
     minface = int(np.sqrt(height ** 2 + width ** 2) / MINFACE)
 
     # Create the haar cascade
@@ -187,7 +234,7 @@ def crop(
 
 def open_file(input_filename):
     """Given a filename, returns a numpy array"""
-    extension = os.path.splitext(input_filename)[1]
+    extension = os.path.splitext(input_filename)[1].lower()
 
     if extension in CV2_FILETYPES:
         # Try with cv2
@@ -197,6 +244,28 @@ def open_file(input_filename):
         with Image.open(input_filename) as img_orig:
             return np.asarray(img_orig)
     return None
+
+
+def output(input_filename, output_filename, image):
+    """Move the input file to the output location and write over it with the
+    cropped image data."""
+    if input_filename != output_filename:
+        # Move the file to the output directory
+        shutil.move(input_filename, output_filename)
+    # Encode the image as an in-memory PNG
+    img_png = cv2.imencode(".png", image)[1].tostring()
+    # Read the PNG data
+    img_new = Image.open(io.BytesIO(img_png))
+    # Write the new image (converting the format to match the output
+    # filename if necessary)
+    img_new.save(output_filename)
+
+
+def reject(input_filename, reject_filename):
+    """Move the input file to the reject location."""
+    if input_filename != reject_filename:
+        # Move the file to the reject directory
+        shutil.move(input_filename, reject_filename)
 
 
 def main(
@@ -250,43 +319,38 @@ def main(
     input_count = len(input_files)
     assert input_count > 0
 
+    # Main loop
     for input_filename in input_files:
         basename = os.path.basename(input_filename)
         output_filename = os.path.join(output_d, basename)
         reject_filename = os.path.join(reject_d, basename)
 
         input_img = open_file(input_filename)
+        image = None
 
         # Attempt the crop
-        image = crop(
-            input_img,
-            fheight,
-            fwidth,
-            facePercent,
-            padUp,
-            padDown,
-            padLeft,
-            padRight,
-        )
+        try:
+            image = crop(
+                input_img,
+                fheight,
+                fwidth,
+                facePercent,
+                padUp,
+                padDown,
+                padLeft,
+                padRight,
+            )
+        except ImageReadError:
+            print("Read error:       {}".format(input_filename))
+            continue
 
-        # Did the crop produce a valid image
+        # Did the crop produce an invalid image?
         if isinstance(image, type(None)):
-            if input_filename != reject_filename:
-                # Move the file to the reject directory
-                shutil.move(input_filename, reject_filename)
+            reject(input_filename, reject_filename)
             print("No face detected: {}".format(reject_filename))
             reject_count += 1
         else:
-            if input_filename != output_filename:
-                # Move the file to the output directory
-                shutil.move(input_filename, output_filename)
-            # Encode the image as an in-memory PNG
-            img_png = cv2.imencode(".png", image)[1].tostring()
-            # Read the PNG data
-            img_new = Image.open(io.BytesIO(img_png))
-            # Write the new image (converting the format to match the output
-            # filename if necessary)
-            img_new.save(output_filename)
+            output(input_filename, output_filename, image)
             print("Face detected:    {}".format(output_filename))
             output_count += 1
 
@@ -339,7 +403,8 @@ def compat_input(s=""):
     try:
         return raw_input(s)
     except NameError:
-        return input(s)
+        # Py2 raw_input() renamed to input() in Py3
+        return input(s)  # lgtm[py/use-of-input]
 
 
 def confirmation(question, default=True):
