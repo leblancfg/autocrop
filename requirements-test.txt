@@ -3,5 +3,5 @@ pytest==4.0.2
 flake8==3.5.0
 mock==2.0.0
 pytest-cov==2.6.1
-codecov==2.0.15
+codecov==2.0.16
 attrs==19.1.0
