@@ -1,11 +1,18 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function, division
+from __future__ import print_function
+from __future__ import division
 
+# import argparse
 import cv2
+
+# import io
 import numpy as np
 import os
+
+# import shutil
 import sys
+
 from PIL import Image
 
 from .constants import (
