@@ -33,6 +33,15 @@ def gamma(img, correction):
     return np.uint8(img * 255)
 
 
+def check_underexposed(image, gray):
+    """Returns the (cropped) image with GAMMA applied if underexposition
+    is detected."""
+    uexp = cv2.calcHist([gray], [0], None, [256], [0, 256])
+    if sum(uexp[-26:]) < GAMMA_THRES * sum(uexp):
+        image = gamma(image, GAMMA)
+    return image
+
+
 def check_positive_scalar(num):
     """Returns True if value if a positive scalar"""
     if num > 0 and not isinstance(num, str) and np.isscalar(num):
@@ -48,7 +57,7 @@ def check_valid_pad_dict(dic):
         "pad_bottom",
         "pad_left",
     }
-    error = f"Padding arguments must use keys {valid_keys} and be positive scalars"
+    error = "Padding arguments must use keys {} and be positive scalars".format(valid_keys)
     conditions = []
     conditions.append(isinstance(dic, dict))
     conditions.append(len(dic) == 4)
@@ -203,10 +212,7 @@ class Cropper(object):
 
         # Underexposition
         if self.gamma:
-            # Check if under-exposed
-            uexp = cv2.calcHist([gray], [0], None, [256], [0, 256])
-            if sum(uexp[-26:]) < GAMMA_THRES * sum(uexp):
-                image = gamma(image, GAMMA)
+            image = check_underexposed(image, gray)
         return image
 
     def _crop_positions(
