@@ -84,14 +84,12 @@ class Cropper(object):
         attr2 (:obj:`int`, optional): Description of `attr2`.
     """
 
-    DEFAULT = 500
-
     def __init__(
-        self, width=DEFAULT, height=DEFAULT, padding=50, face_percent=50, fix_gamma=True
+        self, width=500, height=500, padding=50, face_percent=50, fix_gamma=True
     ):
         # Size
-        self.h = check_positive_scalar(self.height)
-        self.w = check_positive_scalar(width)
+        self.height = check_positive_scalar(height)
+        self.width = check_positive_scalar(width)
 
         # Padding
         if isinstance(padding, int):
@@ -176,7 +174,7 @@ class Cropper(object):
         )
 
         # Underexposition
-        if self.fix_gamma:
+        if self.gamma:
             # Check if under-exposed
             uexp = cv2.calcHist([gray], [0], None, [256], [0, 256])
             if sum(uexp[-26:]) < GAMMA_THRES * sum(uexp):

@@ -68,7 +68,7 @@ def test_size_minus_14_not_valid():
 
 @mock.patch("autocrop.cli.input_path", lambda p: p)
 @mock.patch("autocrop.cli.main")
-def test_command_line_interface_no_args_means_cwd(mock_main):
+def test_cli_no_args_means_cwd(mock_main):
     mock_main.return_value = None
     sys.argv = ["", "--no-confirm"]
     command_line_interface()
@@ -78,7 +78,7 @@ def test_command_line_interface_no_args_means_cwd(mock_main):
 
 @mock.patch("autocrop.cli.input_path", lambda p: p)
 @mock.patch("autocrop.cli.main")
-def test_command_line_interface_width_140_is_valid(mock_main):
+def test_cli_width_140_is_valid(mock_main):
     mock_main.return_value = None
     sys.argv = ["autocrop", "-w", "140", "--no-confirm"]
     assert mock_main.call_count == 0
@@ -86,7 +86,7 @@ def test_command_line_interface_width_140_is_valid(mock_main):
     assert mock_main.call_count == 1
 
 
-def test_command_line_interface_invalid_input_path_errors_out():
+def test_cli_invalid_input_path_errors_out():
     sys.argv = ["autocrop", "-i", "asdfasdf"]
     with pytest.raises(SystemExit) as e:
         command_line_interface()
@@ -94,7 +94,7 @@ def test_command_line_interface_invalid_input_path_errors_out():
     assert "SystemExit" in str(e)
 
 
-def test_command_line_interface_no_images_in_input_path():
+def test_cli_no_images_in_input_path():
     sys.argv = ["autocrop", "-i", "tests"]
     with pytest.raises(SystemExit) as e:
         command_line_interface()
@@ -102,7 +102,7 @@ def test_command_line_interface_no_images_in_input_path():
     assert "SystemExit" in str(e)
 
 
-def test_command_line_interface_width_0_not_valid():
+def test_cli_width_0_not_valid():
     sys.argv = ["autocrop", "-w", "0"]
     with pytest.raises(SystemExit) as e:
         command_line_interface()
@@ -110,7 +110,7 @@ def test_command_line_interface_width_0_not_valid():
     assert "SystemExit" in str(e)
 
 
-def test_command_line_interface_width_minus_14_not_valid():
+def test_cli_width_minus_14_not_valid():
     sys.argv = ["autocrop", "-w", "-14"]
     with pytest.raises(SystemExit) as e:
         command_line_interface()
@@ -188,8 +188,8 @@ def test_user_does_not_get_prompted_if_output_d_is_given(mock_confirm):
     assert mock_confirm.call_count == 0
 
 
-@mock.patch("autocrop.command_line_interface.main", lambda *args: None)
-@mock.patch("autocrop.command_line_interface.confirmation")
+@mock.patch("autocrop.cli.main", lambda *args: None)
+@mock.patch("autocrop.cli.confirmation")
 def test_user_does_not_get_prompted_if_no_confirm(mock_confirm):
     mock_confirm.return_value = False
     sys.argv = ["", "-i", "tests/data", "--no-confirm"]
@@ -198,7 +198,7 @@ def test_user_does_not_get_prompted_if_no_confirm(mock_confirm):
     assert mock_confirm.call_count == 0
 
 
-@mock.patch("autocrop.command_line_interface.crop", lambda *args: None)
+@mock.patch("autocrop.cli.crop", lambda *args: None)
 def test_noface_files_copied_over_if_output_d_specified(integration):
     sys.argv = ["", "-i", "tests/test", "-o", "tests/crop"]
     command_line_interface()
@@ -223,7 +223,7 @@ def test_nofaces_copied_to_reject_d_if_both_reject_and_output_d(integration):
     assert len(reject_files) == 3
 
 
-@mock.patch("autocrop.command_line_interface.confirmation", lambda *args: True)
+@mock.patch("autocrop.cli.confirmation", lambda *args: True)
 def test_image_files_overwritten_if_no_output_dir(integration):
     sys.argv = ["", "-i", "tests/test"]
     command_line_interface()
