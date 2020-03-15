@@ -74,6 +74,7 @@ def open_file(input_filename):
 
 
 class Cropper(object):
+# TODO: args and padding dict
     """Crops faces from images.
 
     This class uses the CascadeClassifier from OpenCV
@@ -100,10 +101,10 @@ class Cropper(object):
             self.pad_left = pad
         else:
             pad = check_valid_pad_dict(padding)
-            self.pad_top = pad["padding_top"]
-            self.pad_right = pad["padding_right"]
-            self.pad_bottom = pad["padding_bottom"]
-            self.pad_left = pad["padding_left"]
+            self.pad_top = pad["pad_top"]
+            self.pad_right = pad["pad_right"]
+            self.pad_bottom = pad["pad_bottom"]
+            self.pad_left = pad["pad_left"]
 
         # Gamma
         self.gamma = fix_gamma

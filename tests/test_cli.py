@@ -15,6 +15,7 @@ try:
 except ImportError:
     from unittest import mock
 
+from autocrop.autocrop import Cropper
 from autocrop.cli import command_line_interface, main, size, confirmation
 
 PY3 = sys.version_info[0] >= 3
@@ -169,12 +170,19 @@ def test_main_overwrites_when_same_input_and_output(integration):
     assert len(output_files) == 11
 
 
-@mock.patch("autocrop.cli.crop")
-def test_main_overwrites_when_no_output(mock_crop, integration):
-    mock_crop.return_value = None
-    assert mock_crop.call_count == 0
-    main("tests/test", None, None)
-    assert mock_crop.call_count == 10
+# @mock.patch("autocrop.autocrop.Cropper", side_)
+def test_main_overwrites_when_no_output(monkeypatch, integration):
+    class MonkeyCrop(object):
+        def __init__(self, *args):
+            self.count = 0
+        def crop(self, *args):
+            self.count += 1
+            return None
+
+    m = MonkeyCrop()
+    monkeypatch.setattr(Cropper, "crop", m.crop)
+    result = main("tests/test", None, None)
+    assert m.count == 10
 
 
 @mock.patch("autocrop.cli.main", lambda *args: None)
@@ -198,7 +206,7 @@ def test_user_does_not_get_prompted_if_no_confirm(mock_confirm):
     assert mock_confirm.call_count == 0
 
 
-@mock.patch("autocrop.cli.crop", lambda *args: None)
+@pytest.mark.slow
 def test_noface_files_copied_over_if_output_d_specified(integration):
     sys.argv = ["", "-i", "tests/test", "-o", "tests/crop"]
     command_line_interface()
@@ -206,6 +214,15 @@ def test_noface_files_copied_over_if_output_d_specified(integration):
     assert len(output_files) == 10
 
 
+@pytest.mark.slow
+def test_noface_files_copied_over_if_output_d_specified(integration):
+    sys.argv = ["", "-i", "tests/test", "-o", "tests/crop"]
+    command_line_interface()
+    output_files = os.listdir(sys.argv[-1])
+    assert len(output_files) == 10
+
+
+@pytest.mark.slow
 def test_nofaces_copied_to_reject_d_if_both_reject_and_output_d(integration):
     sys.argv = [
         "",
@@ -223,6 +240,7 @@ def test_nofaces_copied_to_reject_d_if_both_reject_and_output_d(integration):
     assert len(reject_files) == 3
 
 
+@pytest.mark.slow
 @mock.patch("autocrop.cli.confirmation", lambda *args: True)
 def test_image_files_overwritten_if_no_output_dir(integration):
     sys.argv = ["", "-i", "tests/test"]
