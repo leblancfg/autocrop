@@ -163,6 +163,7 @@ def test_user_gets_prompted_if_output_same_as_input(mock_confirm):
     assert e.type == SystemExit
 
 
+@pytest.mark.slow
 def test_main_overwrites_when_same_input_and_output(integration):
     sys.argv = ["", "--no-confirm", "-i", "tests/test", "-o", "tests/test"]
     command_line_interface()
@@ -175,13 +176,14 @@ def test_main_overwrites_when_no_output(monkeypatch, integration):
     class MonkeyCrop(object):
         def __init__(self, *args):
             self.count = 0
+
         def crop(self, *args):
             self.count += 1
             return None
 
     m = MonkeyCrop()
     monkeypatch.setattr(Cropper, "crop", m.crop)
-    result = main("tests/test", None, None)
+    main("tests/test", None, None)
     assert m.count == 10
 
 
@@ -204,14 +206,6 @@ def test_user_does_not_get_prompted_if_no_confirm(mock_confirm):
     assert mock_confirm.call_count == 0
     command_line_interface()
     assert mock_confirm.call_count == 0
-
-
-@pytest.mark.slow
-def test_noface_files_copied_over_if_output_d_specified(integration):
-    sys.argv = ["", "-i", "tests/test", "-o", "tests/crop"]
-    command_line_interface()
-    output_files = os.listdir(sys.argv[-1])
-    assert len(output_files) == 10
 
 
 @pytest.mark.slow

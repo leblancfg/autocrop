@@ -74,15 +74,37 @@ def open_file(input_filename):
 
 
 class Cropper(object):
-# TODO: args and padding dict
-    """Crops faces from images.
+    """
+    Crops the largest detected face from images.
 
-    This class uses the CascadeClassifier from OpenCV
-    to perform the crop. Optionally provides slight gamma fix.
+    This class uses the CascadeClassifier from OpenCV to
+    perform the `crop` by taking in either a filepath or
+    Numpy array, and returning a Numpy array. By default,
+    also provides a slight gamma fix to lighten the face
+    in its new context.
 
-    Attributes:
-        attr1 (str): Description of `attr1`.
-        attr2 (:obj:`int`, optional): Description of `attr2`.
+    Parameters:
+    -----------
+
+    width : int, default=500
+        The width of the resulting array.
+    height : int, default=500
+        The height of the resulting array.
+    padding: int or dict, default=50
+        Number of pixels to pad around the largest detected
+        face. Expected padding dict: {
+            "pad_top": int,
+            "pad_right": int,
+            "pad_bottom": int,
+            "pad_left": int
+            }
+    face_percent: int, default=50
+        Aka zoom factor. Percent of the overall size of
+        the cropped image containing the detected coordinates.
+    fix_gamma: bool, default=True
+        Cropped faces are often underexposed when taken
+        out of their context. If under a threshold, sets the
+        gamma to 0.9.
     """
 
     def __init__(
@@ -120,14 +142,19 @@ class Cropper(object):
         self.casc_path = os.path.join(directory, CASCFILE)
 
     def crop(self, path_or_array):
-        """Given a file path or np.ndarray image with a face, returns cropped array.
+        """Given a file path or np.ndarray image with a face,
+        returns cropped np.ndarray around the largest detected
+        face.
 
-        Arguments:
-            - path_or_array, the filepath or numpy array of the image to be processed.
-        Returns:
-            - image, a cropped numpy array if face detected, else None
+        Parameters
+        ----------
+        path_or_array : {str, np.ndarray}
+            The filepath or numpy array of the image.
 
-        Union[str, np.ndarray] -> Union[None, np.ndarray]
+        Returns
+        -------
+        image : {np.ndarray, None}
+            A cropped numpy array if face detected, else None.
         """
         if isinstance(path_or_array, str):
             image = open_file(path_or_array)
