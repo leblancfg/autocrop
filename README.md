@@ -5,8 +5,17 @@
 
 Perfect for profile picture processing for your website or batch work for ID cards, autocrop will output images centered around the biggest face detected.
 
+## Installation
+Simple!
+
+~~~sh
+pip install autocrop
+~~~
+
 ## Use
-From the command line:
+Autocrop can be used from the command line or from the Python API.
+
+### From the command line
 
 	usage: [-h] [-o OUTPUT] [-i INPUT] [-w WIDTH] [-H HEIGHT] [-v]
 
@@ -41,8 +50,7 @@ From the command line:
 	  -v, --version
 	  		Show program's version number and exit
 
-
-### Examples
+#### Examples
 
 * Crop every image in the `pics` folder, resize them to 400 px squares, and output them in the `crop` directory:
 	- `autocrop -i pics -o crop -w 400 -H 400`.
@@ -54,7 +62,27 @@ From the command line:
 	
 If no output folder is added, asks for confirmation and destructively crops images in-place.
 
-### Supported file types
+### From Python
+Import autocrop's `Cropper` class, set some parameters (optional), and start cropping. The `crop` method accepts filepaths or `np.ndarray`s
+
+~~~python
+import matplotlib.pyplot as plt
+from PIL import Image
+from autocrop import Cropper
+
+# Set up your Cropper instance
+cropper = Cropper()
+
+# Get a Numpy array of the cropped image and save to file
+cropped_array = cropper.Cropper('portrait.png')
+plt.savefig(cropped_array, 'cropped.png'))
+
+# Or handle the cropped image with PIL
+cropped_image = Image.fromarray(cropped_image)
+cropped_image.save('cropped.png')
+~~~
+
+## Supported file types
 
 The following file types are supported:
 
@@ -77,12 +105,6 @@ The following file types are supported:
 - Windows ICO files (`.ico`)
 - X bitmap files (`.xbm`)
 
-## Installation
-Simple! In your command line, type:
-
-~~~python
-pip install autocrop
-~~~
 
 ### Gotchas
 Autocrop uses OpenCV to perform face detection, which is installed through binary [wheels](http://pythonwheels.com/). If you *already* have OpenCV 3+ installed, you may wish to uninstall the additional OpenCV installation: `pip uninstall opencv-python`.
