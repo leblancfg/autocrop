@@ -57,7 +57,9 @@ def check_valid_pad_dict(dic):
         "pad_bottom",
         "pad_left",
     }
-    error = "Padding arguments must use keys {} and be positive scalars".format(valid_keys)
+    error = "Padding arguments must use keys {} and be positive scalars".format(
+        valid_keys
+    )
     conditions = []
     conditions.append(isinstance(dic, dict))
     conditions.append(len(dic) == 4)

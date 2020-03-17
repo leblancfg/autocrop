@@ -12,7 +12,7 @@ import numpy as np
 # except ImportError:
 #     from unittest import mock
 
-from autocrop.autocrop import gamma, Cropper
+from autocrop.autocrop import gamma, Cropper, ImageReadError
 
 PY3 = sys.version_info[0] >= 3
 
@@ -37,3 +37,30 @@ def test_obama_has_a_face():
     obama = cv2.imread(loc)
     c = Cropper()
     assert len(c.crop(obama)) == 500
+
+
+def test_open_file_invalid_filetype_returns_None():
+    c = Cropper()
+    with pytest.raises(ImageReadError) as e:
+        c.crop("asdf")
+    assert e.type == ImageReadError
+    assert "ImageReadError" in str(e)
+
+
+@pytest.mark.parametrize(
+    "values, expected_result",
+    [
+        ([500, 500, 50, 50, 50, 50], [37, 112, 37, 112]),
+        ([500, 500, 50, 0, 0, 0], [0, 0, 50, 50]),
+    ],
+)
+def test_adjust_boundaries(values, expected_result):
+    """Trigger the following: [h1 < 0, h2 > imgw, v1 < 0, v2 > imgh]"""
+    # TODO: the padding code section is critically broken and
+    # needs to be rewritten anyways. This section is more of
+    # the draft of the proper testing section once the code is
+    # fixed.
+    imgh, imgw, h1, h2, v1, v2 = values
+    c = Cropper()
+    result = c._crop_positions(imgh, imgw, h1, h2, v1, v2)
+    assert result == expected_result

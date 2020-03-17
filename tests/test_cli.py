@@ -58,12 +58,13 @@ def test_size_million_not_valid():
 def test_size_asdf_gives_ValueError():
     with pytest.raises(Exception) as e:
         size("asdf")
-    assert "ValueError" in str(e)
+    assert "Error" in str(e)
 
 
 def test_size_minus_14_not_valid():
     with pytest.raises(Exception) as e:
         size(-14)
+        print(e)
     assert "Invalid pixel" in str(e)
 
 
@@ -245,3 +246,9 @@ def test_image_files_overwritten_if_no_output_dir(integration):
     # Images with a face have been cropped
     shape = cv2.imread("tests/test/king.jpg").shape
     assert shape == (500, 500, 3)
+
+
+def test_main_ImageReadError():
+    """Monketpatch an ImageReadError to main to trigger those lines"""
+    # TODO: that line of inquiry should also reject_count += 1
+    pass

@@ -153,10 +153,10 @@ def input_path(p):
     no_images = "Input folder does not contain any image files"
     p = os.path.abspath(p)
     if not os.path.isdir(p):
-        raise argparse.ArgumentTypeError(no_folder)
+        raise argparse.ArgumentError(no_folder)
     filetypes = set(os.path.splitext(f)[-1] for f in os.listdir(p))
     if not any(t in INPUT_FILETYPES for t in filetypes):
-        raise argparse.ArgumentTypeError(no_images)
+        raise argparse.ArgumentError(no_images)
     else:
         return p
 
@@ -175,7 +175,7 @@ def size(i):
     error = "Invalid pixel size"
     try:
         i = int(i)
-    except TypeError:
+    except ValueError:
         raise argparse.ArgumentTypeError(error)
     if i > 0 and i < 1e5:
         return i
@@ -183,7 +183,7 @@ def size(i):
         raise argparse.ArgumentTypeError(error)
 
 
-def compat_input(s=""):
+def compat_input(s=""):  # pragma: no cover
     """Compatibility function to permit testing for Python 2 and 3"""
     try:
         return raw_input(s)
@@ -192,7 +192,7 @@ def compat_input(s=""):
         return input(s)  # lgtm[py/use-of-input]
 
 
-def confirmation(question, default=True):
+def confirmation(question):
     """Ask a yes/no question via standard input and return the answer.
 
     If invalid input is given, the user will be asked until
@@ -213,21 +213,14 @@ def confirmation(question, default=True):
     """
     yes_list = ["yes", "y"]
     no_list = ["no", "n"]
-
-    default_dict = {  # default => prompt default string
-        None: "[y/n]",
-        True: "[Y]/n",
-        False: "y/[N]",
-    }
-
-    default_str = default_dict[default]
+    default_str = "[Y]/n"
     prompt_str = "%s %s " % (question, default_str)
 
     while True:
         choice = compat_input(prompt_str).lower()
 
-        if not choice and default is not None:
-            return default
+        if not choice:
+            return default_str
         if choice in yes_list:
             return True
         if choice in no_list:
