@@ -13,7 +13,7 @@ pip install autocrop
 ~~~
 
 ## Use
-Autocrop can be used from the command line or from the Python API.
+Autocrop can be used [from the command line](#from-the-command-line) or directly [from Python API](#from-python).
 
 ### From the command line
 
