@@ -63,21 +63,18 @@ Autocrop can be used [from the command line](#from-the-command-line) or directly
 If no output folder is added, asks for confirmation and destructively crops images in-place.
 
 ### From Python
-Import autocrop's `Cropper` class, set some parameters (optional), and start cropping. The `crop` method accepts filepaths or `np.ndarray`s
+Import the `Cropper` class, set some parameters (optional), and start cropping. The `crop` method accepts filepaths or `np.ndarray`, and returns Numpy arrays. These are easily handled with [PIL](https://pillow.readthedocs.io/).
 
 ~~~python
-import matplotlib.pyplot as plt
 from PIL import Image
 from autocrop import Cropper
 
-# Set up your Cropper instance
 cropper = Cropper()
 
-# Get a Numpy array of the cropped image and save to file
+# Get a Numpy array of the cropped image
 cropped_array = cropper.Cropper('portrait.png')
-plt.savefig(cropped_array, 'cropped.png'))
 
-# Or handle the cropped image with PIL
+# Save the cropped image with PIL
 cropped_image = Image.fromarray(cropped_image)
 cropped_image.save('cropped.png')
 ~~~
