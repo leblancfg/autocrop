@@ -17,4 +17,11 @@ check:
 docs:
 	portray on_github_pages
 
-.PHONY: check pypi pypi-test docs
+initial_setup:
+	# OS-dependent; assumes *nix and python==PY3
+	python -m venv env
+	source env/bin/activate
+	pip install -r requirements.txt
+	pip install -r requirements-test.txt
+
+.PHONY: check pypi pypi-test docs initial_setup

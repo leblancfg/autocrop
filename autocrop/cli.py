@@ -153,10 +153,10 @@ def input_path(p):
     no_images = "Input folder does not contain any image files"
     p = os.path.abspath(p)
     if not os.path.isdir(p):
-        raise argparse.ArgumentError(no_folder)
+        raise argparse.ArgumentTypeError(no_folder)
     filetypes = set(os.path.splitext(f)[-1] for f in os.listdir(p))
     if not any(t in INPUT_FILETYPES for t in filetypes):
-        raise argparse.ArgumentError(no_images)
+        raise argparse.ArgumentTypeError(no_images)
     else:
         return p
 
