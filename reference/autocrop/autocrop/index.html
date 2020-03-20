@@ -809,13 +809,13 @@
 
 <span class="k">class</span> <span class="nc">ImageReadError</span><span class="p">(</span><span class="ne">BaseException</span><span class="p">):</span>
 
-    <span class="sd">&quot;&quot;&quot;Custom exception to catch an OpenCV failure type&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Custom exception to catch an OpenCV failure type.&quot;&quot;&quot;</span>
 
     <span class="k">pass</span>
 
 <span class="k">def</span> <span class="nf">gamma</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">correction</span><span class="p">):</span>
 
-    <span class="sd">&quot;&quot;&quot;Simple gamma correction to brighten faces&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Simple gamma correction to brighten faces.&quot;&quot;&quot;</span>
 
     <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">img</span> <span class="o">/</span> <span class="mf">255.0</span><span class="p">,</span> <span class="n">correction</span><span class="p">)</span>
 
@@ -825,7 +825,9 @@
 
     <span class="sd">&quot;&quot;&quot;Returns the (cropped) image with GAMMA applied if underexposition</span>
 
-<span class="sd">    is detected.&quot;&quot;&quot;</span>
+<span class="sd">    is detected.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">uexp</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">calcHist</span><span class="p">([</span><span class="n">gray</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="p">[</span><span class="mi">256</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">256</span><span class="p">])</span>
 
@@ -837,7 +839,7 @@
 
 <span class="k">def</span> <span class="nf">check_positive_scalar</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
 
-    <span class="sd">&quot;&quot;&quot;Returns True if value if a positive scalar&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Returns True if value if a positive scalar.&quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">num</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="kp">isscalar</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
 
@@ -847,7 +849,7 @@
 
 <span class="k">def</span> <span class="nf">check_valid_pad_dict</span><span class="p">(</span><span class="n">dic</span><span class="p">):</span>
 
-    <span class="sd">&quot;&quot;&quot;Returns dic if valid, else raises ValueError&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Returns dic if valid, else raises ValueError.&quot;&quot;&quot;</span>
 
     <span class="n">valid_keys</span> <span class="o">=</span> <span class="p">{</span>
 
@@ -885,7 +887,7 @@
 
 <span class="k">def</span> <span class="nf">open_file</span><span class="p">(</span><span class="n">input_filename</span><span class="p">):</span>
 
-    <span class="sd">&quot;&quot;&quot;Given a filename, returns a numpy array&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Given a filename, returns a numpy array.&quot;&quot;&quot;</span>
 
     <span class="n">extension</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">input_filename</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 
@@ -911,7 +913,7 @@
 
 <span class="sd">    Crops the largest detected face from images.</span>
 
-<span class="sd">    This class uses the CascadeClassifier from OpenCV to</span>
+<span class="sd">    This class uses the `CascadeClassifier` from OpenCV to</span>
 
 <span class="sd">    perform the `crop` by taking in either a filepath or</span>
 
@@ -925,43 +927,33 @@
 
 <span class="sd">    -----------</span>
 
-<span class="sd">    width : int, default=500</span>
+<span class="sd">    - `width` : `int`, default=`500`</span>
 
-<span class="sd">        The width of the resulting array.</span>
+<span class="sd">        * The width of the resulting array.</span>
 
-<span class="sd">    height : int, default=500</span>
+<span class="sd">    - `height` : `int`, default=`500`</span>
 
-<span class="sd">        The height of the resulting array.</span>
+<span class="sd">        * The height of the resulting array.</span>
 
-<span class="sd">    padding: int or dict, default=50</span>
+<span class="sd">    - `padding`: `int` or `dict`, default=`50`</span>
 
-<span class="sd">        Number of pixels to pad around the largest detected</span>
+<span class="sd">        * Number of pixels to pad around the largest detected</span>
 
-<span class="sd">        face. Expected padding dict: {</span>
+<span class="sd">        face. Expected padding dict:</span>
 
-<span class="sd">            &quot;pad_top&quot;: int,</span>
+<span class="sd">        `{&quot;pad_top&quot;: int, &quot;pad_right&quot;: int, &quot;pad_bottom&quot;: int, &quot;pad_left&quot;: int}`</span>
 
-<span class="sd">            &quot;pad_right&quot;: int,</span>
+<span class="sd">    - `face_percent`: `int`, default=`50`</span>
 
-<span class="sd">            &quot;pad_bottom&quot;: int,</span>
+<span class="sd">        * Aka zoom factor. Percent of the overall size of the</span>
 
-<span class="sd">            &quot;pad_left&quot;: int</span>
+<span class="sd">        cropped image containing the detected coordinates.</span>
 
-<span class="sd">            }</span>
+<span class="sd">    - `fix_gamma`: `bool`, default=`True`</span>
 
-<span class="sd">    face_percent: int, default=50</span>
+<span class="sd">        * Cropped faces are often underexposed when taken out of</span>
 
-<span class="sd">        Aka zoom factor. Percent of the overall size of</span>
-
-<span class="sd">        the cropped image containing the detected coordinates.</span>
-
-<span class="sd">    fix_gamma: bool, default=True</span>
-
-<span class="sd">        Cropped faces are often underexposed when taken</span>
-
-<span class="sd">        out of their context. If under a threshold, sets the</span>
-
-<span class="sd">        gamma to 0.9.</span>
+<span class="sd">        their context. If under a threshold, sets the gamma to 0.9.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -1035,17 +1027,17 @@
 
 <span class="sd">        ----------</span>
 
-<span class="sd">        path_or_array : {str, np.ndarray}</span>
+<span class="sd">        - `path_or_array` : {`str`, `np.ndarray`}</span>
 
-<span class="sd">            The filepath or numpy array of the image.</span>
+<span class="sd">            * The filepath or numpy array of the image.</span>
 
 <span class="sd">        Returns</span>
 
 <span class="sd">        -------</span>
 
-<span class="sd">        image : {np.ndarray, None}</span>
+<span class="sd">        `image` : {`np.ndarray`, `None`}</span>
 
-<span class="sd">            A cropped numpy array if face detected, else None.</span>
+<span class="sd">            * A cropped numpy array if face detected, else None.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -1139,7 +1131,9 @@
 
         <span class="sd">&quot;&quot;&quot;Given face coordinates, returns coordinates for which</span>
 
-<span class="sd">        to crop on given padding and face_percent parameters.&quot;&quot;&quot;</span>
+<span class="sd">        to crop on given padding and face_percent parameters.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Adjust output height based on percent</span>
 
@@ -1255,10 +1249,10 @@
 </code></pre></div>
 
 
-<p>Returns True if value if a positive scalar</p>
+<p>Returns True if value if a positive scalar.</p>
 <details class="example"><summary>View Source</summary><div class="codehilite"><pre><span></span><code><span class="n">def</span> <span class="n">check_positive_scalar</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
 
-    <span class="ss">&quot;&quot;&quot;Returns True if value if a positive scalar&quot;&quot;&quot;</span>
+    <span class="ss">&quot;&quot;&quot;Returns True if value if a positive scalar.&quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">num</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">and</span> <span class="k">not</span> <span class="n">isinstance</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">str</span><span class="p">)</span> <span class="k">and</span> <span class="n">np</span><span class="p">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
 
@@ -1283,7 +1277,9 @@ is detected.</p>
 
 <span class="w">    </span><span class="ss">&quot;&quot;&quot;Returns the (cropped) image with GAMMA applied if underexposition</span>
 
-<span class="ss">    is detected.&quot;&quot;&quot;</span><span class="w"></span>
+<span class="ss">    is detected.</span>
+
+<span class="ss">    &quot;&quot;&quot;</span><span class="w"></span>
 
 <span class="w">    </span><span class="n">uexp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cv2</span><span class="p">.</span><span class="n">calcHist</span><span class="p">(</span><span class="o">[</span><span class="n">gray</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="o">[</span><span class="n">0</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="k">None</span><span class="p">,</span><span class="w"> </span><span class="o">[</span><span class="n">256</span><span class="o">]</span><span class="p">,</span><span class="w"> </span><span class="o">[</span><span class="n">0, 256</span><span class="o">]</span><span class="p">)</span><span class="w"></span>
 
@@ -1303,10 +1299,10 @@ is detected.</p>
 </code></pre></div>
 
 
-<p>Returns dic if valid, else raises ValueError</p>
+<p>Returns dic if valid, else raises ValueError.</p>
 <details class="example"><summary>View Source</summary><div class="codehilite"><pre><span></span><code><span class="n">def</span> <span class="n">check_valid_pad_dict</span><span class="p">(</span><span class="n">dic</span><span class="p">):</span>
 
-    <span class="ss">&quot;&quot;&quot;Returns dic if valid, else raises ValueError&quot;&quot;&quot;</span>
+    <span class="ss">&quot;&quot;&quot;Returns dic if valid, else raises ValueError.&quot;&quot;&quot;</span>
 
     <span class="n">valid_keys</span> <span class="o">=</span> <span class="err">{</span>
 
@@ -1353,10 +1349,10 @@ is detected.</p>
 </code></pre></div>
 
 
-<p>Simple gamma correction to brighten faces</p>
+<p>Simple gamma correction to brighten faces.</p>
 <details class="example"><summary>View Source</summary><div class="codehilite"><pre><span></span><code><span class="n">def</span> <span class="n">gamma</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">correction</span><span class="p">):</span>
 
-    <span class="ss">&quot;&quot;&quot;Simple gamma correction to brighten faces&quot;&quot;&quot;</span>
+    <span class="ss">&quot;&quot;&quot;Simple gamma correction to brighten faces.&quot;&quot;&quot;</span>
 
     <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="p">.</span><span class="n">pow</span><span class="p">(</span><span class="n">img</span> <span class="o">/</span> <span class="mi">255</span><span class="p">.</span><span class="mi">0</span><span class="p">,</span> <span class="n">correction</span><span class="p">)</span>
 
@@ -1372,10 +1368,10 @@ is detected.</p>
 </code></pre></div>
 
 
-<p>Given a filename, returns a numpy array</p>
+<p>Given a filename, returns a numpy array.</p>
 <details class="example"><summary>View Source</summary><div class="codehilite"><pre><span></span><code><span class="n">def</span> <span class="n">open_file</span><span class="p">(</span><span class="n">input_filename</span><span class="p">):</span>
 
-    <span class="ss">&quot;&quot;&quot;Given a filename, returns a numpy array&quot;&quot;&quot;</span>
+    <span class="ss">&quot;&quot;&quot;Given a filename, returns a numpy array.&quot;&quot;&quot;</span>
 
     <span class="n">extension</span> <span class="o">=</span> <span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">input_filename</span><span class="p">)[</span><span class="mi">1</span><span class="p">].</span><span class="k">lower</span><span class="p">()</span>
 
@@ -1411,38 +1407,45 @@ is detected.</p>
 
 
 <p>Crops the largest detected face from images.</p>
-<p>This class uses the CascadeClassifier from OpenCV to
+<p>This class uses the <code>CascadeClassifier</code> from OpenCV to
 perform the <code>crop</code> by taking in either a filepath or
 Numpy array, and returning a Numpy array. By default,
 also provides a slight gamma fix to lighten the face
 in its new context.</p>
 <h2 id="parameters">Parameters:</h2>
-<p>width : int, default=500
-    The width of the resulting array.
-height : int, default=500
-    The height of the resulting array.
-padding: int or dict, default=50
-    Number of pixels to pad around the largest detected
-    face. Expected padding dict: {
-        "pad_top": int,
-        "pad_right": int,
-        "pad_bottom": int,
-        "pad_left": int
-        }
-face_percent: int, default=50
-    Aka zoom factor. Percent of the overall size of
-    the cropped image containing the detected coordinates.
-fix_gamma: bool, default=True
-    Cropped faces are often underexposed when taken
-    out of their context. If under a threshold, sets the
-    gamma to 0.9.</p>
+<ul>
+<li><code>width</code> : <code>int</code>, default=<code>500</code><ul>
+<li>The width of the resulting array.</li>
+</ul>
+</li>
+<li><code>height</code> : <code>int</code>, default=<code>500</code><ul>
+<li>The height of the resulting array.</li>
+</ul>
+</li>
+<li><code>padding</code>: <code>int</code> or <code>dict</code>, default=<code>50</code><ul>
+<li>Number of pixels to pad around the largest detected
+face. Expected padding dict:
+<code>{"pad_top": int, "pad_right": int, "pad_bottom": int, "pad_left": int}</code></li>
+</ul>
+</li>
+<li><code>face_percent</code>: <code>int</code>, default=<code>50</code><ul>
+<li>Aka zoom factor. Percent of the overall size of the
+cropped image containing the detected coordinates.</li>
+</ul>
+</li>
+<li><code>fix_gamma</code>: <code>bool</code>, default=<code>True</code><ul>
+<li>Cropped faces are often underexposed when taken out of
+their context. If under a threshold, sets the gamma to 0.9.</li>
+</ul>
+</li>
+</ul>
 <details class="example"><summary>View Source</summary><div class="codehilite"><pre><span></span><code><span class="n">class</span> <span class="nf">Cropper</span><span class="p">(</span><span class="n">object</span><span class="p">):</span>
 
     <span class="s2">&quot;&quot;&quot;</span>
 
 <span class="s2">    Crops the largest detected face from images.</span>
 
-<span class="s2">    This class uses the CascadeClassifier from OpenCV to</span>
+<span class="s2">    This class uses the `CascadeClassifier` from OpenCV to</span>
 
 <span class="s2">    perform the `crop` by taking in either a filepath or</span>
 
@@ -1456,43 +1459,33 @@ fix_gamma: bool, default=True
 
 <span class="s2">    -----------</span>
 
-<span class="s2">    width : int, default=500</span>
+<span class="s2">    - `width` : `int`, default=`500`</span>
 
-<span class="s2">        The width of the resulting array.</span>
+<span class="s2">        * The width of the resulting array.</span>
 
-<span class="s2">    height : int, default=500</span>
+<span class="s2">    - `height` : `int`, default=`500`</span>
 
-<span class="s2">        The height of the resulting array.</span>
+<span class="s2">        * The height of the resulting array.</span>
 
-<span class="s2">    padding: int or dict, default=50</span>
+<span class="s2">    - `padding`: `int` or `dict`, default=`50`</span>
 
-<span class="s2">        Number of pixels to pad around the largest detected</span>
+<span class="s2">        * Number of pixels to pad around the largest detected</span>
 
-<span class="s2">        face. Expected padding dict: {</span>
+<span class="s2">        face. Expected padding dict:</span>
 
-<span class="s2">            &quot;</span><span class="n">pad_top</span><span class="s2">&quot;: int,</span>
+<span class="s2">        `{&quot;</span><span class="n">pad_top</span><span class="s2">&quot;: int, &quot;</span><span class="n">pad_right</span><span class="s2">&quot;: int, &quot;</span><span class="n">pad_bottom</span><span class="s2">&quot;: int, &quot;</span><span class="n">pad_left</span><span class="s2">&quot;: int}`</span>
 
-<span class="s2">            &quot;</span><span class="n">pad_right</span><span class="s2">&quot;: int,</span>
+<span class="s2">    - `face_percent`: `int`, default=`50`</span>
 
-<span class="s2">            &quot;</span><span class="n">pad_bottom</span><span class="s2">&quot;: int,</span>
+<span class="s2">        * Aka zoom factor. Percent of the overall size of the</span>
 
-<span class="s2">            &quot;</span><span class="n">pad_left</span><span class="s2">&quot;: int</span>
+<span class="s2">        cropped image containing the detected coordinates.</span>
 
-<span class="s2">            }</span>
+<span class="s2">    - `fix_gamma`: `bool`, default=`True`</span>
 
-<span class="s2">    face_percent: int, default=50</span>
+<span class="s2">        * Cropped faces are often underexposed when taken out of</span>
 
-<span class="s2">        Aka zoom factor. Percent of the overall size of</span>
-
-<span class="s2">        the cropped image containing the detected coordinates.</span>
-
-<span class="s2">    fix_gamma: bool, default=True</span>
-
-<span class="s2">        Cropped faces are often underexposed when taken</span>
-
-<span class="s2">        out of their context. If under a threshold, sets the</span>
-
-<span class="s2">        gamma to 0.9.</span>
+<span class="s2">        their context. If under a threshold, sets the gamma to 0.9.</span>
 
 <span class="s2">    &quot;&quot;&quot;</span>
 
@@ -1566,17 +1559,17 @@ fix_gamma: bool, default=True
 
 <span class="s2">        ----------</span>
 
-<span class="s2">        path_or_array : {str, np.ndarray}</span>
+<span class="s2">        - `path_or_array` : {`str`, `np.ndarray`}</span>
 
-<span class="s2">            The filepath or numpy array of the image.</span>
+<span class="s2">            * The filepath or numpy array of the image.</span>
 
 <span class="s2">        Returns</span>
 
 <span class="s2">        -------</span>
 
-<span class="s2">        image : {np.ndarray, None}</span>
+<span class="s2">        `image` : {`np.ndarray`, `None`}</span>
 
-<span class="s2">            A cropped numpy array if face detected, else None.</span>
+<span class="s2">            * A cropped numpy array if face detected, else None.</span>
 
 <span class="s2">        &quot;&quot;&quot;</span>
 
@@ -1670,7 +1663,9 @@ fix_gamma: bool, default=True
 
         <span class="s2">&quot;&quot;&quot;Given face coordinates, returns coordinates for which</span>
 
-<span class="s2">        to crop on given padding and face_percent parameters.&quot;&quot;&quot;</span>
+<span class="s2">        to crop on given padding and face_percent parameters.</span>
+
+<span class="s2">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Adjust output height based on percent</span>
 
@@ -1759,74 +1754,78 @@ fix_gamma: bool, default=True
 returns cropped np.ndarray around the largest detected
 face.</p>
 <h2 id="parameters_1">Parameters</h2>
-<p>path_or_array : {str, np.ndarray}
-    The filepath or numpy array of the image.</p>
+<ul>
+<li><code>path_or_array</code> : {<code>str</code>, <code>np.ndarray</code>}<ul>
+<li>The filepath or numpy array of the image.</li>
+</ul>
+</li>
+</ul>
 <h2 id="returns">Returns</h2>
-<p>image : {np.ndarray, None}
-    A cropped numpy array if face detected, else None.</p>
-<details class="example"><summary>View Source</summary><div class="codehilite"><pre><span></span><code>    <span class="n">def</span> <span class="n">crop</span><span class="p">(</span><span class="k">self</span><span class="p">,</span> <span class="n">path_or_array</span><span class="p">):</span>
+<p><code>image</code> : {<code>np.ndarray</code>, <code>None</code>}
+    * A cropped numpy array if face detected, else None.</p>
+<details class="example"><summary>View Source</summary><div class="codehilite"><pre><span></span><code>    <span class="n">def</span> <span class="nf">crop</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">path_or_array</span><span class="p">):</span>
 
-        <span class="ss">&quot;&quot;&quot;Given a file path or np.ndarray image with a face,</span>
+        <span class="s2">&quot;&quot;&quot;Given a file path or np.ndarray image with a face,</span>
 
-<span class="ss">        returns cropped np.ndarray around the largest detected</span>
+<span class="s2">        returns cropped np.ndarray around the largest detected</span>
 
-<span class="ss">        face.</span>
+<span class="s2">        face.</span>
 
-<span class="ss">        Parameters</span>
+<span class="s2">        Parameters</span>
 
-<span class="ss">        ----------</span>
+<span class="s2">        ----------</span>
 
-<span class="ss">        path_or_array : {str, np.ndarray}</span>
+<span class="s2">        - `path_or_array` : {`str`, `np.ndarray`}</span>
 
-<span class="ss">            The filepath or numpy array of the image.</span>
+<span class="s2">            * The filepath or numpy array of the image.</span>
 
-<span class="ss">        Returns</span>
+<span class="s2">        Returns</span>
 
-<span class="ss">        -------</span>
+<span class="s2">        -------</span>
 
-<span class="ss">        image : {np.ndarray, None}</span>
+<span class="s2">        `image` : {`np.ndarray`, `None`}</span>
 
-<span class="ss">            A cropped numpy array if face detected, else None.</span>
+<span class="s2">            * A cropped numpy array if face detected, else None.</span>
 
-<span class="ss">        &quot;&quot;&quot;</span>
+<span class="s2">        &quot;&quot;&quot;</span>
 
-        <span class="k">if</span> <span class="n">isinstance</span><span class="p">(</span><span class="n">path_or_array</span><span class="p">,</span> <span class="n">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nf">isinstance</span><span class="p">(</span><span class="n">path_or_array</span><span class="p">,</span> <span class="n">str</span><span class="p">):</span>
 
-            <span class="n">image</span> <span class="o">=</span> <span class="n">open_file</span><span class="p">(</span><span class="n">path_or_array</span><span class="p">)</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="nf">open_file</span><span class="p">(</span><span class="n">path_or_array</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
 
             <span class="n">image</span> <span class="o">=</span> <span class="n">path_or_array</span>
 
-        <span class="o">#</span> <span class="k">Some</span> <span class="n">grayscale</span> <span class="n">color</span> <span class="n">profiles</span> <span class="n">can</span> <span class="n">throw</span> <span class="n">errors</span><span class="p">,</span> <span class="n">catch</span> <span class="n">them</span>
+        <span class="c1"># Some grayscale color profiles can throw errors, catch them</span>
 
         <span class="n">try</span><span class="p">:</span>
 
-            <span class="n">gray</span> <span class="o">=</span> <span class="n">cv2</span><span class="p">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">cv2</span><span class="p">.</span><span class="n">COLOR_BGR2GRAY</span><span class="p">)</span>
+            <span class="n">gray</span> <span class="o">=</span> <span class="n">cv2</span><span class="p">.</span><span class="nf">cvtColor</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">cv2</span><span class="p">.</span><span class="n">COLOR_BGR2GRAY</span><span class="p">)</span>
 
-        <span class="k">except</span> <span class="n">cv2</span><span class="p">.</span><span class="n">error</span><span class="p">:</span>
+        <span class="n">except</span> <span class="n">cv2</span><span class="p">.</span><span class="n">error</span><span class="p">:</span>
 
             <span class="n">gray</span> <span class="o">=</span> <span class="n">image</span>
 
-        <span class="o">#</span> <span class="k">Scale</span> <span class="n">the</span> <span class="n">image</span>
+        <span class="c1"># Scale the image</span>
 
         <span class="n">try</span><span class="p">:</span>
 
             <span class="n">img_height</span><span class="p">,</span> <span class="n">img_width</span> <span class="o">=</span> <span class="n">image</span><span class="p">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
 
-        <span class="k">except</span> <span class="n">AttributeError</span><span class="p">:</span>
+        <span class="n">except</span> <span class="n">AttributeError</span><span class="p">:</span>
 
             <span class="n">raise</span> <span class="n">ImageReadError</span>
 
-        <span class="n">minface</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="p">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">img_height</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">img_width</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">MINFACE</span><span class="p">)</span>
+        <span class="n">minface</span> <span class="o">=</span> <span class="kt">int</span><span class="p">(</span><span class="n">np</span><span class="p">.</span><span class="nf">sqrt</span><span class="p">(</span><span class="n">img_height</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">img_width</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">MINFACE</span><span class="p">)</span>
 
-        <span class="o">#</span> <span class="k">Create</span> <span class="n">the</span> <span class="n">haar</span> <span class="k">cascade</span>
+        <span class="c1"># Create the haar cascade</span>
 
-        <span class="n">face_cascade</span> <span class="o">=</span> <span class="n">cv2</span><span class="p">.</span><span class="n">CascadeClassifier</span><span class="p">(</span><span class="k">self</span><span class="p">.</span><span class="n">casc_path</span><span class="p">)</span>
+        <span class="n">face_cascade</span> <span class="o">=</span> <span class="n">cv2</span><span class="p">.</span><span class="nf">CascadeClassifier</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">casc_path</span><span class="p">)</span>
 
-        <span class="o">#</span> <span class="o">======</span> <span class="n">Detect</span> <span class="n">faces</span> <span class="k">in</span> <span class="n">the</span> <span class="n">image</span> <span class="o">======</span>
+        <span class="c1"># ====== Detect faces in the image ======</span>
 
-        <span class="n">faces</span> <span class="o">=</span> <span class="n">face_cascade</span><span class="p">.</span><span class="n">detectMultiScale</span><span class="p">(</span>
+        <span class="n">faces</span> <span class="o">=</span> <span class="n">face_cascade</span><span class="p">.</span><span class="nf">detectMultiScale</span><span class="p">(</span>
 
             <span class="n">gray</span><span class="p">,</span>
 
@@ -1840,35 +1839,35 @@ face.</p>
 
         <span class="p">)</span>
 
-        <span class="o">#</span> <span class="n">Handle</span> <span class="k">no</span> <span class="n">faces</span>
+        <span class="c1"># Handle no faces</span>
 
-        <span class="k">if</span> <span class="n">len</span><span class="p">(</span><span class="n">faces</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nf">len</span><span class="p">(</span><span class="n">faces</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
 
-            <span class="k">return</span> <span class="k">None</span>
+            <span class="k">return</span> <span class="n">None</span>
 
-        <span class="o">#</span> <span class="n">Make</span> <span class="n">padding</span> <span class="k">from</span> <span class="n">biggest</span> <span class="n">face</span> <span class="k">found</span>
+        <span class="c1"># Make padding from biggest face found</span>
 
         <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">faces</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
-        <span class="n">pos</span> <span class="o">=</span> <span class="k">self</span><span class="p">.</span><span class="n">_crop_positions</span><span class="p">(</span><span class="n">img_height</span><span class="p">,</span> <span class="n">img_width</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,)</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">_crop_positions</span><span class="p">(</span><span class="n">img_height</span><span class="p">,</span> <span class="n">img_width</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,)</span>
 
-        <span class="o">#</span> <span class="o">======</span> <span class="n">Actual</span> <span class="n">cropping</span> <span class="o">======</span>
+        <span class="c1"># ====== Actual cropping ======</span>
 
         <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="p">[</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="p">:</span> <span class="n">pos</span><span class="p">[</span><span class="mi">3</span><span class="p">]]</span>
 
-        <span class="o">#</span> <span class="n">Resize</span>
+        <span class="c1"># Resize</span>
 
-        <span class="n">image</span> <span class="o">=</span> <span class="n">cv2</span><span class="p">.</span><span class="n">resize</span><span class="p">(</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">cv2</span><span class="p">.</span><span class="nf">resize</span><span class="p">(</span>
 
-            <span class="n">image</span><span class="p">,</span> <span class="p">(</span><span class="k">self</span><span class="p">.</span><span class="n">width</span><span class="p">,</span> <span class="k">self</span><span class="p">.</span><span class="n">height</span><span class="p">),</span> <span class="n">interpolation</span><span class="o">=</span><span class="n">cv2</span><span class="p">.</span><span class="n">INTER_AREA</span>
+            <span class="n">image</span><span class="p">,</span> <span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">width</span><span class="p">,</span> <span class="n">self</span><span class="p">.</span><span class="n">height</span><span class="p">),</span> <span class="n">interpolation</span><span class="o">=</span><span class="n">cv2</span><span class="p">.</span><span class="n">INTER_AREA</span>
 
         <span class="p">)</span>
 
-        <span class="o">#</span> <span class="n">Underexposition</span>
+        <span class="c1"># Underexposition</span>
 
-        <span class="k">if</span> <span class="k">self</span><span class="p">.</span><span class="n">gamma</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">self</span><span class="p">.</span><span class="n">gamma</span><span class="p">:</span>
 
-            <span class="n">image</span> <span class="o">=</span> <span class="n">check_underexposed</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">gray</span><span class="p">)</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="nf">check_underexposed</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">gray</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">image</span>
 </code></pre></div>
@@ -1884,10 +1883,10 @@ face.</p>
 </code></pre></div>
 
 
-<p>Custom exception to catch an OpenCV failure type</p>
+<p>Custom exception to catch an OpenCV failure type.</p>
 <details class="example"><summary>View Source</summary><div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="n">ImageReadError</span>(<span class="n">BaseException</span>):
 
-    <span class="s">&quot;&quot;&quot;Custom exception to catch an OpenCV failure type&quot;&quot;&quot;</span>
+    <span class="s">&quot;&quot;&quot;Custom exception to catch an OpenCV failure type.&quot;&quot;&quot;</span>
 
     <span class="nb">pass</span>
 </code></pre></div>
