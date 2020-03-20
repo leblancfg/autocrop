@@ -160,7 +160,7 @@ class Cropper(object):
 
         Returns
         -------
-        `image` : {`np.ndarray`, `None`}
+        - `image` : {`np.ndarray`, `None`}
             * A cropped numpy array if face detected, else None.
         """
         if isinstance(path_or_array, str):
