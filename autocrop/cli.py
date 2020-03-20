@@ -24,7 +24,7 @@ INPUT_FILETYPES = COMBINED_FILETYPES + [s.upper() for s in COMBINED_FILETYPES]
 
 
 def check_padding_value(num):
-    """Returns original value if positive scalar, else returns 50"""
+    """Returns original value if positive scalar, else returns 50."""
     # For CLI backwards compatibility; Cropper already checks input
     if num is False or num < 0:
         return 50
@@ -32,8 +32,8 @@ def check_padding_value(num):
 
 
 def output(input_filename, output_filename, image):
-    """Move the input file to the output location and write over it with the
-    cropped image data."""
+    """Move the input file to the output location and overwrite it
+    with the cropped image data."""
     if input_filename != output_filename:
         # Move the file to the output directory
         shutil.move(input_filename, output_filename)
@@ -65,26 +65,36 @@ def main(
     padLeft=False,
     padRight=False,
 ):
-    """Crops folder of images to the desired height and width if a face is found
+    """Crops folder of images to the desired height and width if a
+    face is found.
 
-    If input_d == output_d or output_d is None, overwrites all files
+    If `input_d == output_d` or `output_d is None`, overwrites all files
     where the biggest face was found.
 
-    Args:
-        input_d (str): Directory to crop images from.
-        output_d (str): Directory where cropped images are placed.
-        reject_d (str): Directory where images that cannot be cropped are
-                        placed.
-        fheight (int): Height (px) to which to crop the image.
-                       Default: 500px
-        fwidth (int): Width (px) to which to crop the image.
-                       Default: 500px
-        facePercent (int) : Percentage of face from height,
-                       Default: 50
-    Side Effects:
-        Creates image files in output directory.
+    Parameters:
+    -----------
 
-    str, str, (int), (int) -> None
+    - `input_d`: `str`
+        * Directory to crop images from.
+    - `output_d`: `str`
+        * Directory where cropped images are placed.
+    - `reject_d`: `str`
+        * Directory where images that cannot be cropped are placed.
+    - `fheight`: `int`, default=`500`
+        * Height (px) to which to crop the image.
+    - `fwidth`: `int`, default=`500`
+        * Width (px) to which to crop the image.
+    - `facePercent`: `int`, default=`50`
+        * Percentage of face from height.
+
+    Side Effects:
+    -------------
+
+    - Creates image files in output directory.
+
+    Type Signature:
+    ---------------
+    `str, str, (int), (int) -> None`
     """
     reject_count = 0
     output_count = 0
@@ -148,7 +158,7 @@ def main(
 
 
 def input_path(p):
-    """Returns path, only if input is a valid directory"""
+    """Returns path, only if input is a valid directory."""
     no_folder = "Input folder does not exist"
     no_images = "Input folder does not contain any image files"
     p = os.path.abspath(p)
@@ -163,7 +173,8 @@ def input_path(p):
 
 def output_path(p):
     """Returns path, if input is a valid directory name.
-    If directory doesn't exist, creates it."""
+    If directory doesn't exist, creates it.
+    """
     p = os.path.abspath(p)
     if not os.path.isdir(p):
         os.makedirs(p)
@@ -184,7 +195,7 @@ def size(i):
 
 
 def compat_input(s=""):  # pragma: no cover
-    """Compatibility function to permit testing for Python 2 and 3"""
+    """Compatibility function to permit testing for Python 2 and 3."""
     try:
         return raw_input(s)
     except NameError:
@@ -193,24 +204,7 @@ def compat_input(s=""):  # pragma: no cover
 
 
 def confirmation(question):
-    """Ask a yes/no question via standard input and return the answer.
-
-    If invalid input is given, the user will be asked until
-    they acutally give valid input.
-
-    Args:
-        question(str):
-            A question that is presented to the user.
-        default(bool|None):
-            The default value when enter is pressed with no value.
-            When None, there is no default value and the query
-            will loop.
-    Returns:
-        A bool indicating whether user has entered yes or no.
-
-    Side Effects:
-        Blocks program execution until valid input(y/n) is given.
-    """
+    """Ask a yes/no question via standard input and return the answer."""
     yes_list = ["yes", "y"]
     no_list = ["no", "n"]
     default_str = "[Y]/n"
@@ -231,6 +225,7 @@ def confirmation(question):
 
 
 def parse_args(args):
+    """Helper function. Parses the arguments given to the CLI."""
     help_d = {
         "desc": "Automatically crops faces from batches of pictures",
         "input": """Folder where images to crop are located. Default:
@@ -291,6 +286,11 @@ def parse_args(args):
 
 
 def command_line_interface():
+    """
+    AUTOCROP
+    --------
+    Crops faces from batches of images.
+    """
     args = parse_args(sys.argv[1:])
     if not args.no_confirm:
         if args.output is None or args.input == args.output:

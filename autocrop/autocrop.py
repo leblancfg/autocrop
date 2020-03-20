@@ -22,20 +22,21 @@ INPUT_FILETYPES = COMBINED_FILETYPES + [s.upper() for s in COMBINED_FILETYPES]
 
 
 class ImageReadError(BaseException):
-    """Custom exception to catch an OpenCV failure type"""
+    """Custom exception to catch an OpenCV failure type."""
 
     pass
 
 
 def gamma(img, correction):
-    """Simple gamma correction to brighten faces"""
+    """Simple gamma correction to brighten faces."""
     img = cv2.pow(img / 255.0, correction)
     return np.uint8(img * 255)
 
 
 def check_underexposed(image, gray):
     """Returns the (cropped) image with GAMMA applied if underexposition
-    is detected."""
+    is detected.
+    """
     uexp = cv2.calcHist([gray], [0], None, [256], [0, 256])
     if sum(uexp[-26:]) < GAMMA_THRES * sum(uexp):
         image = gamma(image, GAMMA)
@@ -43,14 +44,14 @@ def check_underexposed(image, gray):
 
 
 def check_positive_scalar(num):
-    """Returns True if value if a positive scalar"""
+    """Returns True if value if a positive scalar."""
     if num > 0 and not isinstance(num, str) and np.isscalar(num):
         return int(num)
     raise ValueError("A positive scalar is required")
 
 
 def check_valid_pad_dict(dic):
-    """Returns dic if valid, else raises ValueError"""
+    """Returns dic if valid, else raises ValueError."""
     valid_keys = {
         "pad_top",
         "pad_right",
@@ -71,7 +72,7 @@ def check_valid_pad_dict(dic):
 
 
 def open_file(input_filename):
-    """Given a filename, returns a numpy array"""
+    """Given a filename, returns a numpy array."""
     extension = os.path.splitext(input_filename)[1].lower()
 
     if extension in CV2_FILETYPES:
@@ -88,7 +89,7 @@ class Cropper(object):
     """
     Crops the largest detected face from images.
 
-    This class uses the CascadeClassifier from OpenCV to
+    This class uses the `CascadeClassifier` from OpenCV to
     perform the `crop` by taking in either a filepath or
     Numpy array, and returning a Numpy array. By default,
     also provides a slight gamma fix to lighten the face
@@ -97,25 +98,20 @@ class Cropper(object):
     Parameters:
     -----------
 
-    width : int, default=500
-        The width of the resulting array.
-    height : int, default=500
-        The height of the resulting array.
-    padding: int or dict, default=50
-        Number of pixels to pad around the largest detected
-        face. Expected padding dict: {
-            "pad_top": int,
-            "pad_right": int,
-            "pad_bottom": int,
-            "pad_left": int
-            }
-    face_percent: int, default=50
-        Aka zoom factor. Percent of the overall size of
-        the cropped image containing the detected coordinates.
-    fix_gamma: bool, default=True
-        Cropped faces are often underexposed when taken
-        out of their context. If under a threshold, sets the
-        gamma to 0.9.
+    - `width` : `int`, default=`500`
+        * The width of the resulting array.
+    - `height` : `int`, default=`500`
+        * The height of the resulting array.
+    - `padding`: `int` or `dict`, default=`50`
+        * Number of pixels to pad around the largest detected
+        face. Expected padding dict:
+        `{"pad_top": int, "pad_right": int, "pad_bottom": int, "pad_left": int}`
+    - `face_percent`: `int`, default=`50`
+        * Aka zoom factor. Percent of the overall size of the
+        cropped image containing the detected coordinates.
+    - `fix_gamma`: `bool`, default=`True`
+        * Cropped faces are often underexposed when taken out of
+        their context. If under a threshold, sets the gamma to 0.9.
     """
 
     def __init__(
@@ -159,13 +155,13 @@ class Cropper(object):
 
         Parameters
         ----------
-        path_or_array : {str, np.ndarray}
-            The filepath or numpy array of the image.
+        - `path_or_array` : {`str`, `np.ndarray`}
+            * The filepath or numpy array of the image.
 
         Returns
         -------
-        image : {np.ndarray, None}
-            A cropped numpy array if face detected, else None.
+        `image` : {`np.ndarray`, `None`}
+            * A cropped numpy array if face detected, else None.
         """
         if isinstance(path_or_array, str):
             image = open_file(path_or_array)
@@ -221,7 +217,8 @@ class Cropper(object):
         self, img_height, img_width, x, y, w, h,
     ):
         """Given face coordinates, returns coordinates for which
-        to crop on given padding and face_percent parameters."""
+        to crop on given padding and face_percent parameters.
+        """
         # Adjust output height based on percent
         aspect_ratio = float(self.width) / float(self.height)
         height_crop = h * 100.0 / self.face_percent
