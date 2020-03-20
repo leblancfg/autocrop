@@ -123,6 +123,7 @@ Development of a `conda-forge` package for the [Anaconda Python distribution](ht
 Best practice for your projects is of course to [use virtual environments](http://docs.python-guide.org/en/latest/dev/virtualenvs/). At the very least, you will need to [have pip installed](https://pip.pypa.io/en/stable/installing/).
 
 Autocrop is currently being tested on:
+
 * Python:
     - 2.7
     - 3.4
@@ -135,10 +136,12 @@ Autocrop is currently being tested on:
 
 ## More Info
 Check out:
+
 * http://docs.opencv.org/master/d7/d8b/tutorial_py_face_detection.html#gsc.tab=0
 * http://docs.opencv.org/master/d5/daf/tutorial_py_histogram_equalization.html#gsc.tab=0
 
 Adapted from:
+
 * http://photo.stackexchange.com/questions/60411/how-can-i-batch-crop-based-on-face-location
 
 ## Contributing
