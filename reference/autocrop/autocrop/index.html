@@ -1035,7 +1035,7 @@
 
 <span class="sd">        -------</span>
 
-<span class="sd">        `image` : {`np.ndarray`, `None`}</span>
+<span class="sd">        - `image` : {`np.ndarray`, `None`}</span>
 
 <span class="sd">            * A cropped numpy array if face detected, else None.</span>
 
@@ -1567,7 +1567,7 @@ their context. If under a threshold, sets the gamma to 0.9.</li>
 
 <span class="s2">        -------</span>
 
-<span class="s2">        `image` : {`np.ndarray`, `None`}</span>
+<span class="s2">        - `image` : {`np.ndarray`, `None`}</span>
 
 <span class="s2">            * A cropped numpy array if face detected, else None.</span>
 
@@ -1761,8 +1761,12 @@ face.</p>
 </li>
 </ul>
 <h2 id="returns">Returns</h2>
-<p><code>image</code> : {<code>np.ndarray</code>, <code>None</code>}
-    * A cropped numpy array if face detected, else None.</p>
+<ul>
+<li><code>image</code> : {<code>np.ndarray</code>, <code>None</code>}<ul>
+<li>A cropped numpy array if face detected, else None.</li>
+</ul>
+</li>
+</ul>
 <details class="example"><summary>View Source</summary><div class="codehilite"><pre><span></span><code>    <span class="n">def</span> <span class="nf">crop</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">path_or_array</span><span class="p">):</span>
 
         <span class="s2">&quot;&quot;&quot;Given a file path or np.ndarray image with a face,</span>
@@ -1783,7 +1787,7 @@ face.</p>
 
 <span class="s2">        -------</span>
 
-<span class="s2">        `image` : {`np.ndarray`, `None`}</span>
+<span class="s2">        - `image` : {`np.ndarray`, `None`}</span>
 
 <span class="s2">            * A cropped numpy array if face detected, else None.</span>
 
