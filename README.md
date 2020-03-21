@@ -125,11 +125,7 @@ Best practice for your projects is of course to [use virtual environments](http:
 
 Autocrop is currently being tested on:
 
-* Python:
-    - 2.7
-    - 3.4
-    - 3.5
-    - 3.6
+* Python 3.5+
 * OS:
     - Linux
     - macOS
