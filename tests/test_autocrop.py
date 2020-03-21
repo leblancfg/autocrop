@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """Tests for autocrop"""
 
 import pytest  # noqa: F401

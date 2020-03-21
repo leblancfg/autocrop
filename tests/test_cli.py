@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """Tests for cli"""
 
 import io
@@ -167,7 +165,7 @@ def test_main_overwrites_when_same_input_and_output(integration):
 
 # @mock.patch("autocrop.autocrop.Cropper", side_)
 def test_main_overwrites_when_no_output(monkeypatch, integration):
-    class MonkeyCrop(object):
+    class MonkeyCrop:
         def __init__(self, *args):
             self.count = 0
 
