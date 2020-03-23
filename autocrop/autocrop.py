@@ -2,7 +2,6 @@
 
 from __future__ import print_function, division
 import itertools
-import logging
 
 import cv2
 import numpy as np
@@ -17,7 +16,6 @@ from .constants import (
     CV2_FILETYPES,
     PILLOW_FILETYPES,
     CASCFILE,
-    EYES_RATIO,
 )
 
 COMBINED_FILETYPES = CV2_FILETYPES + PILLOW_FILETYPES
@@ -30,7 +28,7 @@ class ImageReadError(BaseException):
     pass
 
 
-def perp(a) :
+def perp(a):
     b = np.empty_like(a)
     b[0] = -a[1]
     b[1] = a[0]
@@ -40,7 +38,6 @@ def perp(a) :
 def intersect(v1, v2):
     a1, a2 = v1
     b1, b2 = v2
-    logging.debug(f'intersect: {a1, a2, b1, b2}')
     da = a2 - a1
     db = b2 - b1
     dp = a1 - b1
@@ -53,8 +50,7 @@ def intersect(v1, v2):
 def distance(pt1, pt2):
     """Returns the euclidian distance in 2D between 2 pts."""
     distance = np.linalg.norm(pt2 - pt1)
-    logging.debug(f'distance: {pt1, pt2, distance}')
-    return
+    return distance
 
 
 def bgr_to_rbg(img):
@@ -85,27 +81,6 @@ def check_positive_scalar(num):
     if num > 0 and not isinstance(num, str) and np.isscalar(num):
         return int(num)
     raise ValueError("A positive scalar is required")
-
-
-def check_valid_pad_dict(dic):
-    """Returns dic if valid, else raises ValueError"""
-    valid_keys = {
-        "pad_top",
-        "pad_right",
-        "pad_bottom",
-        "pad_left",
-    }
-    error = "Padding arguments must use keys {} and be positive scalars".format(
-        valid_keys
-    )
-    conditions = []
-    conditions.append(isinstance(dic, dict))
-    conditions.append(len(dic) == 4)
-    conditions.append(set(dic.keys()) == valid_keys)
-    conditions.append(all(check_positive_scalar(n) for n in dic.values()))
-    if not all(conditions):
-        raise ValueError(error)
-    return dic
 
 
 def open_file(input_filename):
@@ -142,63 +117,25 @@ class Cropper(object):
     face_percent: int, default=50
         Aka zoom factor. Percent of the overall size of
         the cropped image containing the detected coordinates.
-    padding: int or dict, default=50
-        Number of pixels to pad around the largest detected
-        face. Overrides `face_percent`. Expects dict
-         padding = {
-            "pad_top": int,
-            "pad_right": int,
-            "pad_bottom": int,
-            "pad_left": int
-            }
     fix_gamma: bool, default=True
         Cropped faces are often underexposed when taken
         out of their context. If under a threshold, sets the
         gamma to 0.9.
-    portrait: bool, default=True
-        Controls the composition of the cropped image. If
-        `height` > `width`, places vertical margins around the
-        face according to the rule of thirds. If False, centers
-        the middle of the face vertically.
-
     """
 
     def __init__(
-        self,
-        width=500,
-        height=500,
-        face_percent=50,
-        padding=None,
-        fix_gamma=True,
-        portrait=True,
+        self, width=500, height=500, face_percent=50, padding=None, fix_gamma=True,
     ):
         self.height = check_positive_scalar(height)
         self.width = check_positive_scalar(width)
         self.aspect_ratio = width / height
         self.gamma = fix_gamma
-        self.portrait = portrait
 
         # Face percent
         if face_percent > 100:
             fp_error = "The face_percent argument must be between 0 and 100"
             raise ValueError(fp_error)
         self.face_percent = check_positive_scalar(face_percent)
-
-        # Padding
-        if padding is None:
-            self.padding = None
-        elif isinstance(padding, int):
-            pad = check_positive_scalar(padding)
-            self.pad_top = pad
-            self.pad_right = pad
-            self.pad_bottom = pad
-            self.pad_left = pad
-        else:
-            pad = check_valid_pad_dict(padding)
-            self.pad_top = pad["pad_top"]
-            self.pad_right = pad["pad_right"]
-            self.pad_bottom = pad["pad_bottom"]
-            self.pad_left = pad["pad_left"]
 
         # XML Resource
         directory = os.path.dirname(sys.modules["autocrop"].__file__)
@@ -256,6 +193,7 @@ class Cropper(object):
         # Make padding from biggest face found
         x, y, w, h = faces[-1]
         pos = self._crop_positions(img_height, img_width, x, y, w, h,)
+
         # ====== Actual cropping ======
         image = image[pos[0] : pos[1], pos[2] : pos[3]]
 
@@ -269,156 +207,10 @@ class Cropper(object):
             image = check_underexposed(image, gray)
         return bgr_to_rbg(image)
 
-    def _apply_padding():
-        """Returns the coordinates if padding is set"""
-        # TODO
-        pass
-
-    def _expand_centered(self, x, w, imgw, expected_width=None):
-        """
-        Returns coordinates with extra margin centered around the
-        detected face. If the calculated coordinates fall outside
-        the image, fits the biggest padding possible. Uses x, but
-        can be used for y.
-
-        Parameters:
-        -----------
-        x : int
-            Smallest detected face coordinate (px)
-        w : int
-            Width of the detected face (px)
-        imgw : int
-            Total width of the image to be cropped (px)
-        expected_width : int or None, default=False
-            If int, returns centered values
-
-        Returns:
-        --------
-        h1: int
-            Smallest coordinate
-        h2: int
-            Largest coordinate
-        expectations_met : bool
-            Whether the coordinates match self.face_percent
-
-        Diagram:
-        --------
-        i / j = self.face_percent
-
-                 +
-       h1        |         h2
-       +---------|---------+
-       |      MAR|GIN      |
-       |         (x+w, y+h)|
-       |   +-----|-----+   |
-       |   |   FA|CE   |   |
-       |   |     |     |   |
-       |   ├──i──┤     |   |
-       |   |     |     |   |
-       |   |     |     |   |
-       |   +-----|-----+   |
-       |   (x, y)|         |
-       |         |         |
-       +---------|---------+
-       ├────j────┤
-                 + center
-        """
-        i = int(w / 2)
-        j = int(i / self.face_percent)
-        center = x + i
-        h1 = center - j
-        h2 = center + j
-
-        # Handle expected_width corner case
-        if expected_width is not None:
-            half = int(expected_width / 2)
-            h1 = center - half
-            h2 = center + half
-            return h1, h2, True
-
-        # Margins fall outside image
-        expectations_met = True
-        if h1 < 0:
-            expectations_met = False
-            h1 = 0
-            h2 = 2 * center
-        if h2 > imgw:
-            expectations_met = False
-            h2 = imgw
-            h1 = 2 * center - h2
-        return h1, h2, expectations_met
-
-    def _expand_portrait(self, y, h, imgh, expected_height):
-        """
-        Returns padded coordinates composed around the face using
-        the rule of thirds at eye level. If the calculated coordinates
-        fall outside the image, fits the biggest padding possible.
-
-        Parameters:
-        -----------
-        y : int
-            Bottom-most detected face coordinate (px)
-        h : int
-            Height of the detected face (px)
-        imgh : int
-            Total height of the image to be cropped (px)
-        expected_height : int
-            Based on the desired aspect_ratio, height we expect to
-            be getting. If the margin falls outside the image,
-            we might need to return shorter coordinates.
-
-        Returns:
-        --------
-        v1: int
-            Lowest vertical coordinate
-        v2: int
-            Highest vertical coordinate
-        expectations_met : bool
-            Whether (v2 - v1) = expected_height
-
-        Diagram:
-        --------
-        i / j = EYES_RATIO
-
-       +------------------+ v2  ╮
-       |                  |     |
-    1/3|        (x+w, y+h)|     |
-       |   +----------+   |     |
-       | i |          |   |     |
-    +----------eyes----------+  ├ height
-       |   |          |   |     |
-       | j |          |   |     |
-       |   |   FACE   |   |     |
-    2/3|   +----------+   |     |
-       |   (x, y)         |     |
-       |                  |     |
-       |      MARGIN      |     |
-       +------------------+ v1  ╯
-       """
-        eye_height = y + int(EYES_RATIO * h)
-        third = int(expected_height / 3)
-        v1 = eye_height - 2 * third
-        v2 = eye_height + third
-
-        # Margins fall outside image
-        expectations_met = True
-        if v1 < 0:
-            expectations_met = False
-            v1 = 0
-            v2 = int(1.5 * eye_height)
-        if v2 > imgh:
-            expectations_met = False
-            v2 = imgh
-            v1 = eye_height - 2 * (v2 - eye_height)
-        return v1, v2, expectations_met
-
-    def _crop_positions(
-        self, imgh, imgw, x, y, w, h,
-    ):
-        """Retuns the coordinates of the crop position centered
-        around the detected face with extra margins. Tries to
-        honor `self.face_percent` if possible, else uses the
-        largest margins that comply with required aspect ratio.
+    def _determine_safe_zoom(self, imgh, imgw, x, y, w, h):
+        """Determines the safest zoom level with which to add margins
+        around the detected face. Tries to honor `self.face_percent`
+        when possible.
 
         Parameters:
         -----------
@@ -434,44 +226,82 @@ class Cropper(object):
             Width of the detected face
         h: int
             Height of the detected face
+
+        Diagram:
+        --------
+        i / j := zoom / 100
+
+                  +
+        h1        |         h2
+        +---------|---------+
+        |      MAR|GIN      |
+        |         (x+w, y+h)|
+        |   +-----|-----+   |
+        |   |   FA|CE   |   |
+        |   |     |     |   |
+        |   ├──i──┤     |   |
+        |   |  cen|ter  |   |
+        |   |     |     |   |
+        |   +-----|-----+   |
+        |   (x, y)|         |
+        |         |         |
+        +---------|---------+
+        ├────j────┤
+                  +
         """
-        if self.padding:
-            # TODO
-            return self._apply_padding()
-
         # Find out what zoom factor to use given self.aspect_ratio
-        corners = itertools.product((x, x+w), (y, y+h))
-        tall = True if self.width > self.height else False
-        if tall and self.portrait:
-            center = self._portrait_center(x, y, w, h)
-            assert type(center) == np.array
-        else:
-            center = np.array([x + int(w/2), y + int(h/2)])
-        i = np.array([(0, 0), (0, imgh), (imgw, imgh), (imgw, 0), (0, 0)])  # image_corners
-        image_sides = [(i[n], i[n+1]) for n in range(4)]
+        corners = itertools.product((x, x + w), (y, y + h))
+        center = np.array([x + int(w / 2), y + int(h / 2)])
+        i = np.array(
+            [(0, 0), (0, imgh), (imgw, imgh), (imgw, 0), (0, 0)]
+        )  # image_corners
+        image_sides = [(i[n], i[n + 1]) for n in range(4)]
 
-        ratios = []
+        corner_ratios = [self.face_percent]  # Hopefully we use this one
         for c in corners:
             corner_vector = np.array([center, c])
+            a = distance(*corner_vector)
             intersects = list(intersect(corner_vector, side) for side in image_sides)
-            logging.debug(f'intersects: {intersects}')
-            dist_borders = []
             for pt in intersects:
                 if (pt >= 0).all() and (pt <= i[2]).all():  # if intersect within image
-                    logging.debug(f"pt: {pt}; bound_dist: {distance(center, pt)} ")
-                    dist_borders.append(distance(center, pt))
+                    dist_to_pt = distance(center, pt)
+                    corner_ratios.append(100 * a / dist_to_pt)
+        return max(corner_ratios)
 
-            dist_closest_border = min(dist_borders)
-            logging.debug(f'dist_closest: {dist_closest_border}')
-            ratios.append(distance(center, c) / dist_closest_border)
-        ratios.append(self.face_percent)
-        logging.debug(f'ratios: {ratios}')
-        zoom = max(ratios)
-        logging.debug(f'zoom: {zoom}')
+    def _crop_positions(
+        self, imgh, imgw, x, y, w, h,
+    ):
+        """Retuns the coordinates of the crop position centered
+        around the detected face with extra margins. Tries to
+        honor `self.face_percent` if possible, else uses the
+        largest margins that comply with required aspect ratio
+        given by `self.height` and `self.width`.
+
+        Parameters:
+        -----------
+        imgh: int
+            Height (px) of the image to be cropped
+        imgw: int
+            Width (px) of the image to be cropped
+        x: int
+            Leftmost coordinates of the detected face
+        y: int
+            Bottom-most coordinates of the detected face
+        w: int
+            Width of the detected face
+        h: int
+            Height of the detected face
+
+        """
+        zoom = self._determine_safe_zoom(imgh, imgw, x, y, w, h)
 
         # Adjust output height based on percent
-        height_crop = h * 100.0 / zoom
-        width_crop = self.aspect_ratio * float(height_crop)
+        if self.height >= self.width:
+            height_crop = h * 100.0 / zoom
+            width_crop = self.aspect_ratio * float(height_crop)
+        else:
+            width_crop = w * 100.0 / zoom
+            height_crop = float(width_crop) / self.aspect_ratio
 
         # Calculate padding by centering face
         xpad = (width_crop - w) / 2

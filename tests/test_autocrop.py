@@ -7,11 +7,6 @@ import pytest  # noqa: F401
 import cv2
 import numpy as np
 
-# try:
-#     import mock
-# except ImportError:
-#     from unittest import mock
-
 from autocrop.autocrop import gamma, Cropper, ImageReadError
 
 PY3 = sys.version_info[0] >= 3
