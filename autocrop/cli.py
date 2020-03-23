@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import print_function, division
-
 import argparse
 import cv2
 import io
@@ -164,7 +160,7 @@ def input_path(p):
     p = os.path.abspath(p)
     if not os.path.isdir(p):
         raise argparse.ArgumentTypeError(no_folder)
-    filetypes = set(os.path.splitext(f)[-1] for f in os.listdir(p))
+    filetypes = {os.path.splitext(f)[-1] for f in os.listdir(p)}
     if not any(t in INPUT_FILETYPES for t in filetypes):
         raise argparse.ArgumentTypeError(no_images)
     else:
@@ -208,7 +204,7 @@ def confirmation(question):
     yes_list = ["yes", "y"]
     no_list = ["no", "n"]
     default_str = "[Y]/n"
-    prompt_str = "%s %s " % (question, default_str)
+    prompt_str = "{} {} ".format(question, default_str)
 
     while True:
         choice = compat_input(prompt_str).lower()

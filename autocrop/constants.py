@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 FIXEXP = True  # Flag to fix underexposition
 MINFACE = 8  # Minimum face size ratio; too low and we get false positives
 INCREMENT = 0.06
