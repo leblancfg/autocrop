@@ -1,10 +1,8 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 # Note: To use the 'upload' functionality of this file, you must:
 #   $ pip install twine
 
-import io
 import os
 import sys
 from shutil import rmtree
@@ -30,7 +28,7 @@ HERE = os.path.abspath(os.path.dirname(__file__))
 
 # Import the README and use it as the long-description.
 # Note: this will only work if 'README.rst' is present in your MANIFEST.in file
-with io.open(os.path.join(HERE, "README.md"), encoding="utf-8") as f:
+with open(os.path.join(HERE, "README.md"), encoding="utf-8") as f:
     long_description = "\n" + f.read()
 
 # Load the package's __version__.py module as a dictionary.
@@ -48,7 +46,7 @@ class UploadCommand(Command):
     @staticmethod
     def status(s):
         """Prints things in bold."""
-        print("\033[1m{0}\033[0m".format(s))
+        print("\033[1m{}\033[0m".format(s))
 
     def initialize_options(self):
         pass
@@ -90,17 +88,17 @@ setup(
     install_requires=REQUIRED,
     include_package_data=True,
     license="BSD 2-Clause",
-    python_requires=">=3.4",
+    python_requires=">=3.5",
     classifiers=[
         # Trove classifiers
         # Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
         "License :: OSI Approved :: BSD License",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3 :: Only",
     ],
     # $ setup.py publish support.
     cmdclass={"upload": UploadCommand},

@@ -1,20 +1,10 @@
-# -*- coding: utf-8 -*-
-
 """Tests for autocrop"""
 
-import sys
 import pytest  # noqa: F401
 import cv2
 import numpy as np
 
-# try:
-#     import mock
-# except ImportError:
-#     from unittest import mock
-
 from autocrop.autocrop import gamma, Cropper, ImageReadError
-
-PY3 = sys.version_info[0] >= 3
 
 
 def test_gamma_brightens_image():

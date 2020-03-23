@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import print_function, division
-
 import cv2
 import numpy as np
 import os
@@ -85,7 +81,7 @@ def open_file(input_filename):
     return None
 
 
-class Cropper(object):
+class Cropper:
     """
     Crops the largest detected face from images.
 

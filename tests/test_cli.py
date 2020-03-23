@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """Tests for cli"""
 
 import io
@@ -9,16 +7,10 @@ import sys
 
 import pytest
 import cv2
-
-try:
-    import mock
-except ImportError:
-    from unittest import mock
+from unittest import mock
 
 from autocrop.autocrop import Cropper
 from autocrop.cli import command_line_interface, main, size, confirmation
-
-PY3 = sys.version_info[0] >= 3
 
 
 @pytest.fixture()
@@ -134,8 +126,7 @@ def test_confirmation_get_from_user(from_user, response, output):
     input_str = "autocrop.cli.compat_input"
 
     with mock.patch(input_str, lambda x: from_user.pop(0)):
-        sio = io.StringIO if PY3 else io.BytesIO
-        with mock.patch("sys.stdout", new_callable=sio):
+        with mock.patch("sys.stdout", new_callable=io.StringIO):
             assert response == confirmation(question)
             assert output == sys.stdout.getvalue()
 
@@ -174,7 +165,7 @@ def test_main_overwrites_when_same_input_and_output(integration):
 
 # @mock.patch("autocrop.autocrop.Cropper", side_)
 def test_main_overwrites_when_no_output(monkeypatch, integration):
-    class MonkeyCrop(object):
+    class MonkeyCrop:
         def __init__(self, *args):
             self.count = 0
 
