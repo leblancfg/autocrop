@@ -62,7 +62,7 @@ Autocrop can be used [from the command line](#from-the-command-line) or directly
 	- `autocrop -i pics -o crop -w 400 -H 400 --facePercent 50 --padUp 20 --padDown 50`.
 	
 If no output folder is added, asks for confirmation and destructively crops images in-place.
-
+<!--
 ### From Python
 Import the `Cropper` class, set some parameters (optional), and start cropping. The `crop` method accepts filepaths or `np.ndarray`, and returns Numpy arrays. These are easily handled with [PIL](https://pillow.readthedocs.io/).
 
@@ -79,7 +79,7 @@ cropped_array = cropper.Cropper('portrait.png')
 cropped_image = Image.fromarray(cropped_image)
 cropped_image.save('cropped.png')
 ~~~
-
+-->
 ## Supported file types
 
 The following file types are supported:
