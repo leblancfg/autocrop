@@ -1,6 +1,8 @@
-# -*- coding: utf-8 -*-
+#  -*- coding: utf-8 -*-
 
 from __future__ import print_function, division
+import itertools
+import logging
 
 import cv2
 import numpy as np
@@ -28,10 +30,37 @@ class ImageReadError(BaseException):
     pass
 
 
+def perp(a) :
+    b = np.empty_like(a)
+    b[0] = -a[1]
+    b[1] = a[0]
+    return b
+
+
+def intersect(v1, v2):
+    a1, a2 = v1
+    b1, b2 = v2
+    logging.debug(f'intersect: {a1, a2, b1, b2}')
+    da = a2 - a1
+    db = b2 - b1
+    dp = a1 - b1
+    dap = perp(da)
+    denom = np.dot(dap, db).astype(float)
+    num = np.dot(dap, dp)
+    return (num / denom) * db + b1
+
+
+def distance(pt1, pt2):
+    """Returns the euclidian distance in 2D between 2 pts."""
+    distance = np.linalg.norm(pt2 - pt1)
+    logging.debug(f'distance: {pt1, pt2, distance}')
+    return
+
+
 def bgr_to_rbg(img):
     """Given a BGR (cv2) numpy array, returns a RBG (standard) array."""
     dimensions = len(img.shape)
-    if dimensions == 1:
+    if dimensions == 2:
         return img
     return img[..., ::-1]
 
@@ -156,7 +185,9 @@ class Cropper(object):
         self.face_percent = check_positive_scalar(face_percent)
 
         # Padding
-        if isinstance(padding, int):
+        if padding is None:
+            self.padding = None
+        elif isinstance(padding, int):
             pad = check_positive_scalar(padding)
             self.pad_top = pad
             self.pad_right = pad
@@ -382,16 +413,18 @@ class Cropper(object):
         return v1, v2, expectations_met
 
     def _crop_positions(
-        self, img_height, img_width, x, y, w, h,
+        self, imgh, imgw, x, y, w, h,
     ):
         """Retuns the coordinates of the crop position centered
-        around the detected face with extra margins.
+        around the detected face with extra margins. Tries to
+        honor `self.face_percent` if possible, else uses the
+        largest margins that comply with required aspect ratio.
 
         Parameters:
         -----------
-        img_height: int
+        imgh: int
             Height (px) of the image to be cropped
-        img_width: int
+        imgw: int
             Width (px) of the image to be cropped
         x: int
             Leftmost coordinates of the detected face
@@ -402,76 +435,52 @@ class Cropper(object):
         h: int
             Height of the detected face
         """
-        if padding:
+        if self.padding:
             # TODO
             return self._apply_padding()
 
-        # Portrait Mode
+        # Find out what zoom factor to use given self.aspect_ratio
+        corners = itertools.product((x, x+w), (y, y+h))
         tall = True if self.width > self.height else False
         if tall and self.portrait:
-            use_face_percent = {"w": False, "h": False}  # Whether we use face_percent
+            center = self._portrait_center(x, y, w, h)
+            assert type(center) == np.array
+        else:
+            center = np.array([x + int(w/2), y + int(h/2)])
+        i = np.array([(0, 0), (0, imgh), (imgw, imgh), (imgw, 0), (0, 0)])  # image_corners
+        image_sides = [(i[n], i[n+1]) for n in range(4)]
 
-            h1, h2, use_face_percent["w"] = self._expand_centered(x, w, imgw)
-            if not use_face_percent["w"]:
-                expected_height = int((h2 - h1) / self.aspect_ratio)
-            else:
-                expected_height = int(w / self.aspect_ratio)
+        ratios = []
+        for c in corners:
+            corner_vector = np.array([center, c])
+            intersects = list(intersect(corner_vector, side) for side in image_sides)
+            logging.debug(f'intersects: {intersects}')
+            dist_borders = []
+            for pt in intersects:
+                if (pt >= 0).all() and (pt <= i[2]).all():  # if intersect within image
+                    logging.debug(f"pt: {pt}; bound_dist: {distance(center, pt)} ")
+                    dist_borders.append(distance(center, pt))
 
-            v1, v2, use_face_percent["h"] = self._expand_portrait(
-                y, h, imgh, expected_height
-            )
-            if not use_face_percent["h"]:
-                expected_width = int()
-                h1, h2, use_face_percent["w"] = self._expand_centered(
-                    x, w, imgw, expected_width
-                )
-            assert all(v for v in use_face_percent.values())
-            return [h1, h2, v1, v2]
-
-        # Centered Mode
+            dist_closest_border = min(dist_borders)
+            logging.debug(f'dist_closest: {dist_closest_border}')
+            ratios.append(distance(center, c) / dist_closest_border)
+        ratios.append(self.face_percent)
+        logging.debug(f'ratios: {ratios}')
+        zoom = max(ratios)
+        logging.debug(f'zoom: {zoom}')
 
         # Adjust output height based on percent
-        height_crop = h * 100.0 / self.face_percent
-        width_crop = aspect_ratio * float(height_crop)
+        height_crop = h * 100.0 / zoom
+        width_crop = self.aspect_ratio * float(height_crop)
 
         # Calculate padding by centering face
         xpad = (width_crop - w) / 2
         ypad = (height_crop - h) / 2
 
         # Calc. positions of crop
-        h1 = float(x - (xpad * self.pad_left / (self.pad_left + self.pad_right)))
-        h2 = float(x + w + (xpad * self.pad_right / (self.pad_left + self.pad_right)))
-        v1 = float(y - (ypad * self.pad_top / (self.pad_top + self.pad_bottom)))
-        v2 = float(y + h + (ypad * self.pad_bottom / (self.pad_top + self.pad_bottom)))
-
-        # Determine padding ratios
-        left_pad_ratio = self.pad_left / (self.pad_left + self.pad_right)
-        right_pad_ratio = self.pad_left / (self.pad_left + self.pad_right)
-        top_pad_ratio = self.pad_top / (self.pad_top + self.pad_bottom)
-        bottom_pad_ratio = self.pad_bottom / (self.pad_top + self.pad_bottom)
-
-        # Calculate largest bounds with padding ratios
-        delta_h = 0.0
-        if h1 < 0:
-            delta_h = abs(h1) / left_pad_ratio
-
-        if h2 > img_width:
-            delta_h = max(delta_h, (h2 - img_width) / right_pad_ratio)
-
-        delta_v = 0.0 if delta_h <= 0.0 else delta_h / aspect_ratio
-
-        if v1 < 0:
-            delta_v = max(delta_v, abs(v1) / top_pad_ratio)
-
-        if v2 > img_height:
-            delta_v = max(delta_v, (v2 - img_height) / bottom_pad_ratio)
-
-        delta_h = max(delta_h, delta_v * aspect_ratio)
-
-        # Adjust crop values accordingly
-        h1 += delta_h * left_pad_ratio
-        h2 -= delta_h * right_pad_ratio
-        v1 += delta_v * top_pad_ratio
-        v2 -= delta_v * bottom_pad_ratio
+        h1 = x - xpad
+        h2 = x + w + xpad
+        v1 = y - ypad
+        v2 = y + h + ypad
 
         return [int(v1), int(v2), int(h1), int(h2)]
