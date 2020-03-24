@@ -213,6 +213,7 @@ def confirmation(question):
     """
     yes_list = ["yes", "y"]
     no_list = ["no", "n"]
+
     default_str = "[Y]/n"
     prompt_str = "%s %s " % (question, default_str)
 
