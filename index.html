@@ -623,7 +623,7 @@
                 
                 
                 <h1 id="autocrop">autocrop</h1>
-<p><a href="https://travis-ci.org/leblancfg/autocrop"><img alt="Travis Build Status" src="https://img.shields.io/travis/leblancfg/autocrop/master.svg" /></a> <a href="https://ci.appveyor.com/project/leblancfg/autocrop/branch/master"><img alt="AppVeyor Build Status" src="https://img.shields.io/appveyor/ci/leblancfg/autocrop/master.svg?label=%22Windows%22" /></a> <a href="https://codecov.io/gh/leblancfg/autocrop"><img alt="Codecov master" src="https://img.shields.io/codecov/c/github/leblancfg/autocrop/master.svg" /></a> <a href="https://leblancfg.com/autocrop"><img alt="Documentation" src="https://img.shields.io/badge/docs-passing-success.svg" /></a> <a href="https://badge.fury.io/py/autocrop"><img alt="PyPI version" src="https://badge.fury.io/py/autocrop.svg" /></a> <a href="https://pepy.tech/project/autocrop"><img alt="Downloads" src="https://pepy.tech/badge/autocrop" /></a> <a href="https://lgtm.com/projects/g/leblancfg/autocrop/context:python"><img alt="Language grade: Python" src="https://img.shields.io/lgtm/grade/python/g/leblancfg/autocrop.svg?logo=lgtm&amp;logoWidth=18" /></a></p>
+<p><a href="https://travis-ci.org/leblancfg/autocrop"><img alt="Travis Status" src="https://travis-ci.org/leblancfg/autocrop.svg?branch=master" /></a> <a href="https://ci.appveyor.com/project/leblancfg/autocrop/branch/master"><img alt="AppVeyor Build Status" src="https://ci.appveyor.com/api/projects/status/y2iqfj2vgt6pofn3/branch/master?svg=true" /></a> <a href="https://codecov.io/gh/leblancfg/autocrop"><img alt="codecov" src="https://codecov.io/gh/leblancfg/autocrop/branch/master/graph/badge.svg" /></a> <a href="https://leblancfg.com/autocrop"><img alt="Documentation" src="https://img.shields.io/badge/docs-passing-success.svg" /></a> <a href="https://badge.fury.io/py/autocrop"><img alt="PyPI version" src="https://badge.fury.io/py/autocrop.svg" /></a> <a href="https://pepy.tech/project/autocrop"><img alt="Downloads" src="https://pepy.tech/badge/autocrop" /></a> <a href="https://lgtm.com/projects/g/leblancfg/autocrop/context:python"><img alt="Language grade: Python" src="https://img.shields.io/lgtm/grade/python/g/leblancfg/autocrop.svg?logo=lgtm&amp;logoWidth=18" /></a></p>
 <p align="center"><img title="obama_crop" src="https://cloud.githubusercontent.com/assets/15659410/10975709/3e38de48-83b6-11e5-8885-d95da758ca17.png"></p>
 
 <p>Perfect for profile picture processing for your website or batch work for ID cards, autocrop will output images centered around the biggest face detected.</p>
@@ -657,15 +657,7 @@
   <span class="o">-</span><span class="n">H</span><span class="p">,</span> <span class="c1">--height</span>
         <span class="n">Height</span> <span class="k">of</span> <span class="n">cropped</span> <span class="n">files</span> <span class="k">in</span> <span class="n">px</span><span class="p">.</span> <span class="k">Default</span><span class="o">=</span><span class="mi">500</span>
   <span class="c1">--facePercent</span>
-        <span class="n">Percentage</span> <span class="k">of</span> <span class="n">Face</span> <span class="n">height</span> <span class="k">to</span> <span class="n">image</span> <span class="n">height</span> <span class="p">(</span><span class="n">zoom</span> <span class="n">factor</span><span class="p">)</span>
-  <span class="c1">--padUp</span>
-        <span class="n">Padding</span> <span class="n">up</span> <span class="n">value</span> <span class="n">compared</span> <span class="k">to</span> <span class="n">padDown</span><span class="p">.</span> <span class="k">Default</span><span class="o">=</span><span class="mi">50</span>
-  <span class="c1">--padDown</span>
-        <span class="n">Padding</span> <span class="n">down</span> <span class="n">value</span> <span class="n">compared</span> <span class="k">to</span> <span class="n">padDown</span><span class="p">.</span> <span class="k">Default</span><span class="o">=</span><span class="mi">50</span>
-  <span class="c1">--padLeft</span>
-        <span class="n">Padding</span> <span class="k">left</span> <span class="n">value</span> <span class="n">compared</span> <span class="k">to</span> <span class="n">padRight</span><span class="p">.</span> <span class="k">Default</span><span class="o">=</span><span class="mi">50</span>
-  <span class="c1">--padRight</span>
-        <span class="n">Padding</span> <span class="k">right</span> <span class="n">value</span> <span class="n">compared</span> <span class="k">to</span> <span class="n">padLeft</span><span class="p">.</span> <span class="k">Default</span><span class="o">=</span><span class="mi">50</span>
+        <span class="n">Zoom</span> <span class="n">factor</span><span class="p">.</span> <span class="n">Percentage</span> <span class="k">of</span> <span class="n">face</span> <span class="n">height</span> <span class="k">to</span> <span class="n">image</span> <span class="n">height</span><span class="p">.</span>
   <span class="o">-</span><span class="n">v</span><span class="p">,</span> <span class="c1">--version</span>
         <span class="k">Show</span> <span class="n">program</span><span class="err">&#39;</span><span class="n">s</span> <span class="k">version</span> <span class="nb">number</span> <span class="k">and</span> <span class="n">exit</span>
 </code></pre></div>
@@ -679,17 +671,14 @@
 </ul>
 </li>
 <li>Same as above, but output the images with undetected faces to the <code>reject</code> folder:<ul>
-<li><code>autocrop -i pics -o crop -r nofaces -w 400 -H 400</code>.</li>
-</ul>
-</li>
-<li>Same as the first example, but add more padding at the bottom:<ul>
-<li><code>autocrop -i pics -o crop -w 400 -H 400 --facePercent 50 --padUp 20 --padDown 50</code>.</li>
+<li><code>autocrop -i pics -o crop -r reject -w 400 -H 400</code>.</li>
 </ul>
 </li>
 </ul>
 <p>If no output folder is added, asks for confirmation and destructively crops images in-place.</p>
 <h3 id="from-python">From Python</h3>
-<p>Import the <code>Cropper</code> class, set some parameters (optional), and start cropping. The <code>crop</code> method accepts filepaths or <code>np.ndarray</code>, and returns Numpy arrays. These are easily handled with <a href="https://pillow.readthedocs.io/">PIL</a>.</p>
+<p>Import the <code>Cropper</code> class, set some parameters (optional), and start cropping.</p>
+<p>The <code>crop</code> method accepts filepaths or <code>np.ndarray</code>, and returns Numpy arrays. These are easily handled with <a href="https://pillow.readthedocs.io/">PIL</a> or <a href="https://matplotlib.org/">Matplotlib</a>.</p>
 <div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
 <span class="kn">from</span> <span class="nn">autocrop</span> <span class="kn">import</span> <span class="n">Cropper</span>
 
@@ -704,6 +693,7 @@
 </code></pre></div>
 
 
+<p>Further examples and use cases are found in the <a href="https://github.com/leblancfg/autocrop/blob/master/tests/visual_tests.ipynb">accompanying Jupyter Notebook</a>.</p>
 <h2 id="supported-file-types">Supported file types</h2>
 <p>The following file types are supported:</p>
 <ul>
@@ -743,13 +733,7 @@
 <p>Best practice for your projects is of course to <a href="http://docs.python-guide.org/en/latest/dev/virtualenvs/">use virtual environments</a>. At the very least, you will need to <a href="https://pip.pypa.io/en/stable/installing/">have pip installed</a>.</p>
 <p>Autocrop is currently being tested on:</p>
 <ul>
-<li>Python:<ul>
-<li>2.7</li>
-<li>3.4</li>
-<li>3.5</li>
-<li>3.6</li>
-</ul>
-</li>
+<li>Python 3.5+</li>
 <li>OS:<ul>
 <li>Linux</li>
 <li>macOS</li>

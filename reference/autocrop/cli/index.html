@@ -354,13 +354,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#check_padding_value" class="md-nav__link">
-    check_padding_value
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#command_line_interface" class="md-nav__link">
     command_line_interface
   </a>
@@ -556,13 +549,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#check_padding_value" class="md-nav__link">
-    check_padding_value
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#command_line_interface" class="md-nav__link">
     command_line_interface
   </a>
@@ -697,11 +683,7 @@
                 
                 
                 <h1 id="module-autocropcli">Module autocrop.cli</h1>
-<details class="example"><summary>View Source</summary><div class="codehilite"><pre><span></span><code><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span>
-
-<span class="kn">import</span> <span class="nn">argparse</span>
+<details class="example"><summary>View Source</summary><div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">argparse</span>
 
 <span class="kn">import</span> <span class="nn">cv2</span>
 
@@ -733,23 +715,11 @@
 
 <span class="n">INPUT_FILETYPES</span> <span class="o">=</span> <span class="n">COMBINED_FILETYPES</span> <span class="o">+</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">COMBINED_FILETYPES</span><span class="p">]</span>
 
-<span class="k">def</span> <span class="nf">check_padding_value</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
-
-    <span class="sd">&quot;&quot;&quot;Returns original value if positive scalar, else returns 50.&quot;&quot;&quot;</span>
-
-    <span class="c1"># For CLI backwards compatibility; Cropper already checks input</span>
-
-    <span class="k">if</span> <span class="n">num</span> <span class="ow">is</span> <span class="bp">False</span> <span class="ow">or</span> <span class="n">num</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-
-        <span class="k">return</span> <span class="mi">50</span>
-
-    <span class="k">return</span> <span class="n">num</span>
-
 <span class="k">def</span> <span class="nf">output</span><span class="p">(</span><span class="n">input_filename</span><span class="p">,</span> <span class="n">output_filename</span><span class="p">,</span> <span class="n">image</span><span class="p">):</span>
 
-    <span class="sd">&quot;&quot;&quot;Move the input file to the output location and overwrite it</span>
+    <span class="sd">&quot;&quot;&quot;Move the input file to the output location and write over it with the</span>
 
-<span class="sd">    with the cropped image data.&quot;&quot;&quot;</span>
+<span class="sd">    cropped image data.&quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">input_filename</span> <span class="o">!=</span> <span class="n">output_filename</span><span class="p">:</span>
 
@@ -783,25 +753,7 @@
 
 <span class="k">def</span> <span class="nf">main</span><span class="p">(</span>
 
-    <span class="n">input_d</span><span class="p">,</span>
-
-    <span class="n">output_d</span><span class="p">,</span>
-
-    <span class="n">reject_d</span><span class="p">,</span>
-
-    <span class="n">fheight</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
-
-    <span class="n">fwidth</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
-
-    <span class="n">facePercent</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
-
-    <span class="n">padUp</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-
-    <span class="n">padDown</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-
-    <span class="n">padLeft</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
-
-    <span class="n">padRight</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+    <span class="n">input_d</span><span class="p">,</span> <span class="n">output_d</span><span class="p">,</span> <span class="n">reject_d</span><span class="p">,</span> <span class="n">fheight</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">fwidth</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">facePercent</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
 
 <span class="p">):</span>
 
@@ -887,27 +839,9 @@
 
     <span class="k">assert</span> <span class="n">input_count</span> <span class="o">&gt;</span> <span class="mi">0</span>
 
-    <span class="c1"># Make padding dict</span>
-
-    <span class="n">padding</span> <span class="o">=</span> <span class="p">{</span>
-
-        <span class="s2">&quot;pad_top&quot;</span><span class="p">:</span> <span class="n">check_padding_value</span><span class="p">(</span><span class="n">padUp</span><span class="p">),</span>
-
-        <span class="s2">&quot;pad_right&quot;</span><span class="p">:</span> <span class="n">check_padding_value</span><span class="p">(</span><span class="n">padRight</span><span class="p">),</span>
-
-        <span class="s2">&quot;pad_bottom&quot;</span><span class="p">:</span> <span class="n">check_padding_value</span><span class="p">(</span><span class="n">padDown</span><span class="p">),</span>
-
-        <span class="s2">&quot;pad_left&quot;</span><span class="p">:</span> <span class="n">check_padding_value</span><span class="p">(</span><span class="n">padLeft</span><span class="p">),</span>
-
-    <span class="p">}</span>
-
     <span class="c1"># Main loop</span>
 
-    <span class="n">cropper</span> <span class="o">=</span> <span class="n">Cropper</span><span class="p">(</span>
-
-        <span class="n">width</span><span class="o">=</span><span class="n">fwidth</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">fheight</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span> <span class="n">face_percent</span><span class="o">=</span><span class="n">facePercent</span>
-
-    <span class="p">)</span>
+    <span class="n">cropper</span> <span class="o">=</span> <span class="n">Cropper</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="n">fwidth</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">fheight</span><span class="p">,</span> <span class="n">face_percent</span><span class="o">=</span><span class="n">facePercent</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">input_filename</span> <span class="ow">in</span> <span class="n">input_files</span><span class="p">:</span>
 
@@ -975,7 +909,7 @@
 
         <span class="k">raise</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentTypeError</span><span class="p">(</span><span class="n">no_folder</span><span class="p">)</span>
 
-    <span class="n">filetypes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+    <span class="n">filetypes</span> <span class="o">=</span> <span class="p">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">p</span><span class="p">)}</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">t</span> <span class="ow">in</span> <span class="n">INPUT_FILETYPES</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">filetypes</span><span class="p">):</span>
 
@@ -1047,7 +981,7 @@
 
     <span class="n">default_str</span> <span class="o">=</span> <span class="s2">&quot;[Y]/n&quot;</span>
 
-    <span class="n">prompt_str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="n">default_str</span><span class="p">)</span>
+    <span class="n">prompt_str</span> <span class="o">=</span> <span class="s2">&quot;{} {} &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="n">default_str</span><span class="p">)</span>
 
     <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
 
@@ -1103,14 +1037,6 @@
 
         <span class="s2">&quot;facePercent&quot;</span><span class="p">:</span> <span class="s2">&quot;Percentage of face to image height&quot;</span><span class="p">,</span>
 
-        <span class="s2">&quot;padUp&quot;</span><span class="p">:</span> <span class="s2">&quot;Add padding up to face cropped&quot;</span><span class="p">,</span>
-
-        <span class="s2">&quot;padDown&quot;</span><span class="p">:</span> <span class="s2">&quot;Add padding down to face cropped&quot;</span><span class="p">,</span>
-
-        <span class="s2">&quot;padLeft&quot;</span><span class="p">:</span> <span class="s2">&quot;Add padding left to face cropped&quot;</span><span class="p">,</span>
-
-        <span class="s2">&quot;padRight&quot;</span><span class="p">:</span> <span class="s2">&quot;Add padding right to face cropped&quot;</span><span class="p">,</span>
-
     <span class="p">}</span>
 
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="n">help_d</span><span class="p">[</span><span class="s2">&quot;desc&quot;</span><span class="p">])</span>
@@ -1163,14 +1089,6 @@
 
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--no-confirm&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="n">help_d</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">])</span>
 
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--padUp&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="n">help_d</span><span class="p">[</span><span class="s2">&quot;padUp&quot;</span><span class="p">])</span>
-
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--padDown&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="n">help_d</span><span class="p">[</span><span class="s2">&quot;padDown&quot;</span><span class="p">])</span>
-
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--padLeft&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="n">help_d</span><span class="p">[</span><span class="s2">&quot;padLeft&quot;</span><span class="p">])</span>
-
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--padRight&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="n">help_d</span><span class="p">[</span><span class="s2">&quot;padRight&quot;</span><span class="p">])</span>
-
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
 
         <span class="s2">&quot;--facePercent&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">size</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="n">help_d</span><span class="p">[</span><span class="s2">&quot;facePercent&quot;</span><span class="p">]</span>
@@ -1209,25 +1127,7 @@
 
     <span class="n">main</span><span class="p">(</span>
 
-        <span class="n">args</span><span class="o">.</span><span class="n">input</span><span class="p">,</span>
-
-        <span class="n">args</span><span class="o">.</span><span class="n">output</span><span class="p">,</span>
-
-        <span class="n">args</span><span class="o">.</span><span class="n">reject</span><span class="p">,</span>
-
-        <span class="n">args</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
-
-        <span class="n">args</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
-
-        <span class="n">args</span><span class="o">.</span><span class="n">facePercent</span><span class="p">,</span>
-
-        <span class="n">args</span><span class="o">.</span><span class="n">padUp</span><span class="p">,</span>
-
-        <span class="n">args</span><span class="o">.</span><span class="n">padDown</span><span class="p">,</span>
-
-        <span class="n">args</span><span class="o">.</span><span class="n">padLeft</span><span class="p">,</span>
-
-        <span class="n">args</span><span class="o">.</span><span class="n">padRight</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">input</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">output</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">reject</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">height</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">facePercent</span><span class="p">,</span>
 
     <span class="p">)</span>
 </code></pre></div>
@@ -1256,29 +1156,6 @@
 
 
 <h2 id="functions">Functions</h2>
-<h3 id="check_padding_value">check_padding_value</h3>
-<div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">check_padding_value</span><span class="p">(</span>
-    <span class="n">num</span>
-<span class="p">)</span>
-</code></pre></div>
-
-
-<p>Returns original value if positive scalar, else returns 50.</p>
-<details class="example"><summary>View Source</summary><div class="codehilite"><pre><span></span><code><span class="n">def</span> <span class="n">check_padding_value</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
-
-    <span class="ss">&quot;&quot;&quot;Returns original value if positive scalar, else returns 50.&quot;&quot;&quot;</span>
-
-    <span class="o">#</span> <span class="k">For</span> <span class="n">CLI</span> <span class="n">backwards</span> <span class="n">compatibility</span><span class="p">;</span> <span class="n">Cropper</span> <span class="n">already</span> <span class="n">checks</span> <span class="k">input</span>
-
-    <span class="k">if</span> <span class="n">num</span> <span class="k">is</span> <span class="k">False</span> <span class="k">or</span> <span class="n">num</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-
-        <span class="k">return</span> <span class="mi">50</span>
-
-    <span class="k">return</span> <span class="n">num</span>
-</code></pre></div>
-
-
-</details>
 <h3 id="command_line_interface">command_line_interface</h3>
 <div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">command_line_interface</span><span class="p">(</span>
 
@@ -1318,25 +1195,7 @@
 
     <span class="n">main</span><span class="p">(</span>
 
-        <span class="n">args</span><span class="p">.</span><span class="k">input</span><span class="p">,</span>
-
-        <span class="n">args</span><span class="p">.</span><span class="k">output</span><span class="p">,</span>
-
-        <span class="n">args</span><span class="p">.</span><span class="n">reject</span><span class="p">,</span>
-
-        <span class="n">args</span><span class="p">.</span><span class="n">height</span><span class="p">,</span>
-
-        <span class="n">args</span><span class="p">.</span><span class="n">width</span><span class="p">,</span>
-
-        <span class="n">args</span><span class="p">.</span><span class="n">facePercent</span><span class="p">,</span>
-
-        <span class="n">args</span><span class="p">.</span><span class="n">padUp</span><span class="p">,</span>
-
-        <span class="n">args</span><span class="p">.</span><span class="n">padDown</span><span class="p">,</span>
-
-        <span class="n">args</span><span class="p">.</span><span class="n">padLeft</span><span class="p">,</span>
-
-        <span class="n">args</span><span class="p">.</span><span class="n">padRight</span><span class="p">,</span>
+        <span class="n">args</span><span class="p">.</span><span class="k">input</span><span class="p">,</span> <span class="n">args</span><span class="p">.</span><span class="k">output</span><span class="p">,</span> <span class="n">args</span><span class="p">.</span><span class="n">reject</span><span class="p">,</span> <span class="n">args</span><span class="p">.</span><span class="n">height</span><span class="p">,</span> <span class="n">args</span><span class="p">.</span><span class="n">width</span><span class="p">,</span> <span class="n">args</span><span class="p">.</span><span class="n">facePercent</span><span class="p">,</span>
 
     <span class="p">)</span>
 </code></pre></div>
@@ -1386,7 +1245,7 @@
 
 <span class="w">    </span><span class="n">default_str</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">&quot;[Y]/n&quot;</span><span class="w"></span>
 
-<span class="w">    </span><span class="n">prompt_str</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">&quot;%s %s &quot;</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="p">(</span><span class="n">question</span><span class="p">,</span><span class="w"> </span><span class="n">default_str</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="n">prompt_str</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">&quot;{} {} &quot;</span><span class="p">.</span><span class="nf">format</span><span class="p">(</span><span class="n">question</span><span class="p">,</span><span class="w"> </span><span class="n">default_str</span><span class="p">)</span><span class="w"></span>
 
 <span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="k">True</span><span class="err">:</span><span class="w"></span>
 
@@ -1433,7 +1292,7 @@
 
         <span class="n">raise</span> <span class="n">argparse</span><span class="p">.</span><span class="n">ArgumentTypeError</span><span class="p">(</span><span class="n">no_folder</span><span class="p">)</span>
 
-    <span class="n">filetypes</span> <span class="o">=</span> <span class="k">set</span><span class="p">(</span><span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="k">in</span> <span class="n">os</span><span class="p">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+    <span class="n">filetypes</span> <span class="o">=</span> <span class="err">{</span><span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="k">in</span> <span class="n">os</span><span class="p">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">p</span><span class="p">)</span><span class="err">}</span>
 
     <span class="k">if</span> <span class="k">not</span> <span class="k">any</span><span class="p">(</span><span class="n">t</span> <span class="k">in</span> <span class="n">INPUT_FILETYPES</span> <span class="k">for</span> <span class="n">t</span> <span class="k">in</span> <span class="n">filetypes</span><span class="p">):</span>
 
@@ -1453,11 +1312,7 @@
     <span class="n">reject_d</span><span class="p">,</span>
     <span class="n">fheight</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
     <span class="n">fwidth</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
-    <span class="n">facePercent</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
-    <span class="n">padUp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="n">padDown</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="n">padLeft</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="n">padRight</span><span class="o">=</span><span class="kc">False</span>
+    <span class="n">facePercent</span><span class="o">=</span><span class="mi">50</span>
 <span class="p">)</span>
 </code></pre></div>
 
@@ -1501,25 +1356,7 @@ where the biggest face was found.</p>
 <p><code>str, str, (int), (int) -&gt; None</code></p>
 <details class="example"><summary>View Source</summary><div class="codehilite"><pre><span></span><code><span class="n">def</span> <span class="nf">main</span><span class="p">(</span>
 
-    <span class="n">input_d</span><span class="p">,</span>
-
-    <span class="n">output_d</span><span class="p">,</span>
-
-    <span class="n">reject_d</span><span class="p">,</span>
-
-    <span class="n">fheight</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
-
-    <span class="n">fwidth</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
-
-    <span class="n">facePercent</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
-
-    <span class="n">padUp</span><span class="o">=</span><span class="no">False</span><span class="p">,</span>
-
-    <span class="n">padDown</span><span class="o">=</span><span class="no">False</span><span class="p">,</span>
-
-    <span class="n">padLeft</span><span class="o">=</span><span class="no">False</span><span class="p">,</span>
-
-    <span class="n">padRight</span><span class="o">=</span><span class="no">False</span><span class="p">,</span>
+    <span class="n">input_d</span><span class="p">,</span> <span class="n">output_d</span><span class="p">,</span> <span class="n">reject_d</span><span class="p">,</span> <span class="n">fheight</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">fwidth</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">facePercent</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
 
 <span class="p">):</span>
 
@@ -1605,27 +1442,9 @@ where the biggest face was found.</p>
 
     <span class="n">assert</span> <span class="n">input_count</span> <span class="o">&gt;</span> <span class="mi">0</span>
 
-    <span class="c1"># Make padding dict</span>
-
-    <span class="n">padding</span> <span class="o">=</span> <span class="err">{</span>
-
-        <span class="s2">&quot;pad_top&quot;</span><span class="p">:</span> <span class="nf">check_padding_value</span><span class="p">(</span><span class="n">padUp</span><span class="p">),</span>
-
-        <span class="s2">&quot;pad_right&quot;</span><span class="p">:</span> <span class="nf">check_padding_value</span><span class="p">(</span><span class="n">padRight</span><span class="p">),</span>
-
-        <span class="s2">&quot;pad_bottom&quot;</span><span class="p">:</span> <span class="nf">check_padding_value</span><span class="p">(</span><span class="n">padDown</span><span class="p">),</span>
-
-        <span class="s2">&quot;pad_left&quot;</span><span class="p">:</span> <span class="nf">check_padding_value</span><span class="p">(</span><span class="n">padLeft</span><span class="p">),</span>
-
-    <span class="err">}</span>
-
     <span class="c1"># Main loop</span>
 
-    <span class="n">cropper</span> <span class="o">=</span> <span class="nf">Cropper</span><span class="p">(</span>
-
-        <span class="n">width</span><span class="o">=</span><span class="n">fwidth</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">fheight</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span> <span class="n">face_percent</span><span class="o">=</span><span class="n">facePercent</span>
-
-    <span class="p">)</span>
+    <span class="n">cropper</span> <span class="o">=</span> <span class="nf">Cropper</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="n">fwidth</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">fheight</span><span class="p">,</span> <span class="n">face_percent</span><span class="o">=</span><span class="n">facePercent</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">input_filename</span> <span class="k">in</span> <span class="n">input_files</span><span class="p">:</span>
 
@@ -1691,13 +1510,13 @@ where the biggest face was found.</p>
 </code></pre></div>
 
 
-<p>Move the input file to the output location and overwrite it
-with the cropped image data.</p>
+<p>Move the input file to the output location and write over it with the
+cropped image data.</p>
 <details class="example"><summary>View Source</summary><div class="codehilite"><pre><span></span><code><span class="n">def</span> <span class="k">output</span><span class="p">(</span><span class="n">input_filename</span><span class="p">,</span> <span class="n">output_filename</span><span class="p">,</span> <span class="n">image</span><span class="p">):</span>
 
-    <span class="ss">&quot;&quot;&quot;Move the input file to the output location and overwrite it</span>
+    <span class="ss">&quot;&quot;&quot;Move the input file to the output location and write over it with the</span>
 
-<span class="ss">    with the cropped image data.&quot;&quot;&quot;</span>
+<span class="ss">    cropped image data.&quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">input_filename</span> <span class="o">!=</span> <span class="n">output_filename</span><span class="p">:</span>
 
@@ -1792,14 +1611,6 @@ If directory doesn't exist, creates it.</p>
 
         <span class="ss">&quot;facePercent&quot;</span><span class="p">:</span> <span class="ss">&quot;Percentage of face to image height&quot;</span><span class="p">,</span>
 
-        <span class="ss">&quot;padUp&quot;</span><span class="p">:</span> <span class="ss">&quot;Add padding up to face cropped&quot;</span><span class="p">,</span>
-
-        <span class="ss">&quot;padDown&quot;</span><span class="p">:</span> <span class="ss">&quot;Add padding down to face cropped&quot;</span><span class="p">,</span>
-
-        <span class="ss">&quot;padLeft&quot;</span><span class="p">:</span> <span class="ss">&quot;Add padding left to face cropped&quot;</span><span class="p">,</span>
-
-        <span class="ss">&quot;padRight&quot;</span><span class="p">:</span> <span class="ss">&quot;Add padding right to face cropped&quot;</span><span class="p">,</span>
-
     <span class="err">}</span>
 
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="p">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="n">help_d</span><span class="p">[</span><span class="ss">&quot;desc&quot;</span><span class="p">])</span>
@@ -1851,14 +1662,6 @@ If directory doesn't exist, creates it.</p>
     <span class="p">)</span>
 
     <span class="n">parser</span><span class="p">.</span><span class="n">add_argument</span><span class="p">(</span><span class="ss">&quot;--no-confirm&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="ss">&quot;store_true&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="n">help_d</span><span class="p">[</span><span class="ss">&quot;y&quot;</span><span class="p">])</span>
-
-    <span class="n">parser</span><span class="p">.</span><span class="n">add_argument</span><span class="p">(</span><span class="ss">&quot;--padUp&quot;</span><span class="p">,</span> <span class="k">type</span><span class="o">=</span><span class="k">size</span><span class="p">,</span> <span class="k">default</span><span class="o">=</span><span class="k">False</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="n">help_d</span><span class="p">[</span><span class="ss">&quot;padUp&quot;</span><span class="p">])</span>
-
-    <span class="n">parser</span><span class="p">.</span><span class="n">add_argument</span><span class="p">(</span><span class="ss">&quot;--padDown&quot;</span><span class="p">,</span> <span class="k">type</span><span class="o">=</span><span class="k">size</span><span class="p">,</span> <span class="k">default</span><span class="o">=</span><span class="k">False</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="n">help_d</span><span class="p">[</span><span class="ss">&quot;padDown&quot;</span><span class="p">])</span>
-
-    <span class="n">parser</span><span class="p">.</span><span class="n">add_argument</span><span class="p">(</span><span class="ss">&quot;--padLeft&quot;</span><span class="p">,</span> <span class="k">type</span><span class="o">=</span><span class="k">size</span><span class="p">,</span> <span class="k">default</span><span class="o">=</span><span class="k">False</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="n">help_d</span><span class="p">[</span><span class="ss">&quot;padLeft&quot;</span><span class="p">])</span>
-
-    <span class="n">parser</span><span class="p">.</span><span class="n">add_argument</span><span class="p">(</span><span class="ss">&quot;--padRight&quot;</span><span class="p">,</span> <span class="k">type</span><span class="o">=</span><span class="k">size</span><span class="p">,</span> <span class="k">default</span><span class="o">=</span><span class="k">False</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="n">help_d</span><span class="p">[</span><span class="ss">&quot;padRight&quot;</span><span class="p">])</span>
 
     <span class="n">parser</span><span class="p">.</span><span class="n">add_argument</span><span class="p">(</span>
 

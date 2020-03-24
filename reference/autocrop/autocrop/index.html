@@ -342,6 +342,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#bgr_to_rbg" class="md-nav__link">
+    bgr_to_rbg
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#check_positive_scalar" class="md-nav__link">
     check_positive_scalar
   </a>
@@ -356,8 +363,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#check_valid_pad_dict" class="md-nav__link">
-    check_valid_pad_dict
+  <a href="#distance" class="md-nav__link">
+    distance
   </a>
   
 </li>
@@ -370,8 +377,22 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#intersect" class="md-nav__link">
+    intersect
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#open_file" class="md-nav__link">
     open_file
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perp" class="md-nav__link">
+    perp
   </a>
   
 </li>
@@ -594,6 +615,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#bgr_to_rbg" class="md-nav__link">
+    bgr_to_rbg
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#check_positive_scalar" class="md-nav__link">
     check_positive_scalar
   </a>
@@ -608,8 +636,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#check_valid_pad_dict" class="md-nav__link">
-    check_valid_pad_dict
+  <a href="#distance" class="md-nav__link">
+    distance
   </a>
   
 </li>
@@ -622,8 +650,22 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#intersect" class="md-nav__link">
+    intersect
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#open_file" class="md-nav__link">
     open_file
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perp" class="md-nav__link">
+    perp
   </a>
   
 </li>
@@ -773,9 +815,7 @@
                 
                 
                 <h1 id="module-autocropautocrop">Module autocrop.autocrop</h1>
-<details class="example"><summary>View Source</summary><div class="codehilite"><pre><span></span><code><span class="c1"># -*- coding: utf-8 -*-</span>
-
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span>
+<details class="example"><summary>View Source</summary><div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">itertools</span>
 
 <span class="kn">import</span> <span class="nn">cv2</span>
 
@@ -813,9 +853,59 @@
 
     <span class="k">pass</span>
 
+<span class="k">def</span> <span class="nf">perp</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+
+    <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="kp">empty_like</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+    <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">b</span>
+
+<span class="k">def</span> <span class="nf">intersect</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">):</span>
+
+    <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span> <span class="o">=</span> <span class="n">v1</span>
+
+    <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span> <span class="o">=</span> <span class="n">v2</span>
+
+    <span class="n">da</span> <span class="o">=</span> <span class="n">a2</span> <span class="o">-</span> <span class="n">a1</span>
+
+    <span class="n">db</span> <span class="o">=</span> <span class="n">b2</span> <span class="o">-</span> <span class="n">b1</span>
+
+    <span class="n">dp</span> <span class="o">=</span> <span class="n">a1</span> <span class="o">-</span> <span class="n">b1</span>
+
+    <span class="n">dap</span> <span class="o">=</span> <span class="n">perp</span><span class="p">(</span><span class="n">da</span><span class="p">)</span>
+
+    <span class="n">denom</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="kp">dot</span><span class="p">(</span><span class="n">dap</span><span class="p">,</span> <span class="n">db</span><span class="p">)</span><span class="o">.</span><span class="kp">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="n">num</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="kp">dot</span><span class="p">(</span><span class="n">dap</span><span class="p">,</span> <span class="n">dp</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">num</span> <span class="o">/</span> <span class="n">denom</span><span class="p">)</span> <span class="o">*</span> <span class="n">db</span> <span class="o">+</span> <span class="n">b1</span>
+
+<span class="k">def</span> <span class="nf">distance</span><span class="p">(</span><span class="n">pt1</span><span class="p">,</span> <span class="n">pt2</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Returns the euclidian distance in 2D between 2 pts.&quot;&quot;&quot;</span>
+
+    <span class="n">distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">pt2</span> <span class="o">-</span> <span class="n">pt1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">distance</span>
+
+<span class="k">def</span> <span class="nf">bgr_to_rbg</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Given a BGR (cv2) numpy array, returns a RBG (standard) array.&quot;&quot;&quot;</span>
+
+    <span class="n">dimensions</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="kp">shape</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">dimensions</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+
+        <span class="k">return</span> <span class="n">img</span>
+
+    <span class="k">return</span> <span class="n">img</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
 <span class="k">def</span> <span class="nf">gamma</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">correction</span><span class="p">):</span>
 
-    <span class="sd">&quot;&quot;&quot;Simple gamma correction to brighten faces.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Simple gamma correction to brighten faces&quot;&quot;&quot;</span>
 
     <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">img</span> <span class="o">/</span> <span class="mf">255.0</span><span class="p">,</span> <span class="n">correction</span><span class="p">)</span>
 
@@ -847,47 +937,9 @@
 
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;A positive scalar is required&quot;</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">check_valid_pad_dict</span><span class="p">(</span><span class="n">dic</span><span class="p">):</span>
-
-    <span class="sd">&quot;&quot;&quot;Returns dic if valid, else raises ValueError.&quot;&quot;&quot;</span>
-
-    <span class="n">valid_keys</span> <span class="o">=</span> <span class="p">{</span>
-
-        <span class="s2">&quot;pad_top&quot;</span><span class="p">,</span>
-
-        <span class="s2">&quot;pad_right&quot;</span><span class="p">,</span>
-
-        <span class="s2">&quot;pad_bottom&quot;</span><span class="p">,</span>
-
-        <span class="s2">&quot;pad_left&quot;</span><span class="p">,</span>
-
-    <span class="p">}</span>
-
-    <span class="n">error</span> <span class="o">=</span> <span class="s2">&quot;Padding arguments must use keys </span><span class="si">{}</span><span class="s2"> and be positive scalars&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-
-        <span class="n">valid_keys</span>
-
-    <span class="p">)</span>
-
-    <span class="n">conditions</span> <span class="o">=</span> <span class="p">[]</span>
-
-    <span class="n">conditions</span><span class="o">.</span><span class="kp">append</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span> <span class="nb">dict</span><span class="p">))</span>
-
-    <span class="n">conditions</span><span class="o">.</span><span class="kp">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dic</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">)</span>
-
-    <span class="n">conditions</span><span class="o">.</span><span class="kp">append</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">dic</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="n">valid_keys</span><span class="p">)</span>
-
-    <span class="n">conditions</span><span class="o">.</span><span class="kp">append</span><span class="p">(</span><span class="nb">all</span><span class="p">(</span><span class="n">check_positive_scalar</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">dic</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
-
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">conditions</span><span class="p">):</span>
-
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">dic</span>
-
 <span class="k">def</span> <span class="nf">open_file</span><span class="p">(</span><span class="n">input_filename</span><span class="p">):</span>
 
-    <span class="sd">&quot;&quot;&quot;Given a filename, returns a numpy array.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Given a filename, returns a numpy array&quot;&quot;&quot;</span>
 
     <span class="n">extension</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">input_filename</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 
@@ -907,7 +959,7 @@
 
     <span class="k">return</span> <span class="kc">None</span>
 
-<span class="k">class</span> <span class="nc">Cropper</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">Cropper</span><span class="p">:</span>
 
     <span class="sd">&quot;&quot;&quot;</span>
 
@@ -927,83 +979,49 @@
 
 <span class="sd">    -----------</span>
 
-<span class="sd">    - `width` : `int`, default=`500`</span>
+<span class="sd">    * `width` : `int`, default=500</span>
 
-<span class="sd">        * The width of the resulting array.</span>
+<span class="sd">        - The width of the resulting array.</span>
 
-<span class="sd">    - `height` : `int`, default=`500`</span>
+<span class="sd">    * `height` : `int`, default=`500`</span>
 
-<span class="sd">        * The height of the resulting array.</span>
+<span class="sd">        - The height of the resulting array.</span>
 
-<span class="sd">    - `padding`: `int` or `dict`, default=`50`</span>
+<span class="sd">    * `face_percent`: `int`, default=`50`</span>
 
-<span class="sd">        * Number of pixels to pad around the largest detected</span>
+<span class="sd">        - Aka zoom factor. Percent of the overall size of</span>
 
-<span class="sd">        face. Expected padding dict:</span>
+<span class="sd">        the cropped image containing the detected coordinates.</span>
 
-<span class="sd">        `{&quot;pad_top&quot;: int, &quot;pad_right&quot;: int, &quot;pad_bottom&quot;: int, &quot;pad_left&quot;: int}`</span>
+<span class="sd">    * `fix_gamma`: `bool`, default=`True`</span>
 
-<span class="sd">    - `face_percent`: `int`, default=`50`</span>
+<span class="sd">        - Cropped faces are often underexposed when taken</span>
 
-<span class="sd">        * Aka zoom factor. Percent of the overall size of the</span>
+<span class="sd">        out of their context. If under a threshold, sets the</span>
 
-<span class="sd">        cropped image containing the detected coordinates.</span>
-
-<span class="sd">    - `fix_gamma`: `bool`, default=`True`</span>
-
-<span class="sd">        * Cropped faces are often underexposed when taken out of</span>
-
-<span class="sd">        their context. If under a threshold, sets the gamma to 0.9.</span>
+<span class="sd">        gamma to 0.9.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
 
-        <span class="bp">self</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">face_percent</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">fix_gamma</span><span class="o">=</span><span class="kc">True</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">face_percent</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fix_gamma</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 
     <span class="p">):</span>
-
-        <span class="c1"># Size</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="n">check_positive_scalar</span><span class="p">(</span><span class="n">height</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="n">check_positive_scalar</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
 
-        <span class="c1"># Padding</span>
-
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">padding</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-
-            <span class="n">pad</span> <span class="o">=</span> <span class="n">check_positive_scalar</span><span class="p">(</span><span class="n">padding</span><span class="p">)</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">pad_top</span> <span class="o">=</span> <span class="n">pad</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">pad_right</span> <span class="o">=</span> <span class="n">pad</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">pad_bottom</span> <span class="o">=</span> <span class="n">pad</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">pad_left</span> <span class="o">=</span> <span class="n">pad</span>
-
-        <span class="k">else</span><span class="p">:</span>
-
-            <span class="n">pad</span> <span class="o">=</span> <span class="n">check_valid_pad_dict</span><span class="p">(</span><span class="n">padding</span><span class="p">)</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">pad_top</span> <span class="o">=</span> <span class="n">pad</span><span class="p">[</span><span class="s2">&quot;pad_top&quot;</span><span class="p">]</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">pad_right</span> <span class="o">=</span> <span class="n">pad</span><span class="p">[</span><span class="s2">&quot;pad_right&quot;</span><span class="p">]</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">pad_bottom</span> <span class="o">=</span> <span class="n">pad</span><span class="p">[</span><span class="s2">&quot;pad_bottom&quot;</span><span class="p">]</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">pad_left</span> <span class="o">=</span> <span class="n">pad</span><span class="p">[</span><span class="s2">&quot;pad_left&quot;</span><span class="p">]</span>
-
-        <span class="c1"># Gamma</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aspect_ratio</span> <span class="o">=</span> <span class="n">width</span> <span class="o">/</span> <span class="n">height</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">=</span> <span class="n">fix_gamma</span>
 
-        <span class="c1"># Face Percent</span>
+        <span class="c1"># Face percent</span>
 
-        <span class="k">if</span> <span class="n">face_percent</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">face_percent</span> <span class="o">&gt;</span> <span class="mi">100</span> <span class="ow">or</span> <span class="n">face_percent</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
 
-            <span class="n">fp_error</span> <span class="o">=</span> <span class="s2">&quot;The face_percent argument must be between 0 and 100&quot;</span>
+            <span class="n">fp_error</span> <span class="o">=</span> <span class="s2">&quot;The face_percent argument must be between 1 and 100&quot;</span>
 
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">fp_error</span><span class="p">)</span>
 
@@ -1121,27 +1139,181 @@
 
             <span class="n">image</span> <span class="o">=</span> <span class="n">check_underexposed</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">gray</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">image</span>
+        <span class="k">return</span> <span class="n">bgr_to_rbg</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_crop_positions</span><span class="p">(</span>
+    <span class="k">def</span> <span class="nf">_determine_safe_zoom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imgh</span><span class="p">,</span> <span class="n">imgw</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
 
-        <span class="bp">self</span><span class="p">,</span> <span class="n">img_height</span><span class="p">,</span> <span class="n">img_width</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span>
+        <span class="sd">&quot;&quot;&quot;Determines the safest zoom level with which to add margins</span>
 
-    <span class="p">):</span>
+<span class="sd">        around the detected face. Tries to honor `self.face_percent`</span>
 
-        <span class="sd">&quot;&quot;&quot;Given face coordinates, returns coordinates for which</span>
+<span class="sd">        when possible.</span>
 
-<span class="sd">        to crop on given padding and face_percent parameters.</span>
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        -----------</span>
+
+<span class="sd">        imgh: int</span>
+
+<span class="sd">            Height (px) of the image to be cropped</span>
+
+<span class="sd">        imgw: int</span>
+
+<span class="sd">            Width (px) of the image to be cropped</span>
+
+<span class="sd">        x: int</span>
+
+<span class="sd">            Leftmost coordinates of the detected face</span>
+
+<span class="sd">        y: int</span>
+
+<span class="sd">            Bottom-most coordinates of the detected face</span>
+
+<span class="sd">        w: int</span>
+
+<span class="sd">            Width of the detected face</span>
+
+<span class="sd">        h: int</span>
+
+<span class="sd">            Height of the detected face</span>
+
+<span class="sd">        Diagram:</span>
+
+<span class="sd">        --------</span>
+
+<span class="sd">        i / j := zoom / 100</span>
+
+<span class="sd">                  +</span>
+
+<span class="sd">        h1        |         h2</span>
+
+<span class="sd">        +---------|---------+</span>
+
+<span class="sd">        |      MAR|GIN      |</span>
+
+<span class="sd">        |         (x+w, y+h)|</span>
+
+<span class="sd">        |   +-----|-----+   |</span>
+
+<span class="sd">        |   |   FA|CE   |   |</span>
+
+<span class="sd">        |   |     |     |   |</span>
+
+<span class="sd">        |   ├──i──┤     |   |</span>
+
+<span class="sd">        |   |  cen|ter  |   |</span>
+
+<span class="sd">        |   |     |     |   |</span>
+
+<span class="sd">        |   +-----|-----+   |</span>
+
+<span class="sd">        |   (x, y)|         |</span>
+
+<span class="sd">        |         |         |</span>
+
+<span class="sd">        +---------|---------+</span>
+
+<span class="sd">        ├────j────┤</span>
+
+<span class="sd">                  +</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
 
+        <span class="c1"># Find out what zoom factor to use given self.aspect_ratio</span>
+
+        <span class="n">corners</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="kp">product</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span> <span class="o">+</span> <span class="n">w</span><span class="p">),</span> <span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="n">h</span><span class="p">))</span>
+
+        <span class="n">center</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="kp">array</span><span class="p">([</span><span class="n">x</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">w</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="n">y</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">h</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)])</span>
+
+        <span class="n">i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="kp">array</span><span class="p">(</span>
+
+            <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">imgh</span><span class="p">),</span> <span class="p">(</span><span class="n">imgw</span><span class="p">,</span> <span class="n">imgh</span><span class="p">),</span> <span class="p">(</span><span class="n">imgw</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span>
+
+        <span class="p">)</span>  <span class="c1"># image_corners</span>
+
+        <span class="n">image_sides</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span><span class="p">[</span><span class="n">n</span><span class="p">],</span> <span class="n">i</span><span class="p">[</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)]</span>
+
+        <span class="n">corner_ratios</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">face_percent</span><span class="p">]</span>  <span class="c1"># Hopefully we use this one</span>
+
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">corners</span><span class="p">:</span>
+
+            <span class="n">corner_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="kp">array</span><span class="p">([</span><span class="n">center</span><span class="p">,</span> <span class="n">c</span><span class="p">])</span>
+
+            <span class="n">a</span> <span class="o">=</span> <span class="n">distance</span><span class="p">(</span><span class="o">*</span><span class="n">corner_vector</span><span class="p">)</span>
+
+            <span class="n">intersects</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">intersect</span><span class="p">(</span><span class="n">corner_vector</span><span class="p">,</span> <span class="n">side</span><span class="p">)</span> <span class="k">for</span> <span class="n">side</span> <span class="ow">in</span> <span class="n">image_sides</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">intersects</span><span class="p">:</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="n">pt</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="kp">all</span><span class="p">()</span> <span class="ow">and</span> <span class="p">(</span><span class="n">pt</span> <span class="o">&lt;=</span> <span class="n">i</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="kp">all</span><span class="p">():</span>  <span class="c1"># if intersect within image</span>
+
+                    <span class="n">dist_to_pt</span> <span class="o">=</span> <span class="n">distance</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="n">pt</span><span class="p">)</span>
+
+                    <span class="n">corner_ratios</span><span class="o">.</span><span class="kp">append</span><span class="p">(</span><span class="mi">100</span> <span class="o">*</span> <span class="n">a</span> <span class="o">/</span> <span class="n">dist_to_pt</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">corner_ratios</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_crop_positions</span><span class="p">(</span>
+
+        <span class="bp">self</span><span class="p">,</span> <span class="n">imgh</span><span class="p">,</span> <span class="n">imgw</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span>
+
+    <span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Retuns the coordinates of the crop position centered</span>
+
+<span class="sd">        around the detected face with extra margins. Tries to</span>
+
+<span class="sd">        honor `self.face_percent` if possible, else uses the</span>
+
+<span class="sd">        largest margins that comply with required aspect ratio</span>
+
+<span class="sd">        given by `self.height` and `self.width`.</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">        -----------</span>
+
+<span class="sd">        imgh: int</span>
+
+<span class="sd">            Height (px) of the image to be cropped</span>
+
+<span class="sd">        imgw: int</span>
+
+<span class="sd">            Width (px) of the image to be cropped</span>
+
+<span class="sd">        x: int</span>
+
+<span class="sd">            Leftmost coordinates of the detected face</span>
+
+<span class="sd">        y: int</span>
+
+<span class="sd">            Bottom-most coordinates of the detected face</span>
+
+<span class="sd">        w: int</span>
+
+<span class="sd">            Width of the detected face</span>
+
+<span class="sd">        h: int</span>
+
+<span class="sd">            Height of the detected face</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">zoom</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_determine_safe_zoom</span><span class="p">(</span><span class="n">imgh</span><span class="p">,</span> <span class="n">imgw</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+
         <span class="c1"># Adjust output height based on percent</span>
 
-        <span class="n">aspect_ratio</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">:</span>
 
-        <span class="n">height_crop</span> <span class="o">=</span> <span class="n">h</span> <span class="o">*</span> <span class="mf">100.0</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">face_percent</span>
+            <span class="n">height_crop</span> <span class="o">=</span> <span class="n">h</span> <span class="o">*</span> <span class="mf">100.0</span> <span class="o">/</span> <span class="n">zoom</span>
 
-        <span class="n">width_crop</span> <span class="o">=</span> <span class="n">aspect_ratio</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">height_crop</span><span class="p">)</span>
+            <span class="n">width_crop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">aspect_ratio</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">height_crop</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="n">width_crop</span> <span class="o">=</span> <span class="n">w</span> <span class="o">*</span> <span class="mf">100.0</span> <span class="o">/</span> <span class="n">zoom</span>
+
+            <span class="n">height_crop</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">width_crop</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">aspect_ratio</span>
 
         <span class="c1"># Calculate padding by centering face</span>
 
@@ -1151,57 +1323,13 @@
 
         <span class="c1"># Calc. positions of crop</span>
 
-        <span class="n">h1</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="p">(</span><span class="n">xpad</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_left</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_left</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_right</span><span class="p">)))</span>
+        <span class="n">h1</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="n">xpad</span>
 
-        <span class="n">h2</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">w</span> <span class="o">+</span> <span class="p">(</span><span class="n">xpad</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_right</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_left</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_right</span><span class="p">)))</span>
+        <span class="n">h2</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">w</span> <span class="o">+</span> <span class="n">xpad</span>
 
-        <span class="n">v1</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="p">(</span><span class="n">ypad</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_top</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_top</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_bottom</span><span class="p">)))</span>
+        <span class="n">v1</span> <span class="o">=</span> <span class="n">y</span> <span class="o">-</span> <span class="n">ypad</span>
 
-        <span class="n">v2</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">y</span> <span class="o">+</span> <span class="n">h</span> <span class="o">+</span> <span class="p">(</span><span class="n">ypad</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_bottom</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_top</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_bottom</span><span class="p">)))</span>
-
-        <span class="c1"># Determine padding ratios</span>
-
-        <span class="n">left_pad_ratio</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_left</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_left</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_right</span><span class="p">)</span>
-
-        <span class="n">right_pad_ratio</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_left</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_left</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_right</span><span class="p">)</span>
-
-        <span class="n">top_pad_ratio</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_top</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_top</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_bottom</span><span class="p">)</span>
-
-        <span class="n">bottom_pad_ratio</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_bottom</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_top</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_bottom</span><span class="p">)</span>
-
-        <span class="c1"># Calculate largest bounds with padding ratios</span>
-
-        <span class="n">delta_h</span> <span class="o">=</span> <span class="mf">0.0</span>
-
-        <span class="k">if</span> <span class="n">h1</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-
-            <span class="n">delta_h</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">h1</span><span class="p">)</span> <span class="o">/</span> <span class="n">left_pad_ratio</span>
-
-        <span class="k">if</span> <span class="n">h2</span> <span class="o">&gt;</span> <span class="n">img_width</span><span class="p">:</span>
-
-            <span class="n">delta_h</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">delta_h</span><span class="p">,</span> <span class="p">(</span><span class="n">h2</span> <span class="o">-</span> <span class="n">img_width</span><span class="p">)</span> <span class="o">/</span> <span class="n">right_pad_ratio</span><span class="p">)</span>
-
-        <span class="n">delta_v</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="k">if</span> <span class="n">delta_h</span> <span class="o">&lt;=</span> <span class="mf">0.0</span> <span class="k">else</span> <span class="n">delta_h</span> <span class="o">/</span> <span class="n">aspect_ratio</span>
-
-        <span class="k">if</span> <span class="n">v1</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-
-            <span class="n">delta_v</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">delta_v</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="n">v1</span><span class="p">)</span> <span class="o">/</span> <span class="n">top_pad_ratio</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">v2</span> <span class="o">&gt;</span> <span class="n">img_height</span><span class="p">:</span>
-
-            <span class="n">delta_v</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">delta_v</span><span class="p">,</span> <span class="p">(</span><span class="n">v2</span> <span class="o">-</span> <span class="n">img_height</span><span class="p">)</span> <span class="o">/</span> <span class="n">bottom_pad_ratio</span><span class="p">)</span>
-
-        <span class="n">delta_h</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">delta_h</span><span class="p">,</span> <span class="n">delta_v</span> <span class="o">*</span> <span class="n">aspect_ratio</span><span class="p">)</span>
-
-        <span class="c1"># Adjust crop values accordingly</span>
-
-        <span class="n">h1</span> <span class="o">+=</span> <span class="n">delta_h</span> <span class="o">*</span> <span class="n">left_pad_ratio</span>
-
-        <span class="n">h2</span> <span class="o">-=</span> <span class="n">delta_h</span> <span class="o">*</span> <span class="n">right_pad_ratio</span>
-
-        <span class="n">v1</span> <span class="o">+=</span> <span class="n">delta_v</span> <span class="o">*</span> <span class="n">top_pad_ratio</span>
-
-        <span class="n">v2</span> <span class="o">-=</span> <span class="n">delta_v</span> <span class="o">*</span> <span class="n">bottom_pad_ratio</span>
+        <span class="n">v2</span> <span class="o">=</span> <span class="n">y</span> <span class="o">+</span> <span class="n">h</span> <span class="o">+</span> <span class="n">ypad</span>
 
         <span class="k">return</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">v1</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">v2</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">h1</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">h2</span><span class="p">)]</span>
 </code></pre></div>
@@ -1242,6 +1370,29 @@
 
 
 <h2 id="functions">Functions</h2>
+<h3 id="bgr_to_rbg">bgr_to_rbg</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">bgr_to_rbg</span><span class="p">(</span>
+    <span class="n">img</span>
+<span class="p">)</span>
+</code></pre></div>
+
+
+<p>Given a BGR (cv2) numpy array, returns a RBG (standard) array.</p>
+<details class="example"><summary>View Source</summary><div class="codehilite"><pre><span></span><code><span class="s s-Atom">def</span> <span class="nf">bgr_to_rbg</span><span class="p">(</span><span class="s s-Atom">img</span><span class="p">)</span><span class="s s-Atom">:</span>
+
+    <span class="s2">&quot;&quot;&quot;Given a BGR (cv2) numpy array, returns a RBG (standard) array.&quot;&quot;&quot;</span>
+
+    <span class="s s-Atom">dimensions</span> <span class="o">=</span> <span class="nf">len</span><span class="p">(</span><span class="s s-Atom">img</span><span class="p">.</span><span class="s s-Atom">shape</span><span class="p">)</span>
+
+    <span class="s s-Atom">if</span> <span class="s s-Atom">dimensions</span> <span class="o">==</span> <span class="mi">2</span><span class="s s-Atom">:</span>
+
+        <span class="s s-Atom">return</span> <span class="s s-Atom">img</span>
+
+    <span class="s s-Atom">return</span> <span class="s s-Atom">img</span><span class="p">[...,</span> <span class="s s-Atom">::-</span><span class="mi">1</span><span class="p">]</span>
+</code></pre></div>
+
+
+</details>
 <h3 id="check_positive_scalar">check_positive_scalar</h3>
 <div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">check_positive_scalar</span><span class="p">(</span>
     <span class="n">num</span>
@@ -1292,51 +1443,22 @@ is detected.</p>
 
 
 </details>
-<h3 id="check_valid_pad_dict">check_valid_pad_dict</h3>
-<div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">check_valid_pad_dict</span><span class="p">(</span>
-    <span class="n">dic</span>
+<h3 id="distance">distance</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">distance</span><span class="p">(</span>
+    <span class="n">pt1</span><span class="p">,</span>
+    <span class="n">pt2</span>
 <span class="p">)</span>
 </code></pre></div>
 
 
-<p>Returns dic if valid, else raises ValueError.</p>
-<details class="example"><summary>View Source</summary><div class="codehilite"><pre><span></span><code><span class="n">def</span> <span class="n">check_valid_pad_dict</span><span class="p">(</span><span class="n">dic</span><span class="p">):</span>
+<p>Returns the euclidian distance in 2D between 2 pts.</p>
+<details class="example"><summary>View Source</summary><div class="codehilite"><pre><span></span><code><span class="n">def</span> <span class="n">distance</span><span class="p">(</span><span class="n">pt1</span><span class="p">,</span> <span class="n">pt2</span><span class="p">):</span>
 
-    <span class="ss">&quot;&quot;&quot;Returns dic if valid, else raises ValueError.&quot;&quot;&quot;</span>
+    <span class="ss">&quot;&quot;&quot;Returns the euclidian distance in 2D between 2 pts.&quot;&quot;&quot;</span>
 
-    <span class="n">valid_keys</span> <span class="o">=</span> <span class="err">{</span>
+    <span class="n">distance</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">linalg</span><span class="p">.</span><span class="n">norm</span><span class="p">(</span><span class="n">pt2</span> <span class="o">-</span> <span class="n">pt1</span><span class="p">)</span>
 
-        <span class="ss">&quot;pad_top&quot;</span><span class="p">,</span>
-
-        <span class="ss">&quot;pad_right&quot;</span><span class="p">,</span>
-
-        <span class="ss">&quot;pad_bottom&quot;</span><span class="p">,</span>
-
-        <span class="ss">&quot;pad_left&quot;</span><span class="p">,</span>
-
-    <span class="err">}</span>
-
-    <span class="n">error</span> <span class="o">=</span> <span class="ss">&quot;Padding arguments must use keys {} and be positive scalars&quot;</span><span class="p">.</span><span class="n">format</span><span class="p">(</span>
-
-        <span class="n">valid_keys</span>
-
-    <span class="p">)</span>
-
-    <span class="n">conditions</span> <span class="o">=</span> <span class="p">[]</span>
-
-    <span class="n">conditions</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">isinstance</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span> <span class="n">dict</span><span class="p">))</span>
-
-    <span class="n">conditions</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">len</span><span class="p">(</span><span class="n">dic</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">)</span>
-
-    <span class="n">conditions</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="k">set</span><span class="p">(</span><span class="n">dic</span><span class="p">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="n">valid_keys</span><span class="p">)</span>
-
-    <span class="n">conditions</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="k">all</span><span class="p">(</span><span class="n">check_positive_scalar</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="k">in</span> <span class="n">dic</span><span class="p">.</span><span class="k">values</span><span class="p">()))</span>
-
-    <span class="k">if</span> <span class="k">not</span> <span class="k">all</span><span class="p">(</span><span class="n">conditions</span><span class="p">):</span>
-
-        <span class="n">raise</span> <span class="n">ValueError</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">dic</span>
+    <span class="k">return</span> <span class="n">distance</span>
 </code></pre></div>
 
 
@@ -1349,14 +1471,45 @@ is detected.</p>
 </code></pre></div>
 
 
-<p>Simple gamma correction to brighten faces.</p>
+<p>Simple gamma correction to brighten faces</p>
 <details class="example"><summary>View Source</summary><div class="codehilite"><pre><span></span><code><span class="n">def</span> <span class="n">gamma</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">correction</span><span class="p">):</span>
 
-    <span class="ss">&quot;&quot;&quot;Simple gamma correction to brighten faces.&quot;&quot;&quot;</span>
+    <span class="ss">&quot;&quot;&quot;Simple gamma correction to brighten faces&quot;&quot;&quot;</span>
 
     <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="p">.</span><span class="n">pow</span><span class="p">(</span><span class="n">img</span> <span class="o">/</span> <span class="mi">255</span><span class="p">.</span><span class="mi">0</span><span class="p">,</span> <span class="n">correction</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">np</span><span class="p">.</span><span class="n">uint8</span><span class="p">(</span><span class="n">img</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)</span>
+</code></pre></div>
+
+
+</details>
+<h3 id="intersect">intersect</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">intersect</span><span class="p">(</span>
+    <span class="n">v1</span><span class="p">,</span>
+    <span class="n">v2</span>
+<span class="p">)</span>
+</code></pre></div>
+
+
+<details class="example"><summary>View Source</summary><div class="codehilite"><pre><span></span><code><span class="n">def</span> <span class="k">intersect</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">):</span>
+
+    <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span> <span class="o">=</span> <span class="n">v1</span>
+
+    <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span> <span class="o">=</span> <span class="n">v2</span>
+
+    <span class="n">da</span> <span class="o">=</span> <span class="n">a2</span> <span class="o">-</span> <span class="n">a1</span>
+
+    <span class="n">db</span> <span class="o">=</span> <span class="n">b2</span> <span class="o">-</span> <span class="n">b1</span>
+
+    <span class="n">dp</span> <span class="o">=</span> <span class="n">a1</span> <span class="o">-</span> <span class="n">b1</span>
+
+    <span class="n">dap</span> <span class="o">=</span> <span class="n">perp</span><span class="p">(</span><span class="n">da</span><span class="p">)</span>
+
+    <span class="n">denom</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">dot</span><span class="p">(</span><span class="n">dap</span><span class="p">,</span> <span class="n">db</span><span class="p">).</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="n">num</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">dot</span><span class="p">(</span><span class="n">dap</span><span class="p">,</span> <span class="n">dp</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">num</span> <span class="o">/</span> <span class="n">denom</span><span class="p">)</span> <span class="o">*</span> <span class="n">db</span> <span class="o">+</span> <span class="n">b1</span>
 </code></pre></div>
 
 
@@ -1368,10 +1521,10 @@ is detected.</p>
 </code></pre></div>
 
 
-<p>Given a filename, returns a numpy array.</p>
+<p>Given a filename, returns a numpy array</p>
 <details class="example"><summary>View Source</summary><div class="codehilite"><pre><span></span><code><span class="n">def</span> <span class="n">open_file</span><span class="p">(</span><span class="n">input_filename</span><span class="p">):</span>
 
-    <span class="ss">&quot;&quot;&quot;Given a filename, returns a numpy array.&quot;&quot;&quot;</span>
+    <span class="ss">&quot;&quot;&quot;Given a filename, returns a numpy array&quot;&quot;&quot;</span>
 
     <span class="n">extension</span> <span class="o">=</span> <span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">input_filename</span><span class="p">)[</span><span class="mi">1</span><span class="p">].</span><span class="k">lower</span><span class="p">()</span>
 
@@ -1394,13 +1547,33 @@ is detected.</p>
 
 
 </details>
+<h3 id="perp">perp</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">perp</span><span class="p">(</span>
+    <span class="n">a</span>
+<span class="p">)</span>
+</code></pre></div>
+
+
+<details class="example"><summary>View Source</summary><div class="codehilite"><pre><span></span><code><span class="n">def</span> <span class="n">perp</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+
+    <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+    <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">b</span>
+</code></pre></div>
+
+
+</details>
 <h2 id="classes">Classes</h2>
 <h3 id="cropper">Cropper</h3>
 <div class="codehilite"><pre><span></span><code><span class="k">class</span> <span class="nc">Cropper</span><span class="p">(</span>
     <span class="n">width</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
     <span class="n">height</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
-    <span class="n">padding</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
     <span class="n">face_percent</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">padding</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">fix_gamma</span><span class="o">=</span><span class="kc">True</span>
 <span class="p">)</span>
 </code></pre></div>
@@ -1414,7 +1587,7 @@ also provides a slight gamma fix to lighten the face
 in its new context.</p>
 <h2 id="parameters">Parameters:</h2>
 <ul>
-<li><code>width</code> : <code>int</code>, default=<code>500</code><ul>
+<li><code>width</code> : <code>int</code>, default=500<ul>
 <li>The width of the resulting array.</li>
 </ul>
 </li>
@@ -1422,24 +1595,19 @@ in its new context.</p>
 <li>The height of the resulting array.</li>
 </ul>
 </li>
-<li><code>padding</code>: <code>int</code> or <code>dict</code>, default=<code>50</code><ul>
-<li>Number of pixels to pad around the largest detected
-face. Expected padding dict:
-<code>{"pad_top": int, "pad_right": int, "pad_bottom": int, "pad_left": int}</code></li>
-</ul>
-</li>
 <li><code>face_percent</code>: <code>int</code>, default=<code>50</code><ul>
-<li>Aka zoom factor. Percent of the overall size of the
-cropped image containing the detected coordinates.</li>
+<li>Aka zoom factor. Percent of the overall size of
+the cropped image containing the detected coordinates.</li>
 </ul>
 </li>
 <li><code>fix_gamma</code>: <code>bool</code>, default=<code>True</code><ul>
-<li>Cropped faces are often underexposed when taken out of
-their context. If under a threshold, sets the gamma to 0.9.</li>
+<li>Cropped faces are often underexposed when taken
+out of their context. If under a threshold, sets the
+gamma to 0.9.</li>
 </ul>
 </li>
 </ul>
-<details class="example"><summary>View Source</summary><div class="codehilite"><pre><span></span><code><span class="n">class</span> <span class="nf">Cropper</span><span class="p">(</span><span class="n">object</span><span class="p">):</span>
+<details class="example"><summary>View Source</summary><div class="codehilite"><pre><span></span><code><span class="n">class</span> <span class="n">Cropper</span><span class="p">:</span>
 
     <span class="s2">&quot;&quot;&quot;</span>
 
@@ -1459,83 +1627,49 @@ their context. If under a threshold, sets the gamma to 0.9.</li>
 
 <span class="s2">    -----------</span>
 
-<span class="s2">    - `width` : `int`, default=`500`</span>
+<span class="s2">    * `width` : `int`, default=500</span>
 
-<span class="s2">        * The width of the resulting array.</span>
+<span class="s2">        - The width of the resulting array.</span>
 
-<span class="s2">    - `height` : `int`, default=`500`</span>
+<span class="s2">    * `height` : `int`, default=`500`</span>
 
-<span class="s2">        * The height of the resulting array.</span>
+<span class="s2">        - The height of the resulting array.</span>
 
-<span class="s2">    - `padding`: `int` or `dict`, default=`50`</span>
+<span class="s2">    * `face_percent`: `int`, default=`50`</span>
 
-<span class="s2">        * Number of pixels to pad around the largest detected</span>
+<span class="s2">        - Aka zoom factor. Percent of the overall size of</span>
 
-<span class="s2">        face. Expected padding dict:</span>
+<span class="s2">        the cropped image containing the detected coordinates.</span>
 
-<span class="s2">        `{&quot;</span><span class="n">pad_top</span><span class="s2">&quot;: int, &quot;</span><span class="n">pad_right</span><span class="s2">&quot;: int, &quot;</span><span class="n">pad_bottom</span><span class="s2">&quot;: int, &quot;</span><span class="n">pad_left</span><span class="s2">&quot;: int}`</span>
+<span class="s2">    * `fix_gamma`: `bool`, default=`True`</span>
 
-<span class="s2">    - `face_percent`: `int`, default=`50`</span>
+<span class="s2">        - Cropped faces are often underexposed when taken</span>
 
-<span class="s2">        * Aka zoom factor. Percent of the overall size of the</span>
+<span class="s2">        out of their context. If under a threshold, sets the</span>
 
-<span class="s2">        cropped image containing the detected coordinates.</span>
-
-<span class="s2">    - `fix_gamma`: `bool`, default=`True`</span>
-
-<span class="s2">        * Cropped faces are often underexposed when taken out of</span>
-
-<span class="s2">        their context. If under a threshold, sets the gamma to 0.9.</span>
+<span class="s2">        gamma to 0.9.</span>
 
 <span class="s2">    &quot;&quot;&quot;</span>
 
     <span class="n">def</span> <span class="nf">__init__</span><span class="p">(</span>
 
-        <span class="n">self</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">face_percent</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">fix_gamma</span><span class="o">=</span><span class="no">True</span>
+        <span class="n">self</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">face_percent</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">None</span><span class="p">,</span> <span class="n">fix_gamma</span><span class="o">=</span><span class="no">True</span><span class="p">,</span>
 
     <span class="p">):</span>
-
-        <span class="c1"># Size</span>
 
         <span class="n">self</span><span class="p">.</span><span class="n">height</span> <span class="o">=</span> <span class="nf">check_positive_scalar</span><span class="p">(</span><span class="n">height</span><span class="p">)</span>
 
         <span class="n">self</span><span class="p">.</span><span class="n">width</span> <span class="o">=</span> <span class="nf">check_positive_scalar</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
 
-        <span class="c1"># Padding</span>
-
-        <span class="k">if</span> <span class="nf">isinstance</span><span class="p">(</span><span class="n">padding</span><span class="p">,</span> <span class="kt">int</span><span class="p">):</span>
-
-            <span class="n">pad</span> <span class="o">=</span> <span class="nf">check_positive_scalar</span><span class="p">(</span><span class="n">padding</span><span class="p">)</span>
-
-            <span class="n">self</span><span class="p">.</span><span class="n">pad_top</span> <span class="o">=</span> <span class="n">pad</span>
-
-            <span class="n">self</span><span class="p">.</span><span class="n">pad_right</span> <span class="o">=</span> <span class="n">pad</span>
-
-            <span class="n">self</span><span class="p">.</span><span class="n">pad_bottom</span> <span class="o">=</span> <span class="n">pad</span>
-
-            <span class="n">self</span><span class="p">.</span><span class="n">pad_left</span> <span class="o">=</span> <span class="n">pad</span>
-
-        <span class="k">else</span><span class="p">:</span>
-
-            <span class="n">pad</span> <span class="o">=</span> <span class="nf">check_valid_pad_dict</span><span class="p">(</span><span class="n">padding</span><span class="p">)</span>
-
-            <span class="n">self</span><span class="p">.</span><span class="n">pad_top</span> <span class="o">=</span> <span class="n">pad</span><span class="p">[</span><span class="s2">&quot;pad_top&quot;</span><span class="p">]</span>
-
-            <span class="n">self</span><span class="p">.</span><span class="n">pad_right</span> <span class="o">=</span> <span class="n">pad</span><span class="p">[</span><span class="s2">&quot;pad_right&quot;</span><span class="p">]</span>
-
-            <span class="n">self</span><span class="p">.</span><span class="n">pad_bottom</span> <span class="o">=</span> <span class="n">pad</span><span class="p">[</span><span class="s2">&quot;pad_bottom&quot;</span><span class="p">]</span>
-
-            <span class="n">self</span><span class="p">.</span><span class="n">pad_left</span> <span class="o">=</span> <span class="n">pad</span><span class="p">[</span><span class="s2">&quot;pad_left&quot;</span><span class="p">]</span>
-
-        <span class="c1"># Gamma</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">aspect_ratio</span> <span class="o">=</span> <span class="n">width</span> <span class="o">/</span> <span class="n">height</span>
 
         <span class="n">self</span><span class="p">.</span><span class="n">gamma</span> <span class="o">=</span> <span class="n">fix_gamma</span>
 
-        <span class="c1"># Face Percent</span>
+        <span class="c1"># Face percent</span>
 
-        <span class="k">if</span> <span class="n">face_percent</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">face_percent</span> <span class="o">&gt;</span> <span class="mi">100</span> <span class="k">or</span> <span class="n">face_percent</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
 
-            <span class="n">fp_error</span> <span class="o">=</span> <span class="s2">&quot;The face_percent argument must be between 0 and 100&quot;</span>
+            <span class="n">fp_error</span> <span class="o">=</span> <span class="s2">&quot;The face_percent argument must be between 1 and 100&quot;</span>
 
             <span class="n">raise</span> <span class="nf">ValueError</span><span class="p">(</span><span class="n">fp_error</span><span class="p">)</span>
 
@@ -1653,27 +1787,181 @@ their context. If under a threshold, sets the gamma to 0.9.</li>
 
             <span class="n">image</span> <span class="o">=</span> <span class="nf">check_underexposed</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">gray</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">image</span>
+        <span class="k">return</span> <span class="nf">bgr_to_rbg</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
 
-    <span class="n">def</span> <span class="nf">_crop_positions</span><span class="p">(</span>
+    <span class="n">def</span> <span class="nf">_determine_safe_zoom</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">imgh</span><span class="p">,</span> <span class="n">imgw</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
 
-        <span class="n">self</span><span class="p">,</span> <span class="n">img_height</span><span class="p">,</span> <span class="n">img_width</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span>
+        <span class="s2">&quot;&quot;&quot;Determines the safest zoom level with which to add margins</span>
 
-    <span class="p">):</span>
+<span class="s2">        around the detected face. Tries to honor `self.face_percent`</span>
 
-        <span class="s2">&quot;&quot;&quot;Given face coordinates, returns coordinates for which</span>
+<span class="s2">        when possible.</span>
 
-<span class="s2">        to crop on given padding and face_percent parameters.</span>
+<span class="s2">        Parameters:</span>
+
+<span class="s2">        -----------</span>
+
+<span class="s2">        imgh: int</span>
+
+<span class="s2">            Height (px) of the image to be cropped</span>
+
+<span class="s2">        imgw: int</span>
+
+<span class="s2">            Width (px) of the image to be cropped</span>
+
+<span class="s2">        x: int</span>
+
+<span class="s2">            Leftmost coordinates of the detected face</span>
+
+<span class="s2">        y: int</span>
+
+<span class="s2">            Bottom-most coordinates of the detected face</span>
+
+<span class="s2">        w: int</span>
+
+<span class="s2">            Width of the detected face</span>
+
+<span class="s2">        h: int</span>
+
+<span class="s2">            Height of the detected face</span>
+
+<span class="s2">        Diagram:</span>
+
+<span class="s2">        --------</span>
+
+<span class="s2">        i / j := zoom / 100</span>
+
+<span class="s2">                  +</span>
+
+<span class="s2">        h1        |         h2</span>
+
+<span class="s2">        +---------|---------+</span>
+
+<span class="s2">        |      MAR|GIN      |</span>
+
+<span class="s2">        |         (x+w, y+h)|</span>
+
+<span class="s2">        |   +-----|-----+   |</span>
+
+<span class="s2">        |   |   FA|CE   |   |</span>
+
+<span class="s2">        |   |     |     |   |</span>
+
+<span class="s2">        |   ├──i──┤     |   |</span>
+
+<span class="s2">        |   |  cen|ter  |   |</span>
+
+<span class="s2">        |   |     |     |   |</span>
+
+<span class="s2">        |   +-----|-----+   |</span>
+
+<span class="s2">        |   (x, y)|         |</span>
+
+<span class="s2">        |         |         |</span>
+
+<span class="s2">        +---------|---------+</span>
+
+<span class="s2">        ├────j────┤</span>
+
+<span class="s2">                  +</span>
 
 <span class="s2">        &quot;&quot;&quot;</span>
 
+        <span class="c1"># Find out what zoom factor to use given self.aspect_ratio</span>
+
+        <span class="n">corners</span> <span class="o">=</span> <span class="n">itertools</span><span class="p">.</span><span class="nf">product</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span> <span class="o">+</span> <span class="n">w</span><span class="p">),</span> <span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="n">h</span><span class="p">))</span>
+
+        <span class="n">center</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="nf">array</span><span class="p">([</span><span class="n">x</span> <span class="o">+</span> <span class="kt">int</span><span class="p">(</span><span class="n">w</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="n">y</span> <span class="o">+</span> <span class="kt">int</span><span class="p">(</span><span class="n">h</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)])</span>
+
+        <span class="n">i</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="nf">array</span><span class="p">(</span>
+
+            <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">imgh</span><span class="p">),</span> <span class="p">(</span><span class="n">imgw</span><span class="p">,</span> <span class="n">imgh</span><span class="p">),</span> <span class="p">(</span><span class="n">imgw</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span>
+
+        <span class="p">)</span>  <span class="c1"># image_corners</span>
+
+        <span class="n">image_sides</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span><span class="p">[</span><span class="n">n</span><span class="p">],</span> <span class="n">i</span><span class="p">[</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">n</span> <span class="k">in</span> <span class="nf">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)]</span>
+
+        <span class="n">corner_ratios</span> <span class="o">=</span> <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">face_percent</span><span class="p">]</span>  <span class="c1"># Hopefully we use this one</span>
+
+        <span class="k">for</span> <span class="n">c</span> <span class="k">in</span> <span class="n">corners</span><span class="p">:</span>
+
+            <span class="n">corner_vector</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="nf">array</span><span class="p">([</span><span class="n">center</span><span class="p">,</span> <span class="n">c</span><span class="p">])</span>
+
+            <span class="n">a</span> <span class="o">=</span> <span class="nf">distance</span><span class="p">(</span><span class="o">*</span><span class="n">corner_vector</span><span class="p">)</span>
+
+            <span class="n">intersects</span> <span class="o">=</span> <span class="nf">list</span><span class="p">(</span><span class="nf">intersect</span><span class="p">(</span><span class="n">corner_vector</span><span class="p">,</span> <span class="n">side</span><span class="p">)</span> <span class="k">for</span> <span class="n">side</span> <span class="k">in</span> <span class="n">image_sides</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">pt</span> <span class="k">in</span> <span class="n">intersects</span><span class="p">:</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="n">pt</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">).</span><span class="k">all</span><span class="p">()</span> <span class="k">and</span> <span class="p">(</span><span class="n">pt</span> <span class="o">&lt;=</span> <span class="n">i</span><span class="p">[</span><span class="mi">2</span><span class="p">]).</span><span class="k">all</span><span class="p">():</span>  <span class="c1"># if intersect within image</span>
+
+                    <span class="n">dist_to_pt</span> <span class="o">=</span> <span class="nf">distance</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="n">pt</span><span class="p">)</span>
+
+                    <span class="n">corner_ratios</span><span class="p">.</span><span class="nf">append</span><span class="p">(</span><span class="mi">100</span> <span class="o">*</span> <span class="n">a</span> <span class="o">/</span> <span class="n">dist_to_pt</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nf">max</span><span class="p">(</span><span class="n">corner_ratios</span><span class="p">)</span>
+
+    <span class="n">def</span> <span class="nf">_crop_positions</span><span class="p">(</span>
+
+        <span class="n">self</span><span class="p">,</span> <span class="n">imgh</span><span class="p">,</span> <span class="n">imgw</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span>
+
+    <span class="p">):</span>
+
+        <span class="s2">&quot;&quot;&quot;Retuns the coordinates of the crop position centered</span>
+
+<span class="s2">        around the detected face with extra margins. Tries to</span>
+
+<span class="s2">        honor `self.face_percent` if possible, else uses the</span>
+
+<span class="s2">        largest margins that comply with required aspect ratio</span>
+
+<span class="s2">        given by `self.height` and `self.width`.</span>
+
+<span class="s2">        Parameters:</span>
+
+<span class="s2">        -----------</span>
+
+<span class="s2">        imgh: int</span>
+
+<span class="s2">            Height (px) of the image to be cropped</span>
+
+<span class="s2">        imgw: int</span>
+
+<span class="s2">            Width (px) of the image to be cropped</span>
+
+<span class="s2">        x: int</span>
+
+<span class="s2">            Leftmost coordinates of the detected face</span>
+
+<span class="s2">        y: int</span>
+
+<span class="s2">            Bottom-most coordinates of the detected face</span>
+
+<span class="s2">        w: int</span>
+
+<span class="s2">            Width of the detected face</span>
+
+<span class="s2">        h: int</span>
+
+<span class="s2">            Height of the detected face</span>
+
+<span class="s2">        &quot;&quot;&quot;</span>
+
+        <span class="n">zoom</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">_determine_safe_zoom</span><span class="p">(</span><span class="n">imgh</span><span class="p">,</span> <span class="n">imgw</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+
         <span class="c1"># Adjust output height based on percent</span>
 
-        <span class="n">aspect_ratio</span> <span class="o">=</span> <span class="kt">float</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">width</span><span class="p">)</span> <span class="o">/</span> <span class="kt">float</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">height</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">self</span><span class="p">.</span><span class="n">height</span> <span class="o">&gt;=</span> <span class="n">self</span><span class="p">.</span><span class="n">width</span><span class="p">:</span>
 
-        <span class="n">height_crop</span> <span class="o">=</span> <span class="n">h</span> <span class="o">*</span> <span class="mi">100</span><span class="p">.</span><span class="mi">0</span> <span class="o">/</span> <span class="n">self</span><span class="p">.</span><span class="n">face_percent</span>
+            <span class="n">height_crop</span> <span class="o">=</span> <span class="n">h</span> <span class="o">*</span> <span class="mi">100</span><span class="p">.</span><span class="mi">0</span> <span class="o">/</span> <span class="n">zoom</span>
 
-        <span class="n">width_crop</span> <span class="o">=</span> <span class="n">aspect_ratio</span> <span class="o">*</span> <span class="kt">float</span><span class="p">(</span><span class="n">height_crop</span><span class="p">)</span>
+            <span class="n">width_crop</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="n">aspect_ratio</span> <span class="o">*</span> <span class="kt">float</span><span class="p">(</span><span class="n">height_crop</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="n">width_crop</span> <span class="o">=</span> <span class="n">w</span> <span class="o">*</span> <span class="mi">100</span><span class="p">.</span><span class="mi">0</span> <span class="o">/</span> <span class="n">zoom</span>
+
+            <span class="n">height_crop</span> <span class="o">=</span> <span class="kt">float</span><span class="p">(</span><span class="n">width_crop</span><span class="p">)</span> <span class="o">/</span> <span class="n">self</span><span class="p">.</span><span class="n">aspect_ratio</span>
 
         <span class="c1"># Calculate padding by centering face</span>
 
@@ -1683,57 +1971,13 @@ their context. If under a threshold, sets the gamma to 0.9.</li>
 
         <span class="c1"># Calc. positions of crop</span>
 
-        <span class="n">h1</span> <span class="o">=</span> <span class="kt">float</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="p">(</span><span class="n">xpad</span> <span class="o">*</span> <span class="n">self</span><span class="p">.</span><span class="n">pad_left</span> <span class="o">/</span> <span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">pad_left</span> <span class="o">+</span> <span class="n">self</span><span class="p">.</span><span class="n">pad_right</span><span class="p">)))</span>
+        <span class="n">h1</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="n">xpad</span>
 
-        <span class="n">h2</span> <span class="o">=</span> <span class="kt">float</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">w</span> <span class="o">+</span> <span class="p">(</span><span class="n">xpad</span> <span class="o">*</span> <span class="n">self</span><span class="p">.</span><span class="n">pad_right</span> <span class="o">/</span> <span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">pad_left</span> <span class="o">+</span> <span class="n">self</span><span class="p">.</span><span class="n">pad_right</span><span class="p">)))</span>
+        <span class="n">h2</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">w</span> <span class="o">+</span> <span class="n">xpad</span>
 
-        <span class="n">v1</span> <span class="o">=</span> <span class="kt">float</span><span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="p">(</span><span class="n">ypad</span> <span class="o">*</span> <span class="n">self</span><span class="p">.</span><span class="n">pad_top</span> <span class="o">/</span> <span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">pad_top</span> <span class="o">+</span> <span class="n">self</span><span class="p">.</span><span class="n">pad_bottom</span><span class="p">)))</span>
+        <span class="n">v1</span> <span class="o">=</span> <span class="n">y</span> <span class="o">-</span> <span class="n">ypad</span>
 
-        <span class="n">v2</span> <span class="o">=</span> <span class="kt">float</span><span class="p">(</span><span class="n">y</span> <span class="o">+</span> <span class="n">h</span> <span class="o">+</span> <span class="p">(</span><span class="n">ypad</span> <span class="o">*</span> <span class="n">self</span><span class="p">.</span><span class="n">pad_bottom</span> <span class="o">/</span> <span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">pad_top</span> <span class="o">+</span> <span class="n">self</span><span class="p">.</span><span class="n">pad_bottom</span><span class="p">)))</span>
-
-        <span class="c1"># Determine padding ratios</span>
-
-        <span class="n">left_pad_ratio</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="n">pad_left</span> <span class="o">/</span> <span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">pad_left</span> <span class="o">+</span> <span class="n">self</span><span class="p">.</span><span class="n">pad_right</span><span class="p">)</span>
-
-        <span class="n">right_pad_ratio</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="n">pad_left</span> <span class="o">/</span> <span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">pad_left</span> <span class="o">+</span> <span class="n">self</span><span class="p">.</span><span class="n">pad_right</span><span class="p">)</span>
-
-        <span class="n">top_pad_ratio</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="n">pad_top</span> <span class="o">/</span> <span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">pad_top</span> <span class="o">+</span> <span class="n">self</span><span class="p">.</span><span class="n">pad_bottom</span><span class="p">)</span>
-
-        <span class="n">bottom_pad_ratio</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="n">pad_bottom</span> <span class="o">/</span> <span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">pad_top</span> <span class="o">+</span> <span class="n">self</span><span class="p">.</span><span class="n">pad_bottom</span><span class="p">)</span>
-
-        <span class="c1"># Calculate largest bounds with padding ratios</span>
-
-        <span class="n">delta_h</span> <span class="o">=</span> <span class="mi">0</span><span class="p">.</span><span class="mi">0</span>
-
-        <span class="k">if</span> <span class="n">h1</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-
-            <span class="n">delta_h</span> <span class="o">=</span> <span class="nf">abs</span><span class="p">(</span><span class="n">h1</span><span class="p">)</span> <span class="o">/</span> <span class="n">left_pad_ratio</span>
-
-        <span class="k">if</span> <span class="n">h2</span> <span class="o">&gt;</span> <span class="n">img_width</span><span class="p">:</span>
-
-            <span class="n">delta_h</span> <span class="o">=</span> <span class="nf">max</span><span class="p">(</span><span class="n">delta_h</span><span class="p">,</span> <span class="p">(</span><span class="n">h2</span> <span class="o">-</span> <span class="n">img_width</span><span class="p">)</span> <span class="o">/</span> <span class="n">right_pad_ratio</span><span class="p">)</span>
-
-        <span class="n">delta_v</span> <span class="o">=</span> <span class="mi">0</span><span class="p">.</span><span class="mi">0</span> <span class="k">if</span> <span class="n">delta_h</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">.</span><span class="mi">0</span> <span class="k">else</span> <span class="n">delta_h</span> <span class="o">/</span> <span class="n">aspect_ratio</span>
-
-        <span class="k">if</span> <span class="n">v1</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-
-            <span class="n">delta_v</span> <span class="o">=</span> <span class="nf">max</span><span class="p">(</span><span class="n">delta_v</span><span class="p">,</span> <span class="nf">abs</span><span class="p">(</span><span class="n">v1</span><span class="p">)</span> <span class="o">/</span> <span class="n">top_pad_ratio</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">v2</span> <span class="o">&gt;</span> <span class="n">img_height</span><span class="p">:</span>
-
-            <span class="n">delta_v</span> <span class="o">=</span> <span class="nf">max</span><span class="p">(</span><span class="n">delta_v</span><span class="p">,</span> <span class="p">(</span><span class="n">v2</span> <span class="o">-</span> <span class="n">img_height</span><span class="p">)</span> <span class="o">/</span> <span class="n">bottom_pad_ratio</span><span class="p">)</span>
-
-        <span class="n">delta_h</span> <span class="o">=</span> <span class="nf">max</span><span class="p">(</span><span class="n">delta_h</span><span class="p">,</span> <span class="n">delta_v</span> <span class="o">*</span> <span class="n">aspect_ratio</span><span class="p">)</span>
-
-        <span class="c1"># Adjust crop values accordingly</span>
-
-        <span class="n">h1</span> <span class="o">+=</span> <span class="n">delta_h</span> <span class="o">*</span> <span class="n">left_pad_ratio</span>
-
-        <span class="n">h2</span> <span class="o">-=</span> <span class="n">delta_h</span> <span class="o">*</span> <span class="n">right_pad_ratio</span>
-
-        <span class="n">v1</span> <span class="o">+=</span> <span class="n">delta_v</span> <span class="o">*</span> <span class="n">top_pad_ratio</span>
-
-        <span class="n">v2</span> <span class="o">-=</span> <span class="n">delta_v</span> <span class="o">*</span> <span class="n">bottom_pad_ratio</span>
+        <span class="n">v2</span> <span class="o">=</span> <span class="n">y</span> <span class="o">+</span> <span class="n">h</span> <span class="o">+</span> <span class="n">ypad</span>
 
         <span class="k">return</span> <span class="p">[</span><span class="kt">int</span><span class="p">(</span><span class="n">v1</span><span class="p">),</span> <span class="kt">int</span><span class="p">(</span><span class="n">v2</span><span class="p">),</span> <span class="kt">int</span><span class="p">(</span><span class="n">h1</span><span class="p">),</span> <span class="kt">int</span><span class="p">(</span><span class="n">h2</span><span class="p">)]</span>
 </code></pre></div>
@@ -1873,7 +2117,7 @@ face.</p>
 
             <span class="n">image</span> <span class="o">=</span> <span class="nf">check_underexposed</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">gray</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">image</span>
+        <span class="k">return</span> <span class="nf">bgr_to_rbg</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
 </code></pre></div>
 
 
