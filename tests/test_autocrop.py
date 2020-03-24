@@ -45,7 +45,7 @@ def test_open_file_invalid_filetype_returns_None():
 @pytest.mark.parametrize(
     "values, expected_result",
     [
-        ([500, 500, 50, 50, 50, 50], [37, 112, 37, 112]),
+        ([100, 100, 50, 100, 50, 50], [37, 112, 37, 112]),
         ([500, 500, 50, 0, 0, 0], [0, 0, 50, 50]),
     ],
 )

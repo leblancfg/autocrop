@@ -132,8 +132,8 @@ class Cropper(object):
         self.gamma = fix_gamma
 
         # Face percent
-        if face_percent > 100:
-            fp_error = "The face_percent argument must be between 0 and 100"
+        if face_percent > 100 or face_percent < 1:
+            fp_error = "The face_percent argument must be between 1 and 100"
             raise ValueError(fp_error)
         self.face_percent = check_positive_scalar(face_percent)
 
