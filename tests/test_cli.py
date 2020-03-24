@@ -75,7 +75,7 @@ def test_cli_no_args_means_cwd(mock_main):
     sys.argv = ["", "--no-confirm"]
     command_line_interface()
     args, _ = mock_main.call_args
-    assert args == (".", None, None, 500, 500, 50, False, False, False, False)
+    assert args == (".", None, None, 500, 500, 50)
 
 
 @mock.patch("autocrop.cli.input_path", lambda p: p)

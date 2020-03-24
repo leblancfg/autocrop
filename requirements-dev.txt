@@ -5,3 +5,4 @@ mock
 pytest-cov
 codecov
 attrs
+tox
