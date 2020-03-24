@@ -1,3 +1,5 @@
+import itertools
+
 import cv2
 import numpy as np
 import os
@@ -23,8 +25,41 @@ class ImageReadError(BaseException):
     pass
 
 
+def perp(a):
+    b = np.empty_like(a)
+    b[0] = -a[1]
+    b[1] = a[0]
+    return b
+
+
+def intersect(v1, v2):
+    a1, a2 = v1
+    b1, b2 = v2
+    da = a2 - a1
+    db = b2 - b1
+    dp = a1 - b1
+    dap = perp(da)
+    denom = np.dot(dap, db).astype(float)
+    num = np.dot(dap, dp)
+    return (num / denom) * db + b1
+
+
+def distance(pt1, pt2):
+    """Returns the euclidian distance in 2D between 2 pts."""
+    distance = np.linalg.norm(pt2 - pt1)
+    return distance
+
+
+def bgr_to_rbg(img):
+    """Given a BGR (cv2) numpy array, returns a RBG (standard) array."""
+    dimensions = len(img.shape)
+    if dimensions == 2:
+        return img
+    return img[..., ::-1]
+
+
 def gamma(img, correction):
-    """Simple gamma correction to brighten faces."""
+    """Simple gamma correction to brighten faces"""
     img = cv2.pow(img / 255.0, correction)
     return np.uint8(img * 255)
 
@@ -46,29 +81,8 @@ def check_positive_scalar(num):
     raise ValueError("A positive scalar is required")
 
 
-def check_valid_pad_dict(dic):
-    """Returns dic if valid, else raises ValueError."""
-    valid_keys = {
-        "pad_top",
-        "pad_right",
-        "pad_bottom",
-        "pad_left",
-    }
-    error = "Padding arguments must use keys {} and be positive scalars".format(
-        valid_keys
-    )
-    conditions = []
-    conditions.append(isinstance(dic, dict))
-    conditions.append(len(dic) == 4)
-    conditions.append(set(dic.keys()) == valid_keys)
-    conditions.append(all(check_positive_scalar(n) for n in dic.values()))
-    if not all(conditions):
-        raise ValueError(error)
-    return dic
-
-
 def open_file(input_filename):
-    """Given a filename, returns a numpy array."""
+    """Given a filename, returns a numpy array"""
     extension = os.path.splitext(input_filename)[1].lower()
 
     if extension in CV2_FILETYPES:
@@ -94,49 +108,30 @@ class Cropper:
     Parameters:
     -----------
 
-    - `width` : `int`, default=`500`
-        * The width of the resulting array.
-    - `height` : `int`, default=`500`
-        * The height of the resulting array.
-    - `padding`: `int` or `dict`, default=`50`
-        * Number of pixels to pad around the largest detected
-        face. Expected padding dict:
-        `{"pad_top": int, "pad_right": int, "pad_bottom": int, "pad_left": int}`
-    - `face_percent`: `int`, default=`50`
-        * Aka zoom factor. Percent of the overall size of the
-        cropped image containing the detected coordinates.
-    - `fix_gamma`: `bool`, default=`True`
-        * Cropped faces are often underexposed when taken out of
-        their context. If under a threshold, sets the gamma to 0.9.
+    * `width` : `int`, default=500
+        - The width of the resulting array.
+    * `height` : `int`, default=`500`
+        - The height of the resulting array.
+    * `face_percent`: `int`, default=`50`
+        - Aka zoom factor. Percent of the overall size of
+        the cropped image containing the detected coordinates.
+    * `fix_gamma`: `bool`, default=`True`
+        - Cropped faces are often underexposed when taken
+        out of their context. If under a threshold, sets the
+        gamma to 0.9.
     """
 
     def __init__(
-        self, width=500, height=500, padding=50, face_percent=50, fix_gamma=True
+        self, width=500, height=500, face_percent=50, padding=None, fix_gamma=True,
     ):
-        # Size
         self.height = check_positive_scalar(height)
         self.width = check_positive_scalar(width)
-
-        # Padding
-        if isinstance(padding, int):
-            pad = check_positive_scalar(padding)
-            self.pad_top = pad
-            self.pad_right = pad
-            self.pad_bottom = pad
-            self.pad_left = pad
-        else:
-            pad = check_valid_pad_dict(padding)
-            self.pad_top = pad["pad_top"]
-            self.pad_right = pad["pad_right"]
-            self.pad_bottom = pad["pad_bottom"]
-            self.pad_left = pad["pad_left"]
-
-        # Gamma
+        self.aspect_ratio = width / height
         self.gamma = fix_gamma
 
-        # Face Percent
-        if face_percent > 100:
-            fp_error = "The face_percent argument must be between 0 and 100"
+        # Face percent
+        if face_percent > 100 or face_percent < 1:
+            fp_error = "The face_percent argument must be between 1 and 100"
             raise ValueError(fp_error)
         self.face_percent = check_positive_scalar(face_percent)
 
@@ -196,6 +191,7 @@ class Cropper:
         # Make padding from biggest face found
         x, y, w, h = faces[-1]
         pos = self._crop_positions(img_height, img_width, x, y, w, h,)
+
         # ====== Actual cropping ======
         image = image[pos[0] : pos[1], pos[2] : pos[3]]
 
@@ -207,57 +203,112 @@ class Cropper:
         # Underexposition
         if self.gamma:
             image = check_underexposed(image, gray)
-        return image
+        return bgr_to_rbg(image)
+
+    def _determine_safe_zoom(self, imgh, imgw, x, y, w, h):
+        """Determines the safest zoom level with which to add margins
+        around the detected face. Tries to honor `self.face_percent`
+        when possible.
+
+        Parameters:
+        -----------
+        imgh: int
+            Height (px) of the image to be cropped
+        imgw: int
+            Width (px) of the image to be cropped
+        x: int
+            Leftmost coordinates of the detected face
+        y: int
+            Bottom-most coordinates of the detected face
+        w: int
+            Width of the detected face
+        h: int
+            Height of the detected face
+
+        Diagram:
+        --------
+        i / j := zoom / 100
+
+                  +
+        h1        |         h2
+        +---------|---------+
+        |      MAR|GIN      |
+        |         (x+w, y+h)|
+        |   +-----|-----+   |
+        |   |   FA|CE   |   |
+        |   |     |     |   |
+        |   ├──i──┤     |   |
+        |   |  cen|ter  |   |
+        |   |     |     |   |
+        |   +-----|-----+   |
+        |   (x, y)|         |
+        |         |         |
+        +---------|---------+
+        ├────j────┤
+                  +
+        """
+        # Find out what zoom factor to use given self.aspect_ratio
+        corners = itertools.product((x, x + w), (y, y + h))
+        center = np.array([x + int(w / 2), y + int(h / 2)])
+        i = np.array(
+            [(0, 0), (0, imgh), (imgw, imgh), (imgw, 0), (0, 0)]
+        )  # image_corners
+        image_sides = [(i[n], i[n + 1]) for n in range(4)]
+
+        corner_ratios = [self.face_percent]  # Hopefully we use this one
+        for c in corners:
+            corner_vector = np.array([center, c])
+            a = distance(*corner_vector)
+            intersects = list(intersect(corner_vector, side) for side in image_sides)
+            for pt in intersects:
+                if (pt >= 0).all() and (pt <= i[2]).all():  # if intersect within image
+                    dist_to_pt = distance(center, pt)
+                    corner_ratios.append(100 * a / dist_to_pt)
+        return max(corner_ratios)
 
     def _crop_positions(
-        self, img_height, img_width, x, y, w, h,
+        self, imgh, imgw, x, y, w, h,
     ):
-        """Given face coordinates, returns coordinates for which
-        to crop on given padding and face_percent parameters.
+        """Retuns the coordinates of the crop position centered
+        around the detected face with extra margins. Tries to
+        honor `self.face_percent` if possible, else uses the
+        largest margins that comply with required aspect ratio
+        given by `self.height` and `self.width`.
+
+        Parameters:
+        -----------
+        imgh: int
+            Height (px) of the image to be cropped
+        imgw: int
+            Width (px) of the image to be cropped
+        x: int
+            Leftmost coordinates of the detected face
+        y: int
+            Bottom-most coordinates of the detected face
+        w: int
+            Width of the detected face
+        h: int
+            Height of the detected face
+
         """
+        zoom = self._determine_safe_zoom(imgh, imgw, x, y, w, h)
+
         # Adjust output height based on percent
-        aspect_ratio = float(self.width) / float(self.height)
-        height_crop = h * 100.0 / self.face_percent
-        width_crop = aspect_ratio * float(height_crop)
+        if self.height >= self.width:
+            height_crop = h * 100.0 / zoom
+            width_crop = self.aspect_ratio * float(height_crop)
+        else:
+            width_crop = w * 100.0 / zoom
+            height_crop = float(width_crop) / self.aspect_ratio
 
         # Calculate padding by centering face
         xpad = (width_crop - w) / 2
         ypad = (height_crop - h) / 2
 
         # Calc. positions of crop
-        h1 = float(x - (xpad * self.pad_left / (self.pad_left + self.pad_right)))
-        h2 = float(x + w + (xpad * self.pad_right / (self.pad_left + self.pad_right)))
-        v1 = float(y - (ypad * self.pad_top / (self.pad_top + self.pad_bottom)))
-        v2 = float(y + h + (ypad * self.pad_bottom / (self.pad_top + self.pad_bottom)))
-
-        # Determine padding ratios
-        left_pad_ratio = self.pad_left / (self.pad_left + self.pad_right)
-        right_pad_ratio = self.pad_left / (self.pad_left + self.pad_right)
-        top_pad_ratio = self.pad_top / (self.pad_top + self.pad_bottom)
-        bottom_pad_ratio = self.pad_bottom / (self.pad_top + self.pad_bottom)
-
-        # Calculate largest bounds with padding ratios
-        delta_h = 0.0
-        if h1 < 0:
-            delta_h = abs(h1) / left_pad_ratio
-
-        if h2 > img_width:
-            delta_h = max(delta_h, (h2 - img_width) / right_pad_ratio)
-
-        delta_v = 0.0 if delta_h <= 0.0 else delta_h / aspect_ratio
-
-        if v1 < 0:
-            delta_v = max(delta_v, abs(v1) / top_pad_ratio)
-
-        if v2 > img_height:
-            delta_v = max(delta_v, (v2 - img_height) / bottom_pad_ratio)
-
-        delta_h = max(delta_h, delta_v * aspect_ratio)
-
-        # Adjust crop values accordingly
-        h1 += delta_h * left_pad_ratio
-        h2 -= delta_h * right_pad_ratio
-        v1 += delta_v * top_pad_ratio
-        v2 -= delta_v * bottom_pad_ratio
+        h1 = x - xpad
+        h2 = x + w + xpad
+        v1 = y - ypad
+        v2 = y + h + ypad
 
         return [int(v1), int(v2), int(h1), int(h2)]

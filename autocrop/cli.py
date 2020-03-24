@@ -19,17 +19,9 @@ COMBINED_FILETYPES = CV2_FILETYPES + PILLOW_FILETYPES
 INPUT_FILETYPES = COMBINED_FILETYPES + [s.upper() for s in COMBINED_FILETYPES]
 
 
-def check_padding_value(num):
-    """Returns original value if positive scalar, else returns 50."""
-    # For CLI backwards compatibility; Cropper already checks input
-    if num is False or num < 0:
-        return 50
-    return num
-
-
 def output(input_filename, output_filename, image):
-    """Move the input file to the output location and overwrite it
-    with the cropped image data."""
+    """Move the input file to the output location and write over it with the
+    cropped image data."""
     if input_filename != output_filename:
         # Move the file to the output directory
         shutil.move(input_filename, output_filename)
@@ -50,16 +42,7 @@ def reject(input_filename, reject_filename):
 
 
 def main(
-    input_d,
-    output_d,
-    reject_d,
-    fheight=500,
-    fwidth=500,
-    facePercent=50,
-    padUp=False,
-    padDown=False,
-    padLeft=False,
-    padRight=False,
+    input_d, output_d, reject_d, fheight=500, fwidth=500, facePercent=50,
 ):
     """Crops folder of images to the desired height and width if a
     face is found.
@@ -110,18 +93,8 @@ def main(
     input_count = len(input_files)
     assert input_count > 0
 
-    # Make padding dict
-    padding = {
-        "pad_top": check_padding_value(padUp),
-        "pad_right": check_padding_value(padRight),
-        "pad_bottom": check_padding_value(padDown),
-        "pad_left": check_padding_value(padLeft),
-    }
-
     # Main loop
-    cropper = Cropper(
-        width=fwidth, height=fheight, padding=padding, face_percent=facePercent
-    )
+    cropper = Cropper(width=fwidth, height=fheight, face_percent=facePercent)
     for input_filename in input_files:
         basename = os.path.basename(input_filename)
         output_filename = os.path.join(output_d, basename)
@@ -239,10 +212,6 @@ def parse_args(args):
         "height": "Height of cropped files in px. Default=500",
         "y": "Bypass any confirmation prompts",
         "facePercent": "Percentage of face to image height",
-        "padUp": "Add padding up to face cropped",
-        "padDown": "Add padding down to face cropped",
-        "padLeft": "Add padding left to face cropped",
-        "padRight": "Add padding right to face cropped",
     }
 
     parser = argparse.ArgumentParser(description=help_d["desc"])
@@ -270,10 +239,6 @@ def parse_args(args):
         version="%(prog)s version {}".format(__version__),
     )
     parser.add_argument("--no-confirm", action="store_true", help=help_d["y"])
-    parser.add_argument("--padUp", type=size, default=False, help=help_d["padUp"])
-    parser.add_argument("--padDown", type=size, default=False, help=help_d["padDown"])
-    parser.add_argument("--padLeft", type=size, default=False, help=help_d["padLeft"])
-    parser.add_argument("--padRight", type=size, default=False, help=help_d["padRight"])
     parser.add_argument(
         "--facePercent", type=size, default=50, help=help_d["facePercent"]
     )
@@ -296,14 +261,5 @@ def command_line_interface():
         args.output = None
     print("Processing images in folder:", args.input)
     main(
-        args.input,
-        args.output,
-        args.reject,
-        args.height,
-        args.width,
-        args.facePercent,
-        args.padUp,
-        args.padDown,
-        args.padLeft,
-        args.padRight,
+        args.input, args.output, args.reject, args.height, args.width, args.facePercent,
     )

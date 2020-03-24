@@ -39,15 +39,7 @@ Autocrop can be used [from the command line](#from-the-command-line) or directly
 	  -H, --height
 			Height of cropped files in px. Default=500
 	  --facePercent
-	  		Percentage of Face height to image height (zoom factor)
-	  --padUp
-	  		Padding up value compared to padDown. Default=50
-	  --padDown
-	  		Padding down value compared to padDown. Default=50
-	  --padLeft
-	  		Padding left value compared to padRight. Default=50
-	  --padRight
-	  		Padding right value compared to padLeft. Default=50
+	  		Zoom factor. Percentage of face height to image height.
 	  -v, --version
 	  		Show program's version number and exit
 
@@ -57,14 +49,14 @@ Autocrop can be used [from the command line](#from-the-command-line) or directly
 	- `autocrop -i pics -o crop -w 400 -H 400`.
 	- Images where a face can't be detected will be left in `crop`.
 * Same as above, but output the images with undetected faces to the `reject` folder:
-	- `autocrop -i pics -o crop -r nofaces -w 400 -H 400`.
-* Same as the first example, but add more padding at the bottom:
-	- `autocrop -i pics -o crop -w 400 -H 400 --facePercent 50 --padUp 20 --padDown 50`.
+	- `autocrop -i pics -o crop -r reject -w 400 -H 400`.
 	
 If no output folder is added, asks for confirmation and destructively crops images in-place.
-<!--
+
 ### From Python
-Import the `Cropper` class, set some parameters (optional), and start cropping. The `crop` method accepts filepaths or `np.ndarray`, and returns Numpy arrays. These are easily handled with [PIL](https://pillow.readthedocs.io/).
+Import the `Cropper` class, set some parameters (optional), and start cropping.
+
+The `crop` method accepts filepaths or `np.ndarray`, and returns Numpy arrays. These are easily handled with [PIL](https://pillow.readthedocs.io/) or [Matplotlib](https://matplotlib.org/).
 
 ~~~python
 from PIL import Image
@@ -79,7 +71,9 @@ cropped_array = cropper.Cropper('portrait.png')
 cropped_image = Image.fromarray(cropped_image)
 cropped_image.save('cropped.png')
 ~~~
--->
+
+Further examples and use cases are found in the [accompanying Jupyter Notebook](https://github.com/leblancfg/autocrop/blob/master/tests/visual_tests.ipynb).
+
 ## Supported file types
 
 The following file types are supported:

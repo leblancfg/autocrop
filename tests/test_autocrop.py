@@ -1,10 +1,30 @@
 """Tests for autocrop"""
 
+from glob import glob
+import shutil
 import pytest  # noqa: F401
 import cv2
 import numpy as np
 
 from autocrop.autocrop import gamma, Cropper, ImageReadError
+
+
+@pytest.fixture()
+def integration():
+    # Setup
+    path_i = "tests/test"
+    path_o = "tests/crop"
+    path_r = "tests/reject"
+    shutil.copytree("tests/data", path_i)
+    yield
+
+    # Teardown
+    shutil.rmtree(path_i)
+    for path in [path_o, path_r]:
+        try:
+            shutil.rmtree(path)
+        except OSError:
+            pass
 
 
 def test_gamma_brightens_image():
@@ -40,8 +60,9 @@ def test_open_file_invalid_filetype_returns_None():
 @pytest.mark.parametrize(
     "values, expected_result",
     [
-        ([500, 500, 50, 50, 50, 50], [37, 112, 37, 112]),
-        ([500, 500, 50, 0, 0, 0], [0, 0, 50, 50]),
+        ([500, 500, 50, 50, 100, 100], [0, 200, 0, 200]),
+        ([500, 500, 50, 0, 100, 100], [0, 100, 50, 150]),
+        ([500, 500, 100, 100, 300, 300], [0, 500, 0, 500]),
     ],
 )
 def test_adjust_boundaries(values, expected_result):
@@ -54,3 +75,24 @@ def test_adjust_boundaries(values, expected_result):
     c = Cropper()
     result = c._crop_positions(imgh, imgw, h1, h2, v1, v2)
     assert result == expected_result
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize(
+    "height, width", [(500, 500), (900, 500), (500, 900), (1000, 1200)],
+)
+def test_detect_face_in_cropped_image(height, width, integration):
+    """An image cropped by Cropper should have a face detectable.
+    This defends us against image warping or crops outside the region
+    of interest.
+    """
+    c = Cropper(height=height, width=width)
+    faces = [f for f in glob("tests/test/*") if not f.endswith("md")]
+    print(faces)
+    for face in faces:
+        try:
+            img_array = c.crop(face)
+        except (AttributeError, TypeError):
+            pass
+        if img_array is not None:
+            assert c.crop(img_array) is not None
