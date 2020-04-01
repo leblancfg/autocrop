@@ -26,9 +26,7 @@ def output(input_filename, output_filename, image):
         # Move the file to the output directory
         shutil.move(input_filename, output_filename)
     # Encode the image as an in-memory PNG
-    img_png = cv2.imencode(".png", image)[1].tostring()
-    # Read the PNG data
-    img_new = Image.open(io.BytesIO(img_png))
+    img_new = Image.fromarray(image)
     # Write the new image (converting the format to match the output
     # filename if necessary)
     img_new.save(output_filename)
