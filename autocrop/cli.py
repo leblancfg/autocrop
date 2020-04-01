@@ -1,6 +1,4 @@
 import argparse
-import cv2
-import io
 import os
 import shutil
 import sys
