@@ -84,7 +84,7 @@ setup(
     packages=find_packages(exclude=("tests",)),
     # If your package is a single module, use this instead of 'packages':
     # py_modules=['mypackage'],
-    entry_points={"console_scripts": ["autocrop=autocrop:cli"]},
+    entry_points={"console_scripts": ["autocrop=autocrop:command_line_interface"]},
     install_requires=REQUIRED,
     include_package_data=True,
     license="BSD 2-Clause",
