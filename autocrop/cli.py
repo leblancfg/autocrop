@@ -22,7 +22,8 @@ def output(input_filename, output_filename, image):
     cropped image data."""
     if input_filename != output_filename:
         # Move the file to the output directory
-        shutil.move(input_filename, output_filename)
+        # shutil.move(input_filename, output_filename)
+        shutil.copy(input_filename, output_filename)
     # Encode the image as an in-memory PNG
     img_new = Image.fromarray(image)
     # Write the new image (converting the format to match the output
@@ -34,7 +35,8 @@ def reject(input_filename, reject_filename):
     """Move the input file to the reject location."""
     if input_filename != reject_filename:
         # Move the file to the reject directory
-        shutil.move(input_filename, reject_filename)
+        # shutil.move(input_filename, reject_filename)
+        shutil.copy(input_filename, reject_filename)
 
 
 def main(
