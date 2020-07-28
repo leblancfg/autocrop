@@ -244,7 +244,7 @@ def parse_args(args):
     parser.add_argument(
         "-r", "--reject", type=output_path, default=None, help=help_d["reject"]
     )
-    parser.add_argument("-k","--keep", type=str2bool, default="FALSE", help=help_d["keep"])
+    parser.add_argument("-k", "--keep", type=str2bool, default="FALSE", help=help_d["keep"])
     parser.add_argument("-w", "--width", type=size, default=500, help=help_d["width"])
     parser.add_argument("-H", "--height", type=size, default=500, help=help_d["height"])
     parser.add_argument(
