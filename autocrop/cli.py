@@ -198,7 +198,14 @@ def confirmation(question):
         notification_str = "Please respond with 'y' or 'n'"
         print(notification_str)
 
-
+def str2bool(v):
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+        
 def parse_args(args):
     """Helper function. Parses the arguments given to the CLI."""
     help_d = {
@@ -237,7 +244,7 @@ def parse_args(args):
     parser.add_argument(
         "-r", "--reject", type=output_path, default=None, help=help_d["reject"]
     )
-    parser.add_argument("-k","--keep", type=bool, default=False, help=help_d["keep"])
+    parser.add_argument("-k","--keep", type=str2bool, default="FALSE", help=help_d["keep"])
     parser.add_argument("-w", "--width", type=size, default=500, help=help_d["width"])
     parser.add_argument("-H", "--height", type=size, default=500, help=help_d["height"])
     parser.add_argument(
