@@ -92,6 +92,8 @@ def main(
         reject_d = input_d
     if reject_d is None:
         reject_d = output_d
+    if keep_d is None:
+        keep_d = False
 
     # Guard against calling the function directly
     input_count = len(input_files)
@@ -265,6 +267,7 @@ def command_line_interface():
                 sys.exit()
     if args.input == args.output:
         args.output = None
+    print("Keep Original images : ", args.keep)
     print("Processing images in folder:", args.input)
     main(
         args.input, args.output, args.reject, args.keep, args.height, args.width, args.facePercent,
