@@ -205,7 +205,7 @@ def str2bool(v):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
-        
+
 def parse_args(args):
     """Helper function. Parses the arguments given to the CLI."""
     help_d = {
