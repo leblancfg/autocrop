@@ -34,6 +34,9 @@ Autocrop can be used [from the command line](#from-the-command-line) or directly
 	  -i, --input
 			Folder where images to crop are located.
 			Default: current working directory
+	  -k, --keep
+			Keep original image files
+			Default: True
 	  -w, --width
 			Width of cropped files in px. Default=500
 	  -H, --height
