@@ -61,7 +61,7 @@ def main(
         * Directory where cropped images are placed.
     - `reject_d`: `str`
         * Directory where images that cannot be cropped are placed.
-    - `keep_d`: `boolean`
+    - `keep_d`: `bool`
         * keep original image or not.
     - `fheight`: `int`, default=`500`
         * Height (px) to which to crop the image.
@@ -235,7 +235,7 @@ def parse_args(args):
     parser.add_argument(
         "-r", "--reject", type=output_path, default=None, help=help_d["reject"]
     )
-    parser.add_argument("-k","--keep", type=boolean, default=False, help=help_d["keep"])
+    parser.add_argument("-k","--keep", type=bool, default=False, help=help_d["keep"])
     parser.add_argument("-w", "--width", type=size, default=500, help=help_d["width"])
     parser.add_argument("-H", "--height", type=size, default=500, help=help_d["height"])
     parser.add_argument(
