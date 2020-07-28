@@ -17,13 +17,15 @@ COMBINED_FILETYPES = CV2_FILETYPES + PILLOW_FILETYPES
 INPUT_FILETYPES = COMBINED_FILETYPES + [s.upper() for s in COMBINED_FILETYPES]
 
 
-def output(input_filename, output_filename, image):
+def output(input_filename, output_filename, image, keep):
     """Move the input file to the output location and write over it with the
     cropped image data."""
     if input_filename != output_filename:
         # Move the file to the output directory
-        # shutil.move(input_filename, output_filename)
-        shutil.copy(input_filename, output_filename)
+        if keep:
+            shutil.copy(input_filename, output_filename)
+        else:
+            shutil.move(input_filename, output_filename)
     # Encode the image as an in-memory PNG
     img_new = Image.fromarray(image)
     # Write the new image (converting the format to match the output
@@ -31,16 +33,18 @@ def output(input_filename, output_filename, image):
     img_new.save(output_filename)
 
 
-def reject(input_filename, reject_filename):
+def reject(input_filename, reject_filename, keep):
     """Move the input file to the reject location."""
     if input_filename != reject_filename:
         # Move the file to the reject directory
-        # shutil.move(input_filename, reject_filename)
-        shutil.copy(input_filename, reject_filename)
+        if keep:
+            shutil.copy(input_filename, reject_filename)
+        else:
+            shutil.move(input_filename, reject_filename)
 
 
 def main(
-    input_d, output_d, reject_d, fheight=500, fwidth=500, facePercent=50,
+    input_d, output_d, reject_d, keep_d, fheight=500, fwidth=500, facePercent=50,
 ):
     """Crops folder of images to the desired height and width if a
     face is found.
@@ -57,6 +61,8 @@ def main(
         * Directory where cropped images are placed.
     - `reject_d`: `str`
         * Directory where images that cannot be cropped are placed.
+    - `keep_d`: `boolean`
+        * keep original image or not.
     - `fheight`: `int`, default=`500`
         * Height (px) to which to crop the image.
     - `fwidth`: `int`, default=`500`
@@ -108,11 +114,11 @@ def main(
 
         # Did the crop produce an invalid image?
         if isinstance(image, type(None)):
-            reject(input_filename, reject_filename)
+            reject(input_filename, reject_filename, keep_d)
             print("No face detected: {}".format(reject_filename))
             reject_count += 1
         else:
-            output(input_filename, output_filename, image)
+            output(input_filename, output_filename, image, keep_d)
             print("Face detected:    {}".format(output_filename))
             output_count += 1
 
@@ -206,6 +212,7 @@ def parse_args(args):
 
                       Default: current working directory, meaning images that
                       are not cropped will be left in place.""",
+        "keep": "Keep original file",
         "width": "Width of cropped files in px. Default=500",
         "height": "Height of cropped files in px. Default=500",
         "y": "Bypass any confirmation prompts",
@@ -228,6 +235,7 @@ def parse_args(args):
     parser.add_argument(
         "-r", "--reject", type=output_path, default=None, help=help_d["reject"]
     )
+    parser.add_argument("-k","--keep", type=boolean, default=False, help=help_d["keep"])
     parser.add_argument("-w", "--width", type=size, default=500, help=help_d["width"])
     parser.add_argument("-H", "--height", type=size, default=500, help=help_d["height"])
     parser.add_argument(
@@ -259,5 +267,5 @@ def command_line_interface():
         args.output = None
     print("Processing images in folder:", args.input)
     main(
-        args.input, args.output, args.reject, args.height, args.width, args.facePercent,
+        args.input, args.output, args.reject, args.keep, args.height, args.width, args.facePercent,
     )
