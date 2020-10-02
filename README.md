@@ -50,7 +50,7 @@ Autocrop can be used [from the command line](#from-the-command-line) or directly
 	- Images where a face can't be detected will be left in `crop`.
 * Same as above, but output the images with undetected faces to the `reject` folder:
 	- `autocrop -i pics -o crop -r reject -w 400 -H 400`.
-	
+
 If no output folder is added, asks for confirmation and destructively crops images in-place.
 
 ### From Python
@@ -119,7 +119,7 @@ Best practice for your projects is of course to [use virtual environments](http:
 
 Autocrop is currently being tested on:
 
-* Python 3.5+
+* Python 3.6+
 * OS:
     - Linux
     - macOS
