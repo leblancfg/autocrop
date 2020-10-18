@@ -43,9 +43,7 @@ def reject(input_filename, reject_filename, keep):
             shutil.move(input_filename, reject_filename)
 
 
-def main(
-    input_d, output_d, reject_d, keep_d, fheight=500, fwidth=500, facePercent=50,
-):
+def main(input_d, output_d, reject_d, keep_d, fheight=500, fwidth=500, facePercent=50):
     """Crops folder of images to the desired height and width if a
     face is found.
 
