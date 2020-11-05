@@ -1,8 +1,0 @@
-future
-pytest>=5.4,<6
-flake8
-mock
-pytest-cov
-codecov
-attrs
-tox

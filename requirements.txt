@@ -1,3 +1,0 @@
-numpy>=1.10
-opencv-python>=3, <4
-Pillow>5
