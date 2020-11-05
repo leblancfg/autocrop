@@ -6,3 +6,5 @@ pytest-cov
 codecov
 attrs
 tox
+portray
+-r requirements.txt
