@@ -4,6 +4,8 @@ import cv2
 import numpy as np
 import os
 import sys
+from datetime import datetime
+import piexif
 from PIL import Image
 
 from .constants import (
@@ -94,6 +96,16 @@ def open_file(input_filename):
             return np.asarray(img_orig)
     return None
 
+def add_date_metadata(image):
+    fileName = image
+    exif_dict = piexif.load(fileName)
+    new_date = datetime.now().strftime("%Y:%m:%d %H:%M:%S")
+
+    exif_dict['0th'][piexif.ImageIFD.DateTime] = new_date
+    exif_dict['Exif'][piexif.ExifIFD.DateTimeOriginal] = new_date
+    exif_dict['Exif'][piexif.ExifIFD.DateTimeDigitized] = new_date
+    exif_bytes = piexif.dump(exif_dict)
+    piexif.insert(exif_bytes, filename)
 
 class Cropper:
     """
@@ -156,8 +168,10 @@ class Cropper:
         """
         if isinstance(path_or_array, str):
             image = open_file(path_or_array)
+            add_date_metadata(image)
         else:
             image = path_or_array
+            add_date_metadata(image)
 
         # Some grayscale color profiles can throw errors, catch them
         try:
