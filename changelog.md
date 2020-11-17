@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Updates to the developer setup tools and documentation
+
+## 1.1.0 - 24-10-2020
+### Added
+
+- CLI now copies file by default
+
+
 ## 1.0.0 - 24-03-2020
 ### Added
 
