@@ -448,27 +448,40 @@
   <a href="https://github.com/leblancfg/autocrop">autocrop</a> repository</li>
 </ul>
 <h2 id="development-setup">Development Setup</h2>
-<p>This project works with <a href="https://virtualenv.pypa.io/en/latest/">virtualenv</a>.</p>
-<p>To start things off, run:</p>
-<div class="codehilite"><pre><span></span><code>$ python3 -m venv env
-$ <span class="nb">source</span> env/bin/activate
+<p>This project works with <a href="https://docs.python.org/3/library/venv.html">virtual envronments</a> and has a <a href="https://krzysztofzuraw.com/blog/2016/makefiles-in-python-projects">Makefile</a> for common tasks.</p>
+<blockquote>
+<p>⚠️  This guide (and the Makefile) assumes that you use <code>python</code> to call your interpreter.</p>
+<ul>
+<li>For Debian and Ubuntu, you might need to use <code>python3</code> instead.</li>
+<li>For MacOS, you are best to <code>brew install pyenv</code> and <a href="https://opensource.com/article/19/5/python-3-default-mac">follow these instructions</a>.</li>
+<li>For Windows, it is strongly encouraged to check out the <a href="https://docs.conda.io/projects/conda/en/latest/user-guide/install/windows.html">conda distribution</a>.</li>
+</ul>
+</blockquote>
+<p>To start things off, run</p>
+<div class="codehilite"><pre><span></span><code>make initial_setup
+. env/bin/activate
 </code></pre></div>
 
-<p>Then, run:</p>
-<div class="codehilite"><pre><span></span><code>$ pip install -U setuptools
-$ pip install -r requirements-test.txt
-$ pip install -e .
+<p>Alternatively:</p>
+<div class="codehilite"><pre><span></span><code>python -m venv env
+. env/bin/activate
+pip install -r requirements-dev.txt
+pip install -e .
 </code></pre></div>
 
 <p>You can then run <code>autocrop</code> like so:</p>
-<div class="codehilite"><pre><span></span><code>$ autocrop
+<div class="codehilite"><pre><span></span><code>autocrop --help
 </code></pre></div>
 
 <p>As long as the virtual environment has been activated, this will command will
 use the files in your local Git checkout. This makes it super easy to work on
 the code and test your changes.</p>
 <p>To set up your virtual environment again in future, just run:</p>
-<div class="codehilite"><pre><span></span><code>$ <span class="nb">source</span> env/bin/activate
+<div class="codehilite"><pre><span></span><code>. env/bin/activate
+</code></pre></div>
+
+<p>And when you're done, return your terminal to its previous state with:</p>
+<div class="codehilite"><pre><span></span><code>deactivate
 </code></pre></div>
 
 <h2 id="tests">Tests</h2>
@@ -480,7 +493,7 @@ green-light changes.</p>
 <li>Run a test suite using <a href="https://docs.pytest.org/en/latest/">pytest</a></li>
 </ul>
 <p>You can run the tests locally, like so:</p>
-<div class="codehilite"><pre><span></span><code>$ make check
+<div class="codehilite"><pre><span></span><code><span class="err">make check</span>
 </code></pre></div>
 
 <h2 id="contact">Contact</h2>

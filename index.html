@@ -233,6 +233,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#from-python" class="md-nav__link">
+    From Python
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#from-the-command-line" class="md-nav__link">
     From the command line
   </a>
@@ -249,13 +256,6 @@
         
       </ul>
     </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#from-python" class="md-nav__link">
-    From Python
-  </a>
   
 </li>
         
@@ -489,6 +489,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#from-python" class="md-nav__link">
+    From Python
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#from-the-command-line" class="md-nav__link">
     From the command line
   </a>
@@ -505,13 +512,6 @@
         
       </ul>
     </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#from-python" class="md-nav__link">
-    From Python
-  </a>
   
 </li>
         
@@ -607,6 +607,23 @@
 
 <h2 id="use">Use</h2>
 <p>Autocrop can be used <a href="#from-the-command-line">from the command line</a> or directly <a href="#from-python">from Python API</a>.</p>
+<h3 id="from-python">From Python</h3>
+<p>Import the <code>Cropper</code> class, set some parameters (optional), and start cropping.</p>
+<p>The <code>crop</code> method accepts filepaths or <code>np.ndarray</code>, and returns Numpy arrays. These are easily handled with <a href="https://pillow.readthedocs.io/">PIL</a> or <a href="https://matplotlib.org/">Matplotlib</a>.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">from</span> <span class="nn">autocrop</span> <span class="kn">import</span> <span class="n">Cropper</span>
+
+<span class="n">cropper</span> <span class="o">=</span> <span class="n">Cropper</span><span class="p">()</span>
+
+<span class="c1"># Get a Numpy array of the cropped image</span>
+<span class="n">cropped_array</span> <span class="o">=</span> <span class="n">cropper</span><span class="o">.</span><span class="n">crop</span><span class="p">(</span><span class="s1">&#39;portrait.png&#39;</span><span class="p">)</span>
+
+<span class="c1"># Save the cropped image with PIL</span>
+<span class="n">cropped_image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">cropped_array</span><span class="p">)</span>
+<span class="n">cropped_image</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;cropped.png&#39;</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Further examples and use cases are found in the <a href="https://github.com/leblancfg/autocrop/blob/master/tests/visual_tests.ipynb">accompanying Jupyter Notebook</a>.</p>
 <h3 id="from-the-command-line">From the command line</h3>
 <div class="codehilite"><pre><span></span><code><span class="k">usage</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="k">OUTPUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span> <span class="k">INPUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">w</span> <span class="n">WIDTH</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">H</span> <span class="n">HEIGHT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span>
 
@@ -647,23 +664,6 @@
 </li>
 </ul>
 <p>If no output folder is added, asks for confirmation and destructively crops images in-place.</p>
-<h3 id="from-python">From Python</h3>
-<p>Import the <code>Cropper</code> class, set some parameters (optional), and start cropping.</p>
-<p>The <code>crop</code> method accepts filepaths or <code>np.ndarray</code>, and returns Numpy arrays. These are easily handled with <a href="https://pillow.readthedocs.io/">PIL</a> or <a href="https://matplotlib.org/">Matplotlib</a>.</p>
-<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
-<span class="kn">from</span> <span class="nn">autocrop</span> <span class="kn">import</span> <span class="n">Cropper</span>
-
-<span class="n">cropper</span> <span class="o">=</span> <span class="n">Cropper</span><span class="p">()</span>
-
-<span class="c1"># Get a Numpy array of the cropped image</span>
-<span class="n">cropped_array</span> <span class="o">=</span> <span class="n">cropper</span><span class="o">.</span><span class="n">crop</span><span class="p">(</span><span class="s1">&#39;portrait.png&#39;</span><span class="p">)</span>
-
-<span class="c1"># Save the cropped image with PIL</span>
-<span class="n">cropped_image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">cropped_array</span><span class="p">)</span>
-<span class="n">cropped_image</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;cropped.png&#39;</span><span class="p">)</span>
-</code></pre></div>
-
-<p>Further examples and use cases are found in the <a href="https://github.com/leblancfg/autocrop/blob/master/tests/visual_tests.ipynb">accompanying Jupyter Notebook</a>.</p>
 <h2 id="supported-file-types">Supported file types</h2>
 <p>The following file types are supported:</p>
 <ul>
@@ -702,7 +702,7 @@
 <p>Best practice for your projects is of course to <a href="http://docs.python-guide.org/en/latest/dev/virtualenvs/">use virtual environments</a>. At the very least, you will need to <a href="https://pip.pypa.io/en/stable/installing/">have pip installed</a>.</p>
 <p>Autocrop is currently being tested on:</p>
 <ul>
-<li>Python 3.5+</li>
+<li>Python 3.6+</li>
 <li>OS:<ul>
 <li>Linux</li>
 <li>macOS</li>
