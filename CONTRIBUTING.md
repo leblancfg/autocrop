@@ -14,34 +14,27 @@ Please follow these steps:
   [autocrop](https://github.com/leblancfg/autocrop) repository
 
 ## Development Setup
-This project works with [virtual envronments](https://docs.python.org/3/library/venv.html) and has a [Makefile](https://krzysztofzuraw.com/blog/2016/makefiles-in-python-projects) for common tasks.
+This project works with [virtualenv](https://virtualenv.pypa.io/en/latest/).
 
->⚠️  This guide (and the Makefile) assumes that you use `python` to call your interpreter.
->
-> * For Debian and Ubuntu, you might need to use `python3` instead.
-> * For MacOS, you are best to `brew install pyenv` and [follow these instructions](https://opensource.com/article/19/5/python-3-default-mac).
-> * For Windows, it is strongly encouraged to check out the [conda distribution](https://docs.conda.io/projects/conda/en/latest/user-guide/install/windows.html).
+To start things off, run:
 
-To start things off, run
-
-```sh
-make initial_setup
-. env/bin/activate
+```
+$ python3 -m venv env
+$ source env/bin/activate
 ```
 
-Alternatively:
+Then, run:
 
-```sh
-python -m venv env
-. env/bin/activate
-pip install -r requirements-dev.txt
-pip install -e .
+```
+$ pip install -U setuptools
+$ pip install -r requirements-test.txt
+$ pip install -e .
 ```
 
 You can then run `autocrop` like so:
 
-```sh
-autocrop --help
+```
+$ autocrop
 ```
 
 As long as the virtual environment has been activated, this will command will
@@ -50,14 +43,8 @@ the code and test your changes.
 
 To set up your virtual environment again in future, just run:
 
-```sh
-. env/bin/activate
 ```
-
-And when you're done, return your terminal to its previous state with:
-
-```sh
-deactivate
+$ source env/bin/activate
 ```
 
 ## Tests
@@ -73,7 +60,7 @@ Specifically, we:
 You can run the tests locally, like so:
 
 ```
-make check
+$ make check
 ```
 
 
