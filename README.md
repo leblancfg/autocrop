@@ -39,7 +39,7 @@ Further examples and use cases are found in the [accompanying Jupyter Notebook](
 
 ### From the command line
 
-	usage: [-h] [-o OUTPUT] [-i INPUT] [-w WIDTH] [-H HEIGHT] [-v]
+	usage: [-h] [-o OUTPUT] [-i INPUT] [-w WIDTH] [-H HEIGHT] [-e EXTENSION] [-v]
 
 	Automatically crops faces from batches of pictures
 
@@ -61,6 +61,9 @@ Further examples and use cases are found in the [accompanying Jupyter Notebook](
 			Height of cropped files in px. Default=500
 	  --facePercent
 	  		Zoom factor. Percentage of face height to image height.
+	  -e, --extension
+	  		Enter the image extension which to save at output.
+	  		Default: Your current image extension
 	  -v, --version
 	  		Show program's version number and exit
 
