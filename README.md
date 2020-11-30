@@ -72,8 +72,8 @@ Further examples and use cases are found in the [accompanying Jupyter Notebook](
 * Crop every image in the `pics` folder, resize them to 400 px squares, and output them in the `crop` directory:
 	- `autocrop -i pics -o crop -w 400 -H 400`.
 	- Images where a face can't be detected will be left in `crop`.
-* Same as above, but output the images with undetected faces to the `reject` folder:
-	- `autocrop -i pics -o crop -r reject -w 400 -H 400`.
+* Same as above, but output the images with undetected faces to the `reject` folder and the image extension will be `png`:
+	- `autocrop -i pics -o crop -r reject -w 400 -H 400 -e png`.
 	
 If no output folder is added, asks for confirmation and destructively crops images in-place.
 
