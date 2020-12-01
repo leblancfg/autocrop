@@ -93,7 +93,7 @@ def main(input_d, output_d, reject_d, extension, fheight=500, fwidth=500, facePe
 
     # Get extension from the command line
     if extension is not None:
-        extension = extension.lower() # Making the string to lowecase
+        extension = extension.lower() # Making the string to lowercase
         extension = extension.replace(".", "")    # Removing the "." from the string
         
     # Main loop
