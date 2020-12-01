@@ -17,7 +17,7 @@ COMBINED_FILETYPES = CV2_FILETYPES + PILLOW_FILETYPES
 INPUT_FILETYPES = COMBINED_FILETYPES + [s.upper() for s in COMBINED_FILETYPES]
 
 
-def output(input_filename, output_filename, image, basename_noext, extension):
+def output(input_filename, output_filename, image):
     """Move the input file to the output location and write over it with the
     cropped image data."""
     if input_filename != output_filename:
@@ -27,10 +27,8 @@ def output(input_filename, output_filename, image, basename_noext, extension):
     img_new = Image.fromarray(image)
     # Write the new image (converting the format to match the output
     # filename if necessary)
-    if extension is not None:
-        img_new.save(f"{basename_noext}.{extension}")
-    else:
-        img_new.save(output_filename)
+    img_new.save(output_filename)
+
 
 def reject(input_filename, reject_filename):
     """Move the input file to the reject location."""
@@ -39,7 +37,7 @@ def reject(input_filename, reject_filename):
         shutil.copy(input_filename, reject_filename)
 
 
-def main(input_d, output_d, reject_d, extension, fheight=500, fwidth=500, facePercent=50):
+def main(input_d, output_d, reject_d, extension, fheight=500, fwidth=500, facePercent=50):  # noqa 
     """Crops folder of images to the desired height and width if a
     face is found.
 
@@ -93,16 +91,16 @@ def main(input_d, output_d, reject_d, extension, fheight=500, fwidth=500, facePe
 
     # Get extension from the command line
     if extension is not None:
-        extension = extension.lower() # Making the string to lowercase
+        extension = extension.lower()             # Making the string to lowercase
         extension = extension.replace(".", "")    # Removing the "." from the string
-        
+
     # Main loop
     cropper = Cropper(width=fwidth, height=fheight, face_percent=facePercent)
     for input_filename in input_files:
         basename = os.path.basename(input_filename)
-        basename_noext = os.path.splitext(basename)[0] #Basename without extension
-        if  extension is not None:
-            output_filename = os.path.join(output_d, basename_noext+"."+extension)            
+        basename_noext = os.path.splitext(basename)[0]  # Basename without extension
+        if extension is not None:
+            output_filename = os.path.join(output_d, basename_noext + "." + extension)
         else:
             output_filename = os.path.join(output_d, basename)
 
@@ -121,17 +119,13 @@ def main(input_d, output_d, reject_d, extension, fheight=500, fwidth=500, facePe
             print("No face detected: {}".format(reject_filename))
             reject_count += 1
         else:
-            output(input_filename, output_filename, image, basename_noext, extension)
+            output(input_filename, output_filename, image)
             print("Face detected:    {}".format(output_filename))
             output_count += 1
 
     # Stop and print status
 
-    if extension is not None:
-        print(f"{input_count} : Input files, {output_count} : Faces Cropped, {reject_count} : Rejected, {extension} : Image Extension")
-    else:
-        print(f"{input_count} : Input files, {output_count} : Faces Cropped, {reject_count}")
-
+    print(f"{input_count} : Input files, {output_count} : Faces Cropped, {reject_count}")
 
 
 def input_path(p):
@@ -179,6 +173,7 @@ def compat_input(s=""):  # pragma: no cover
         # Py2 raw_input() renamed to input() in Py3
         return input(s)  # lgtm[py/use-of-input]
 
+
 def confirmation(question):
     """Ask a yes/no question via standard input and return the answer."""
     yes_list = ["yes", "y"]
@@ -199,14 +194,18 @@ def confirmation(question):
         notification_str = "Please respond with 'y' or 'n'"
         print(notification_str)
 
-def chk_extension(p):
+
+def chk_extension(extension):
     """Check if the extension passed is valid or not."""
-    inp_extension = str(p)
-    inp_extension = inp_extension.lower()
-    if inp_extension in COMBINED_FILETYPES:
-        return p
-    elif "."+inp_extension in COMBINED_FILETYPES:
-        return p
+    error = "Invalid image extension"
+    extension = str(extension).lower()
+    if not extension.startswith('.'):
+        extension = f".{extension}"
+    if extension in COMBINED_FILETYPES:
+        return extension
+    else:
+        raise argparse.ArgumentTypeError(error)
+
 
 def parse_args(args):
     """Helper function. Parses the arguments given to the CLI."""
@@ -258,7 +257,7 @@ def parse_args(args):
     parser.add_argument(
         "--facePercent", type=size, default=50, help=help_d["facePercent"]
     )
-    parser.add_argument("-e", "--extension", type=chk_extension,default=None, help=help_d["extension"])
+    parser.add_argument("-e", "--extension", type=chk_extension, default=None, help=help_d["extension"])
 
     return parser.parse_args()
 
@@ -277,7 +276,7 @@ def command_line_interface():
     if args.input == args.output:
         args.output = None
     print("Processing images in folder:", args.input)
-    
+
     main(
         args.input, args.output, args.reject, args.extension, args.height, args.width, args.facePercent,
     )
