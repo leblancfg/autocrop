@@ -175,7 +175,7 @@ def test_main_overwrites_when_no_output(monkeypatch, integration):
 
     m = MonkeyCrop()
     monkeypatch.setattr(Cropper, "crop", m.crop)
-    main("tests/test", None, None)
+    main("tests/test", None, None, None)
     assert m.count == 10
 
 
