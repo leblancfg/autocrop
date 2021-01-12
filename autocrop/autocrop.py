@@ -122,7 +122,12 @@ class Cropper:
     """
 
     def __init__(
-        self, width=500, height=500, face_percent=50, padding=None, fix_gamma=True,
+        self,
+        width=500,
+        height=500,
+        face_percent=50,
+        padding=None,
+        fix_gamma=True,
     ):
         self.height = check_positive_scalar(height)
         self.width = check_positive_scalar(width)
@@ -190,7 +195,14 @@ class Cropper:
 
         # Make padding from biggest face found
         x, y, w, h = faces[-1]
-        pos = self._crop_positions(img_height, img_width, x, y, w, h,)
+        pos = self._crop_positions(
+            img_height,
+            img_width,
+            x,
+            y,
+            w,
+            h,
+        )
 
         # ====== Actual cropping ======
         image = image[pos[0] : pos[1], pos[2] : pos[3]]
@@ -267,7 +279,13 @@ class Cropper:
         return max(corner_ratios)
 
     def _crop_positions(
-        self, imgh, imgw, x, y, w, h,
+        self,
+        imgh,
+        imgw,
+        x,
+        y,
+        w,
+        h,
     ):
         """Retuns the coordinates of the crop position centered
         around the detected face with extra margins. Tries to

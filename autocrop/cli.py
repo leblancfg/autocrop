@@ -37,7 +37,9 @@ def reject(input_filename, reject_filename):
         shutil.copy(input_filename, reject_filename)
 
 
-def main(input_d, output_d, reject_d, extension, fheight=500, fwidth=500, facePercent=50):  # noqa 
+def main(
+    input_d, output_d, reject_d, extension=None, fheight=500, fwidth=500, facePercent=50
+):
     """Crops folder of images to the desired height and width if a
     face is found.
 
@@ -89,23 +91,18 @@ def main(input_d, output_d, reject_d, extension, fheight=500, fwidth=500, facePe
     input_count = len(input_files)
     assert input_count > 0
 
-    # Get extension from the command line
-    if extension is not None:
-        extension = extension.lower()             # Making the string to lowercase
-        extension = extension.replace(".", "")    # Removing the "." from the string
-
     # Main loop
     cropper = Cropper(width=fwidth, height=fheight, face_percent=facePercent)
     for input_filename in input_files:
         basename = os.path.basename(input_filename)
-        basename_noext = os.path.splitext(basename)[0]  # Basename without extension
-        if extension is not None:
+        if extension:
+            basename_noext = os.path.splitext(basename)[0]
             output_filename = os.path.join(output_d, basename_noext + "." + extension)
         else:
             output_filename = os.path.join(output_d, basename)
-
         reject_filename = os.path.join(reject_d, basename)
         image = None
+
         # Attempt the crop
         try:
             image = cropper.crop(input_filename)
@@ -125,7 +122,9 @@ def main(input_d, output_d, reject_d, extension, fheight=500, fwidth=500, facePe
 
     # Stop and print status
 
-    print(f"{input_count} : Input files, {output_count} : Faces Cropped, {reject_count}")
+    print(
+        f"{input_count} : Input files, {output_count} : Faces Cropped, {reject_count}"
+    )
 
 
 def input_path(p):
@@ -199,10 +198,10 @@ def chk_extension(extension):
     """Check if the extension passed is valid or not."""
     error = "Invalid image extension"
     extension = str(extension).lower()
-    if not extension.startswith('.'):
+    if not extension.startswith("."):
         extension = f".{extension}"
     if extension in COMBINED_FILETYPES:
-        return extension
+        return extension.lower().replace(".", "")
     else:
         raise argparse.ArgumentTypeError(error)
 
@@ -257,7 +256,9 @@ def parse_args(args):
     parser.add_argument(
         "--facePercent", type=size, default=50, help=help_d["facePercent"]
     )
-    parser.add_argument("-e", "--extension", type=chk_extension, default=None, help=help_d["extension"])
+    parser.add_argument(
+        "-e", "--extension", type=chk_extension, default=None, help=help_d["extension"]
+    )
 
     return parser.parse_args()
 
@@ -278,5 +279,11 @@ def command_line_interface():
     print("Processing images in folder:", args.input)
 
     main(
-        args.input, args.output, args.reject, args.extension, args.height, args.width, args.facePercent,
+        args.input,
+        args.output,
+        args.reject,
+        args.extension,
+        args.height,
+        args.width,
+        args.facePercent,
     )
