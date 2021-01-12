@@ -21,7 +21,7 @@ test-all:
 
 lint:
 	@printf "\n${CYAN} ► Running flake8${NC}\n"
-	@flake8 --max-complexity=8 --count autocrop tests
+	@flake8 --max-complexity=10 --count autocrop tests
 
 check: lint test
 

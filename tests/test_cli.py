@@ -1,5 +1,5 @@
 """Tests for cli"""
-
+import argparse
 import io
 import os
 import shutil
@@ -10,7 +10,7 @@ import cv2
 from unittest import mock
 
 from autocrop.autocrop import Cropper
-from autocrop.cli import command_line_interface, main, size, confirmation
+from autocrop.cli import command_line_interface, main, size, confirmation, chk_extension
 
 
 @pytest.fixture()
@@ -67,7 +67,7 @@ def test_cli_no_args_means_cwd(mock_main):
     sys.argv = ["", "--no-confirm"]
     command_line_interface()
     args, _ = mock_main.call_args
-    assert args == (".", None, None, 500, 500, 50)
+    assert args == (".", None, None, None, 500, 500, 50)
 
 
 @mock.patch("autocrop.cli.input_path", lambda p: p)
@@ -175,7 +175,7 @@ def test_main_overwrites_when_no_output(monkeypatch, integration):
 
     m = MonkeyCrop()
     monkeypatch.setattr(Cropper, "crop", m.crop)
-    main("tests/test", None, None)
+    main("tests/test", None, None, None)
     assert m.count == 10
 
 
@@ -239,7 +239,37 @@ def test_image_files_overwritten_if_no_output_dir(integration):
     assert shape == (500, 500, 3)
 
 
-def test_main_ImageReadError():
-    """Monketpatch an ImageReadError to main to trigger those lines"""
-    # TODO: that line of inquiry should also reject_count += 1
-    pass
+@pytest.mark.parametrize(
+    "extension, error_expected, expected",
+    [
+        (".png", False, "png"),
+        ("png", False, "png"),
+        ("PNG", False, "png"),
+        ("fake_ext", True, None),
+        (".fake_ext", True, None),
+        ("", True, None),
+    ],
+)
+def test_check_extension(extension, error_expected, expected):
+    if error_expected:
+        pytest.raises(argparse.ArgumentTypeError, chk_extension, extension)
+    else:
+        assert chk_extension(extension) == expected
+
+
+@pytest.mark.slow
+def test_extension_parameter(integration):
+    sys.argv = [
+        "",
+        "-i",
+        "tests/test",
+        "-o",
+        "tests/crop",
+        "-r",
+        "tests/reject",
+        "-e",
+        "png",
+    ]
+    command_line_interface()
+    output_files = os.listdir("tests/crop")
+    assert all(f.endswith(".png") for f in output_files)

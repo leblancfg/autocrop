@@ -38,7 +38,7 @@ def reject(input_filename, reject_filename):
 
 
 def main(
-    input_d, output_d, reject_d, fheight=500, fwidth=500, facePercent=50,
+    input_d, output_d, reject_d, extension=None, fheight=500, fwidth=500, facePercent=50
 ):
     """Crops folder of images to the desired height and width if a
     face is found.
@@ -61,6 +61,8 @@ def main(
         * Width (px) to which to crop the image.
     - `facePercent`: `int`, default=`50`
         * Percentage of face from height.
+    - `extension` : `str`
+        * Image extension to save at output.
 
     Side Effects:
     -------------
@@ -93,10 +95,14 @@ def main(
     cropper = Cropper(width=fwidth, height=fheight, face_percent=facePercent)
     for input_filename in input_files:
         basename = os.path.basename(input_filename)
-        output_filename = os.path.join(output_d, basename)
+        if extension:
+            basename_noext = os.path.splitext(basename)[0]
+            output_filename = os.path.join(output_d, basename_noext + "." + extension)
+        else:
+            output_filename = os.path.join(output_d, basename)
         reject_filename = os.path.join(reject_d, basename)
-
         image = None
+
         # Attempt the crop
         try:
             image = cropper.crop(input_filename)
@@ -115,10 +121,9 @@ def main(
             output_count += 1
 
     # Stop and print status
+
     print(
-        "{} input files, {} faces cropped, {} rejected".format(
-            input_count, output_count, reject_count
-        )
+        f"{input_count} : Input files, {output_count} : Faces Cropped, {reject_count}"
     )
 
 
@@ -189,6 +194,18 @@ def confirmation(question):
         print(notification_str)
 
 
+def chk_extension(extension):
+    """Check if the extension passed is valid or not."""
+    error = "Invalid image extension"
+    extension = str(extension).lower()
+    if not extension.startswith("."):
+        extension = f".{extension}"
+    if extension in COMBINED_FILETYPES:
+        return extension.lower().replace(".", "")
+    else:
+        raise argparse.ArgumentTypeError(error)
+
+
 def parse_args(args):
     """Helper function. Parses the arguments given to the CLI."""
     help_d = {
@@ -204,6 +221,7 @@ def parse_args(args):
 
                       Default: current working directory, meaning images that
                       are not cropped will be left in place.""",
+        "extension": "Enter the image extension which to save at output",
         "width": "Width of cropped files in px. Default=500",
         "height": "Height of cropped files in px. Default=500",
         "y": "Bypass any confirmation prompts",
@@ -238,6 +256,9 @@ def parse_args(args):
     parser.add_argument(
         "--facePercent", type=size, default=50, help=help_d["facePercent"]
     )
+    parser.add_argument(
+        "-e", "--extension", type=chk_extension, default=None, help=help_d["extension"]
+    )
 
     return parser.parse_args()
 
@@ -256,6 +277,13 @@ def command_line_interface():
     if args.input == args.output:
         args.output = None
     print("Processing images in folder:", args.input)
+
     main(
-        args.input, args.output, args.reject, args.height, args.width, args.facePercent,
+        args.input,
+        args.output,
+        args.reject,
+        args.extension,
+        args.height,
+        args.width,
+        args.facePercent,
     )

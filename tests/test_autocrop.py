@@ -79,7 +79,8 @@ def test_adjust_boundaries(values, expected_result):
 
 @pytest.mark.slow
 @pytest.mark.parametrize(
-    "height, width", [(500, 500), (900, 500), (500, 900), (1000, 1200)],
+    "height, width",
+    [(500, 500), (900, 500), (500, 900), (1000, 1200)],
 )
 def test_detect_face_in_cropped_image(height, width, integration):
     """An image cropped by Cropper should have a face detectable.

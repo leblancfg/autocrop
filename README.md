@@ -39,7 +39,7 @@ Further examples and use cases are found in the [accompanying Jupyter Notebook](
 
 ### From the command line
 
-	usage: [-h] [-o OUTPUT] [-i INPUT] [-w WIDTH] [-H HEIGHT] [-v]
+	usage: [-h] [-o OUTPUT] [-i INPUT] [-w WIDTH] [-H HEIGHT] [-e EXTENSION] [-v]
 
 	Automatically crops faces from batches of pictures
 
@@ -61,6 +61,9 @@ Further examples and use cases are found in the [accompanying Jupyter Notebook](
 			Height of cropped files in px. Default=500
 	  --facePercent
 	  		Zoom factor. Percentage of face height to image height.
+	  -e, --extension
+	  		Enter the image extension which to save at output.
+	  		Default: Your current image extension
 	  -v, --version
 	  		Show program's version number and exit
 
@@ -69,8 +72,10 @@ Further examples and use cases are found in the [accompanying Jupyter Notebook](
 * Crop every image in the `pics` folder, resize them to 400 px squares, and output them in the `crop` directory:
 	- `autocrop -i pics -o crop -w 400 -H 400`.
 	- Images where a face can't be detected will be left in `crop`.
-* Same as above, but output the images with undetected faces to the `reject` folder:
+* Same as above, but output the images with undetected faces to the `reject` directory:
 	- `autocrop -i pics -o crop -r reject -w 400 -H 400`.
+* Same as above but the image extension will be `png`:
+	- `autocrop -i pics -o crop -w 400 -H 400 -e png`
 	
 If no output folder is added, asks for confirmation and destructively crops images in-place.
 
