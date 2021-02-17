@@ -5,9 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## 1.1.1 - 17-02-2021
+### Deprecations
+
+- Deprecate Python 3.5
+- Deprecate OpenCV 3
+
+### API Additions
+
+- User can now specify what file extension to save cropped files at the CLI
+
+### Security
+
+- Update Pillow dependency in order to limit possible security issues
+
+### Other changes
 
 - Updates to the developer setup tools and documentation
+- Updates to the example notebook
 
 ## 1.1.0 - 24-10-2020
 ### Added
