@@ -30,9 +30,10 @@ cropper = Cropper()
 # Get a Numpy array of the cropped image
 cropped_array = cropper.crop('portrait.png')
 
-# Save the cropped image with PIL
-cropped_image = Image.fromarray(cropped_array)
-cropped_image.save('cropped.png')
+# Save the cropped image with PIL if a face was detected:
+if cropped_array:
+    cropped_image = Image.fromarray(cropped_array)
+    cropped_image.save('cropped.png')
 ~~~
 
 Further examples and use cases are found in the [accompanying Jupyter Notebook](https://github.com/leblancfg/autocrop/blob/master/tests/visual_tests.ipynb).
