@@ -70,3 +70,6 @@ notes.md
 
 # Jupyter Notebooks
 .ipynb_checkpoints
+
+# VsCode Junk
+.vscode/
