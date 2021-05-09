@@ -224,8 +224,9 @@ def parse_args(args):
         "extension": "Enter the image extension which to save at output",
         "width": "Width of cropped files in px. Default=500",
         "height": "Height of cropped files in px. Default=500",
-        "y": "Bypass any confirmation prompts",
+        "no-confirm": "Bypass any confirmation prompts",
         "facePercent": "Percentage of face to image height",
+        "no-resizing": "Do not resize the output image",
     }
 
     parser = argparse.ArgumentParser(description=help_d["desc"])
@@ -252,12 +253,15 @@ def parse_args(args):
         action="version",
         version="%(prog)s version {}".format(__version__),
     )
-    parser.add_argument("--no-confirm", action="store_true", help=help_d["y"])
+    parser.add_argument("--no-confirm", action="store_true", help=help_d["no-confirm"])
     parser.add_argument(
         "--facePercent", type=size, default=50, help=help_d["facePercent"]
     )
     parser.add_argument(
         "-e", "--extension", type=chk_extension, default=None, help=help_d["extension"]
+    )
+    parser.add_argument(
+        "--no-resizing", action="store_true", help=help_d["no-resizing"]
     )
 
     return parser.parse_args()
