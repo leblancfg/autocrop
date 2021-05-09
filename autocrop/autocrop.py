@@ -128,11 +128,13 @@ class Cropper:
         face_percent=50,
         padding=None,
         fix_gamma=True,
+        no_resize=False,
     ):
         self.height = check_positive_scalar(height)
         self.width = check_positive_scalar(width)
         self.aspect_ratio = width / height
         self.gamma = fix_gamma
+        self.no_resize = no_resize
 
         # Face percent
         if face_percent > 100 or face_percent < 1:
@@ -207,10 +209,15 @@ class Cropper:
         # ====== Actual cropping ======
         image = image[pos[0] : pos[1], pos[2] : pos[3]]
 
-        # Resize
-        image = cv2.resize(
-            image, (self.width, self.height), interpolation=cv2.INTER_AREA
-        )
+        """
+        Check if the no resize flag is given or not, if given,
+        it will not resize the image just crop it
+        """
+        if self.no_resize is not True:
+            # Resize
+            image = cv2.resize(
+                image, (self.width, self.height), interpolation=cv2.INTER_AREA
+            )
 
         # Underexposition
         if self.gamma:

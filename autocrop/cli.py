@@ -38,7 +38,7 @@ def reject(input_filename, reject_filename):
 
 
 def main(
-    input_d, output_d, reject_d, extension=None, fheight=500, fwidth=500, facePercent=50
+    input_d, output_d, reject_d, extension=None, fheight=500, fwidth=500, facePercent=50, no_resize=False,
 ):
     """Crops folder of images to the desired height and width if a
     face is found.
@@ -92,7 +92,16 @@ def main(
     assert input_count > 0
 
     # Main loop
-    cropper = Cropper(width=fwidth, height=fheight, face_percent=facePercent)
+
+    """
+    Check if the no resize flag is provided or not.
+    """
+
+    if no_resize is True:
+        cropper = Cropper(width=fwidth, height=fheight, face_percent=facePercent, no_resize=True)
+    else:
+        cropper = Cropper(width=fwidth, height=fheight, face_percent=facePercent)
+
     for input_filename in input_files:
         basename = os.path.basename(input_filename)
         if extension:
@@ -226,7 +235,7 @@ def parse_args(args):
         "height": "Height of cropped files in px. Default=500",
         "no-confirm": "Bypass any confirmation prompts",
         "facePercent": "Percentage of face to image height",
-        "no-resizing": "Do not resize the output image",
+        "no_resize": "Do not resize the output image",
     }
 
     parser = argparse.ArgumentParser(description=help_d["desc"])
@@ -261,7 +270,7 @@ def parse_args(args):
         "-e", "--extension", type=chk_extension, default=None, help=help_d["extension"]
     )
     parser.add_argument(
-        "--no-resizing", action="store_true", help=help_d["no-resizing"]
+        "--no-resize", action="store_true", help=help_d["no_resize"]
     )
 
     return parser.parse_args()
@@ -290,4 +299,5 @@ def command_line_interface():
         args.height,
         args.width,
         args.facePercent,
+        args.no_resize,
     )
