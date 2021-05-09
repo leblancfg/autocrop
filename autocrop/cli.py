@@ -123,7 +123,7 @@ def main(
     # Stop and print status
 
     print(
-        f"{input_count} : Input files, {output_count} : Faces Cropped, {reject_count}"
+        f"{input_count} : Input files, {output_count} : Faces Cropped, {reject_count} : Rejected"
     )
 
 
