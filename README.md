@@ -65,6 +65,9 @@ Further examples and use cases are found in the [accompanying Jupyter Notebook](
 	  -e, --extension
 	  		Enter the image extension which to save at output.
 	  		Default: Your current image extension
+	  --no-resize
+	  		Do not resize the output image.
+			It will just crop the image and save it.
 	  -v, --version
 	  		Show program's version number and exit
 
