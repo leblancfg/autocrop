@@ -80,6 +80,19 @@ Further examples and use cases are found in the [accompanying Jupyter Notebook](
 	
 If no output folder is added, asks for confirmation and destructively crops images in-place.
 
+#### Detecting faces from video files
+You can use autocrop to detect faces in frames extracted from a video. A great way to [perform the frame extraction step is with `ffmpeg`](https://ffmpeg.org/download.html):
+
+```sh
+mkdir frames faces
+
+# Extract one frame per second
+ffmpeg -i input.mp4 -filter:v fps=fps=1/60 frames/ffmpeg_%0d.bmp
+
+# Crop faces as jpg
+autocrop -i frames -o faces -e jpg
+```
+
 
 ## Supported file types
 
@@ -119,7 +132,7 @@ pip install .
 ~~~
 
 ### conda
-Development of a `conda-forge` package for the [Anaconda Python distribution](https://www.anaconda.com/download/) is also currently slated for development. Please leave feedback on [issue #7](https://github.com/leblancfg/autocrop/issues/7) if you are insterested in helping out.
+Development of a `conda-forge` package for the [Anaconda Python distribution](https://www.anaconda.com/download/) is currently stalled due to the complexity of setting up the workflow with OpenCV. Please leave feedback on [issue #7](https://github.com/leblancfg/autocrop/issues/7) to see past attempts if you are insterested in helping out!
 
 ## Requirements
 Best practice for your projects is of course to [use virtual environments](http://docs.python-guide.org/en/latest/dev/virtualenvs/). At the very least, you will need to [have pip installed](https://pip.pypa.io/en/stable/installing/).
