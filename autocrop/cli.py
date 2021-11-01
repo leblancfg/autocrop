@@ -18,8 +18,10 @@ INPUT_FILETYPES = COMBINED_FILETYPES + [s.upper() for s in COMBINED_FILETYPES]
 
 
 def output(input_filename, output_filename, image):
-    """Move the input file to the output location and write over it with the
-    cropped image data."""
+    """
+    Move the input file to the output location and write over it with the
+    cropped image data.
+    """
     if input_filename != output_filename:
         # Move the file to the output directory
         shutil.copy(input_filename, output_filename)
@@ -40,7 +42,8 @@ def reject(input_filename, reject_filename):
 def main(
     input_d, output_d, reject_d, extension=None, fheight=500, fwidth=500, facePercent=50
 ):
-    """Crops folder of images to the desired height and width if a
+    """
+    Crops folder of images to the desired height and width if a
     face is found.
 
     If `input_d == output_d` or `output_d is None`, overwrites all files
@@ -142,7 +145,8 @@ def input_path(p):
 
 
 def output_path(p):
-    """Returns path, if input is a valid directory name.
+    """
+    Returns path, if input is a valid directory name.
     If directory doesn't exist, creates it.
     """
     p = os.path.abspath(p)
