@@ -65,7 +65,8 @@ def gamma(img, correction):
 
 
 def check_underexposed(image, gray):
-    """Returns the (cropped) image with GAMMA applied if underexposition
+    """
+    Returns the (cropped) image with GAMMA applied if underexposition
     is detected.
     """
     uexp = cv2.calcHist([gray], [0], None, [256], [0, 256])
@@ -145,7 +146,8 @@ class Cropper:
         self.casc_path = os.path.join(directory, CASCFILE)
 
     def crop(self, path_or_array):
-        """Given a file path or np.ndarray image with a face,
+        """
+        Given a file path or np.ndarray image with a face,
         returns cropped np.ndarray around the largest detected
         face.
 
@@ -218,7 +220,8 @@ class Cropper:
         return bgr_to_rbg(image)
 
     def _determine_safe_zoom(self, imgh, imgw, x, y, w, h):
-        """Determines the safest zoom level with which to add margins
+        """
+        Determines the safest zoom level with which to add margins
         around the detected face. Tries to honor `self.face_percent`
         when possible.
 
@@ -287,7 +290,8 @@ class Cropper:
         w,
         h,
     ):
-        """Retuns the coordinates of the crop position centered
+        """
+        Retuns the coordinates of the crop position centered
         around the detected face with extra margins. Tries to
         honor `self.face_percent` if possible, else uses the
         largest margins that comply with required aspect ratio
@@ -307,7 +311,6 @@ class Cropper:
             Width of the detected face
         h: int
             Height of the detected face
-
         """
         zoom = self._determine_safe_zoom(imgh, imgw, x, y, w, h)
 
