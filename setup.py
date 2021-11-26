@@ -17,7 +17,7 @@ EMAIL = "leblancfg@gmail.com"
 AUTHOR = "François Leblanc"
 
 # What packages are required for this module to be executed?
-REQUIRED = ["numpy>=1.10", "opencv-python>=3, <5", "Pillow~=8.1.0"]
+REQUIRED = ["numpy>=1.10", "opencv-python-headless>=3, <5", "Pillow~=8.3.2"]
 
 # The rest you shouldn't have to touch too much :)
 # ------------------------------------------------
