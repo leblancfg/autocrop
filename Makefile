@@ -4,7 +4,10 @@ RED=\033[0;31m
 CYAN=\033[0;36m
 NC=\033[0m # No Color
 
-pypi-test:
+clear-dist:
+	rm -rf autocrop.egg-info build dist
+
+pypi-test: clear-dist
 	python setup.py sdist
 	twine upload dist/* -r testpypi
 
