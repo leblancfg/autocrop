@@ -36,7 +36,7 @@ if cropped_array:
     cropped_image.save('cropped.png')
 ~~~
 
-Further examples and use cases are found in the [accompanying Jupyter Notebook](https://github.com/leblancfg/autocrop/blob/master/tests/visual_tests.ipynb).
+Further examples and use cases are found in the [accompanying Jupyter Notebook](https://github.com/leblancfg/autocrop/blob/master/examples/visual_tests.ipynb).
 
 ### From the command line
 
