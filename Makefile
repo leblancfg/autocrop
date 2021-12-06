@@ -8,7 +8,7 @@ clear-dist:
 	rm -rf autocrop.egg-info build dist
 
 pypi-test: clear-dist
-	python setup.py sdist
+	python setup.py sdist bdist_wheel
 	twine upload dist/* -r testpypi
 
 pypi:
