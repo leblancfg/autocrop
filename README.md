@@ -6,17 +6,17 @@
 
 Perfect for profile picture processing for your website or batch work for ID cards, autocrop will output images centered around the biggest face detected.
 
-## Installation
+# Installation
 Simple!
 
 ~~~sh
 pip install autocrop
 ~~~
 
-## Use
+# Use
 Autocrop can be used [from the command line](#from-the-command-line) or directly [from Python API](#from-python).
 
-### From Python
+## From Python
 Import the `Cropper` class, set some parameters (optional), and start cropping.
 
 The `crop` method accepts filepaths or `np.ndarray`, and returns Numpy arrays. These are easily handled with [PIL](https://pillow.readthedocs.io/) or [Matplotlib](https://matplotlib.org/).
@@ -38,7 +38,7 @@ if cropped_array:
 
 Further examples and use cases are found in the [accompanying Jupyter Notebook](https://github.com/leblancfg/autocrop/blob/master/examples/visual_tests.ipynb).
 
-### From the command line
+## From the command line
 
 	usage: [-h] [-o OUTPUT] [-i INPUT] [-w WIDTH] [-H HEIGHT] [-e EXTENSION] [-v]
 
@@ -68,7 +68,7 @@ Further examples and use cases are found in the [accompanying Jupyter Notebook](
 	  -v, --version
 	  		Show program's version number and exit
 
-#### Examples
+### Examples
 
 * Crop every image in the `pics` folder, resize them to 400 px squares, and output them in the `crop` directory:
 	- `autocrop -i pics -o crop -w 400 -H 400`.
@@ -80,7 +80,7 @@ Further examples and use cases are found in the [accompanying Jupyter Notebook](
 	
 If no output folder is added, asks for confirmation and destructively crops images in-place.
 
-#### Detecting faces from video files
+### Detecting faces from video files
 You can use autocrop to detect faces in frames extracted from a video. A great way to [perform the frame extraction step is with `ffmpeg`](https://ffmpeg.org/download.html):
 
 ```sh
@@ -94,7 +94,7 @@ autocrop -i frames -o faces -e jpg
 ```
 
 
-## Supported file types
+# Supported file types
 
 The following file types are supported:
 
@@ -117,10 +117,7 @@ The following file types are supported:
 - Windows ICO files (`.ico`)
 - X bitmap files (`.xbm`)
 
-
-### Gotchas
-Autocrop uses OpenCV to perform face detection, which is installed through binary [wheels](http://pythonwheels.com/). If you *already* have OpenCV 3+ installed, you may wish to uninstall the additional OpenCV installation: `pip uninstall opencv-python`.
-
+# Misc
 ### Installing directly
 In some cases, you may wish the package directly, instead of through [PyPI](https://pypi.python.org/pypi):
 
@@ -134,7 +131,7 @@ pip install .
 ### conda
 Development of a `conda-forge` package for the [Anaconda Python distribution](https://www.anaconda.com/download/) is currently stalled due to the complexity of setting up the workflow with OpenCV. Please leave feedback on [issue #7](https://github.com/leblancfg/autocrop/issues/7) to see past attempts if you are insterested in helping out!
 
-## Requirements
+### Requirements
 Best practice for your projects is of course to [use virtual environments](http://docs.python-guide.org/en/latest/dev/virtualenvs/). At the very least, you will need to [have pip installed](https://pip.pypa.io/en/stable/installing/).
 
 Autocrop is currently being tested on:
@@ -145,7 +142,7 @@ Autocrop is currently being tested on:
     - macOS
     - Windows
 
-## More Info
+# More Info
 Check out:
 
 * http://docs.opencv.org/master/d7/d8b/tutorial_py_face_detection.html#gsc.tab=0
@@ -155,7 +152,7 @@ Adapted from:
 
 * http://photo.stackexchange.com/questions/60411/how-can-i-batch-crop-based-on-face-location
 
-## Contributing
+### Contributing
 
 Although autocrop is essentially a CLI wrapper around a single OpenCV function, it is actively developed. It has active users throughout the world.
 
