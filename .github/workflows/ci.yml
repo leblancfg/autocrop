@@ -1,0 +1,26 @@
+language: python
+
+python:
+  - "3.6"
+  - "3.7"
+  - "3.8"
+  - "3.9"
+  - "3.10"
+fail_fast: true
+
+before_install:
+  - which python; python --version
+  - pip install -r requirements-dev.txt
+  # Stop the build if it doesn't pass syntax and complexity checks
+  - flake8 . --count --show-source --max-complexity=10 --statistics
+
+install:
+  - pip install -r requirements.txt
+  - pip install .
+  - pip install pytest
+
+script:
+  - pytest --cov autocrop -v --cov-report term-missing
+
+after_success:
+  - codecov
