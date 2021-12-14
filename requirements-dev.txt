@@ -1,5 +1,4 @@
-future
-pytest>=5.4,<6
+pytest>=6, <7
 flake8
 mock
 pytest-cov
