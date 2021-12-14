@@ -1,6 +1,6 @@
 # autocrop
 
-[![Travis Status](https://travis-ci.org/leblancfg/autocrop.svg?branch=master)](https://travis-ci.org/leblancfg/autocrop) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/y2iqfj2vgt6pofn3/branch/master?svg=true)](https://ci.appveyor.com/project/leblancfg/autocrop/branch/master) [![codecov](https://codecov.io/gh/leblancfg/autocrop/branch/master/graph/badge.svg)](https://codecov.io/gh/leblancfg/autocrop) [![Documentation](https://img.shields.io/badge/docs-passing-success.svg)](https://leblancfg.com/autocrop) [![PyPI version](https://badge.fury.io/py/autocrop.svg)](https://badge.fury.io/py/autocrop) [![Downloads](https://pepy.tech/badge/autocrop)](https://pepy.tech/project/autocrop)
+[![CI](https://github.com/leblancfg/autocrop/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/leblancfg/autocrop/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/leblancfg/autocrop/branch/master/graph/badge.svg)](https://codecov.io/gh/leblancfg/autocrop) [![Documentation](https://img.shields.io/badge/docs-passing-success.svg)](https://leblancfg.com/autocrop) [![PyPI version](https://badge.fury.io/py/autocrop.svg)](https://badge.fury.io/py/autocrop) [![Downloads](https://pepy.tech/badge/autocrop)](https://pepy.tech/project/autocrop)
 
 <p align="center"><img title="obama_crop" src="https://cloud.githubusercontent.com/assets/15659410/10975709/3e38de48-83b6-11e5-8885-d95da758ca17.png"></p>
 
