@@ -24,7 +24,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: pip-${{ hashFiles('**/requirements.txt') }}
+          key: pip-${{ matrix.os }}-${{ matrix.python }}-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
             pip-
 
