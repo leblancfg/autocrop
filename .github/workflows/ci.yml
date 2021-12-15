@@ -11,12 +11,17 @@ jobs:
     env:
       LC_ALL: C
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.python == '3.11.0-alpha.2' }}
+    continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python: ["3.6", "3.7", "3.8", "3.9", "3.10", "3.11.0-alpha.2"]
+        python: ["3.6", "3.7", "3.8", "3.9", "3.10",]
+        experimental: [false]
+        include:
+          - os: ubuntu-latest
+            python: "3.11.0-alpha.2"
+            experimental: true
 
     steps:
       - uses: actions/checkout@v2
