@@ -1,0 +1,56 @@
+---
+name: CI
+
+on:
+  push:
+    branches: master
+  pull_request:
+
+jobs:
+  test:
+    env:
+      LC_ALL: C
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ["3.6", "3.7", "3.8", "3.9", "3.10",]
+        experimental: [false]
+        include:
+          - os: ubuntu-latest
+            python: "3.11.0-alpha.2"
+            experimental: true
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ matrix.os }}-${{ matrix.python }}-${{ hashFiles('/requirements.txt') }}
+          restore-keys: |
+            pip-
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install dependencies
+        run: |
+          # python3 -m venv venv
+          # . venv/bin/activate
+          pip install -U setuptools pip wheel
+          pip install -r requirements-dev.txt
+          pip install -e .
+
+      - name: Run linters
+        run: make lint
+
+      - name: Run tests
+        run: |
+          pytest --cov autocrop -v --cov-report term-missing
+          codecov
