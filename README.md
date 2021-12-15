@@ -136,7 +136,7 @@ Best practice for your projects is of course to [use virtual environments](http:
 
 Autocrop is [currently being tested on](https://github.com/leblancfg/autocrop/actions/workflows/ci.yml):
 
-* Python 3.6+
+* Python 3.6 to 3.10
 * OS:
     - Linux
     - macOS
