@@ -134,7 +134,7 @@ Development of a `conda-forge` package for the [Anaconda Python distribution](ht
 ### Requirements
 Best practice for your projects is of course to [use virtual environments](http://docs.python-guide.org/en/latest/dev/virtualenvs/). At the very least, you will need to [have pip installed](https://pip.pypa.io/en/stable/installing/).
 
-Autocrop is currently being tested on:
+Autocrop is [currently being tested on](https://github.com/leblancfg/autocrop/actions/workflows/ci.yml):
 
 * Python 3.6+
 * OS:
