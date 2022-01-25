@@ -17,7 +17,7 @@ EMAIL = "leblancfg@gmail.com"
 AUTHOR = "François Leblanc"
 
 # What packages are required for this module to be executed?
-REQUIRED = ["numpy>=1.10", "opencv-python-headless>=3, <5", "Pillow~=8.3.2"]
+REQUIRED = ["numpy>=1.10", "opencv-python-headless>=3, <5", "Pillow>=9.0.0"]
 
 # The rest you shouldn't have to touch too much :)
 # ------------------------------------------------
@@ -94,9 +94,10 @@ setup(
         # Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
         "License :: OSI Approved :: BSD License",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3 :: Only",
     ],
     # $ setup.py publish support.

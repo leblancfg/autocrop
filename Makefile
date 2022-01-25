@@ -38,13 +38,14 @@ install:
 	( \
 	. env/bin/activate; \
 	pip install -r requirements.txt; \
+	pip install -r requirements-dev.txt; \
 	python setup.py install; \
 	)
 
 initial_setup: venv install
 	@printf "\n\n"
 	@printf "${CYAN} ► Initial setup successful.${NC}\n\n"
-	@printf "${CYAN} ► Activate your environment with: ${RED}. env/bin/activate${NC}\n\n"
+	@printf "${CYAN} ► Activate your environment with: ${RED}source env/bin/activate${NC}\n\n"
 	@printf "${CYAN} ► Once you're done, deactivate with: ${RED}deactivate${NC}\n\n"
 
 .PHONY: pypi-test pypi test test-all lint check docs venv install initial_setup
