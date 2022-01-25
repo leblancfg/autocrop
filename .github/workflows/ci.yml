@@ -20,7 +20,7 @@ jobs:
         experimental: [false]
         include:
           - os: ubuntu-latest
-            python: "3.11.0-alpha.2"
+            python: "3.11.0-alpha.4"
             experimental: true
 
     steps:
