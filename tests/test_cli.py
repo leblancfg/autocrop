@@ -273,3 +273,19 @@ def test_extension_parameter(integration):
     command_line_interface()
     output_files = os.listdir("tests/crop")
     assert all(f.endswith(".png") for f in output_files)
+
+
+@pytest.mark.slow
+def test_no_resize_flag(integration):
+    sys.argv = [
+        "",
+        "--no-confirm",
+        "-i",
+        "tests/test",
+        "-o",
+        "tests/crop",
+        "--no-resize",
+    ]
+    command_line_interface()
+    img = cv2.imread("tests/crop/obama.jpg")
+    assert img.shape == (434, 434, 3)

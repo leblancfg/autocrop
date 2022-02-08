@@ -101,7 +101,9 @@ def main(
     assert input_count > 0
 
     # Main loop
-    cropper = Cropper(width=fwidth, height=fheight, face_percent=facePercent, resize=resize)
+    cropper = Cropper(
+        width=fwidth, height=fheight, face_percent=facePercent, resize=resize
+    )
     for input_filename in input_files:
         basename = os.path.basename(input_filename)
         if extension:
@@ -236,10 +238,24 @@ def parse_args(args):
         "height": "Height of cropped files in px. Default=500",
         "y": "Bypass any confirmation prompts",
         "facePercent": "Percentage of face to image height",
-        "no_resize": "Do not resize images to the specified width and height, but instead use the original image's pixels.",
+        "no_resize": """Do not resize images to the specified width and height,
+                      but instead use the original image's pixels.""",
     }
 
     parser = argparse.ArgumentParser(description=help_d["desc"])
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version="%(prog)s version {}".format(__version__),
+    )
+    parser.add_argument("--no-confirm", action="store_true", help=help_d["y"])
+    parser.add_argument(
+        "-n",
+        "--no-resize",
+        action="store_true",
+        help=help_d["no_resize"],
+    )
     parser.add_argument(
         "-i", "--input", default=".", type=input_path, help=help_d["input"]
     )
@@ -258,24 +274,10 @@ def parse_args(args):
     parser.add_argument("-w", "--width", type=size, default=500, help=help_d["width"])
     parser.add_argument("-H", "--height", type=size, default=500, help=help_d["height"])
     parser.add_argument(
-        "-v",
-        "--version",
-        action="version",
-        version="%(prog)s version {}".format(__version__),
-    )
-    parser.add_argument("--no-confirm", action="store_true", help=help_d["y"])
-    parser.add_argument(
         "--facePercent", type=size, default=50, help=help_d["facePercent"]
     )
     parser.add_argument(
         "-e", "--extension", type=chk_extension, default=None, help=help_d["extension"]
-    )
-    parser.add_argument(
-        # False by default
-        "-n",
-        "--no-resize",
-        action="store_true",
-        help=help_d["no_resize"],
     )
 
     return parser.parse_args()
