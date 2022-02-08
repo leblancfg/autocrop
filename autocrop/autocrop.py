@@ -182,7 +182,7 @@ class Cropper:
             img_height, img_width = image.shape[:2]
         except AttributeError:
             raise ImageReadError
-        minface = int(np.sqrt(img_height ** 2 + img_width ** 2) / MINFACE)
+        minface = int(np.sqrt(img_height**2 + img_width**2) / MINFACE)
 
         # Create the haar cascade
         face_cascade = cv2.CascadeClassifier(self.casc_path)

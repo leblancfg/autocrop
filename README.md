@@ -40,33 +40,32 @@ Further examples and use cases are found in the [accompanying Jupyter Notebook](
 
 ## From the command line
 
-	usage: [-h] [-o OUTPUT] [-i INPUT] [-w WIDTH] [-H HEIGHT] [-e EXTENSION] [-v]
+    usage: autocrop [-h] [-v] [--no-confirm] [-n] [-i INPUT] [-o OUTPUT] [-r REJECT] [-w WIDTH] [-H HEIGHT] [--facePercent FACEPERCENT]
+                    [-e EXTENSION]
 
-	Automatically crops faces from batches of pictures
+    Automatically crops faces from batches of pictures
 
-	optional arguments:
-	  -h, --help
-	  		Show this help message and exit
-	  -o, --output, -p, --path
-			Folder where cropped images will be placed.
-			Default: current working directory
-	  -r, --reject
-			Folder where images without detected faces will be placed.
-			Default: same as output directory
-	  -i, --input
-			Folder where images to crop are located.
-			Default: current working directory
-	  -w, --width
-			Width of cropped files in px. Default=500
-	  -H, --height
-			Height of cropped files in px. Default=500
-	  --facePercent
-	  		Zoom factor. Percentage of face height to image height.
-	  -e, --extension
-	  		Enter the image extension which to save at output.
-	  		Default: Your current image extension
-	  -v, --version
-	  		Show program's version number and exit
+    options:
+      -h, --help            Show this help message and exit
+      -v, --version         Show program's version number and exit
+      --no-confirm          Bypass any confirmation prompts
+      -n, --no-resize       Do not resize images to the specified width and height, but instead use the original image's pixels.
+      -i, --input INPUT
+                            Folder where images to crop are located. Default: current working directory
+      -o, -p, --output, --path OUTPUT
+                            Folder where cropped images will be moved to. Default: current working directory, meaning images are cropped in
+                            place.
+      -r, --reject REJECT
+                            Folder where images that could not be cropped will be moved to. Default: current working directory, meaning images
+                            that are not cropped will be left in place.
+      -w, --width WIDTH
+                            Width of cropped files in px. Default=500
+      -H, --height HEIGHT
+                            Height of cropped files in px. Default=500
+      --facePercent FACEPERCENT
+                            Percentage of face to image height
+      -e, --extension EXTENSION
+                            Enter the image extension which to save at output
 
 ### Examples
 
@@ -77,6 +76,8 @@ Further examples and use cases are found in the [accompanying Jupyter Notebook](
 	- `autocrop -i pics -o crop -r reject -w 400 -H 400`.
 * Same as above but the image extension will be `png`:
 	- `autocrop -i pics -o crop -w 400 -H 400 -e png`
+* Crop every image in the `pics` folder and output to the `crop` directory, but keep the original pixels from the images:
+    - `autocrop -i pics -o crop --no-resize`
 	
 If no output folder is added, asks for confirmation and destructively crops images in-place.
 
