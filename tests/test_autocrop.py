@@ -97,3 +97,14 @@ def test_detect_face_in_cropped_image(height, width, integration):
             pass
         if img_array is not None:
             assert c.crop(img_array) is not None
+
+
+@pytest.mark.parametrize("resize", [True, False])
+def test_resize(resize, integration):
+    c = Cropper(resize=resize)
+    face = "tests/test/obama.jpg"
+    img_array = c.crop(face)
+    if resize:
+        assert img_array.shape == (500, 500, 3)
+    else:
+        assert img_array.shape == (434, 434, 3)

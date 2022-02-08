@@ -120,6 +120,9 @@ class Cropper:
         - Cropped faces are often underexposed when taken
         out of their context. If under a threshold, sets the
         gamma to 0.9.
+    * `resize`: `bool`, default=`True`
+        - Resizes the image to the specified width and height,
+        otherwise, returns the original image pixels.
     """
 
     def __init__(
@@ -129,11 +132,13 @@ class Cropper:
         face_percent=50,
         padding=None,
         fix_gamma=True,
+        resize=True,
     ):
         self.height = check_positive_scalar(height)
         self.width = check_positive_scalar(width)
         self.aspect_ratio = width / height
         self.gamma = fix_gamma
+        self.resize = resize
 
         # Face percent
         if face_percent > 100 or face_percent < 1:
@@ -210,11 +215,12 @@ class Cropper:
         image = image[pos[0] : pos[1], pos[2] : pos[3]]
 
         # Resize
-        image = cv2.resize(
-            image, (self.width, self.height), interpolation=cv2.INTER_AREA
-        )
+        if self.resize:
+            image = cv2.resize(
+                image, (self.width, self.height), interpolation=cv2.INTER_AREA
+            )
 
-        # Underexposition
+        # Underexposition fix
         if self.gamma:
             image = check_underexposed(image, gray)
         return bgr_to_rbg(image)
