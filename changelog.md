@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 1.3.1 - 2022-02-08
+### API Additions
+* The `Cropper` class now accepts a `resize` arg, to determine whether to resize the image after cropping it or not.
+* Similarly for the CLI, it can now be called with a `--no-resize` flag
+
+### Other changes
+* The order of CLI args when calling `autocrop --help` changed to place flags first
+* Start using type hints across the codebase
+
 ## 1.3.0 - 2022-01-25
 ### Changes
 
