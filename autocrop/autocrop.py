@@ -212,13 +212,12 @@ class Cropper:
         )
 
         # ====== Actual cropping ======
-        image = image[pos[0] : pos[1], pos[2] : pos[3]]
+        image = image[pos[0]:pos[1], pos[2]:pos[3]]
 
         # Resize
         if self.resize:
-            image = cv2.resize(
-                image, (self.width, self.height), interpolation=cv2.INTER_AREA
-            )
+            with Image.fromarray(image) as img:
+                image = np.asarray(img.resize((self.width, self.height)))
 
         # Underexposition fix
         if self.gamma:
