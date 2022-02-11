@@ -212,7 +212,7 @@ class Cropper:
         )
 
         # ====== Actual cropping ======
-        image = image[pos[0]:pos[1], pos[2]:pos[3]]
+        image = image[pos[0] : pos[1], pos[2] : pos[3]]
 
         # Resize
         if self.resize:
