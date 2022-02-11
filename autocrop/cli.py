@@ -10,12 +10,8 @@ from .__version__ import __version__
 from .autocrop import Cropper, ImageReadError
 from .constants import (
     QUESTION_OVERWRITE,
-    CV2_FILETYPES,
-    PILLOW_FILETYPES,
+    INPUT_FILETYPES,
 )
-
-COMBINED_FILETYPES = CV2_FILETYPES + PILLOW_FILETYPES
-INPUT_FILETYPES = COMBINED_FILETYPES + [s.upper() for s in COMBINED_FILETYPES]
 
 
 def output(input_filename, output_filename, image):
@@ -212,7 +208,7 @@ def chk_extension(extension):
     extension = str(extension).lower()
     if not extension.startswith("."):
         extension = f".{extension}"
-    if extension in COMBINED_FILETYPES:
+    if extension in INPUT_FILETYPES:
         return extension.lower().replace(".", "")
     else:
         raise argparse.ArgumentTypeError(error)

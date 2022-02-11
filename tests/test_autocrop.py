@@ -6,7 +6,7 @@ import pytest  # noqa: F401
 import cv2
 import numpy as np
 
-from autocrop.autocrop import gamma, Cropper, ImageReadError
+from autocrop.autocrop import gamma, Cropper
 
 
 @pytest.fixture()
@@ -49,12 +49,11 @@ def test_obama_has_a_face():
     assert len(c.crop(obama)) == 500
 
 
-def test_open_file_invalid_filetype_returns_None():
+def test_open_file_invalid_filetype_returns_error():
     c = Cropper()
-    with pytest.raises(ImageReadError) as e:
+    with pytest.raises(FileNotFoundError) as e:
         c.crop("asdf")
-    assert e.type == ImageReadError
-    assert "ImageReadError" in str(e)
+    assert "No such file" in str(e)
 
 
 @pytest.mark.parametrize(
@@ -107,7 +106,7 @@ def test_resize(resize, integration):
     if resize:
         assert img_array.shape == (500, 500, 3)
     else:
-        assert img_array.shape == (434, 434, 3)
+        assert img_array.shape == (430, 430, 3)
 
 
 @pytest.mark.parametrize("face_percent", [0, 101, "asdf"])
