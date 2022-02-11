@@ -84,16 +84,8 @@ def check_positive_scalar(num):
 
 def open_file(input_filename):
     """Given a filename, returns a numpy array"""
-    extension = os.path.splitext(input_filename)[1].lower()
-
-    if extension in CV2_FILETYPES:
-        # Try with cv2
-        return cv2.imread(input_filename)
-    if extension in PILLOW_FILETYPES:
-        # Try with PIL
-        with Image.open(input_filename) as img_orig:
-            return np.asarray(img_orig)
-    return None
+    with Image.open(input_filename) as img_orig:
+        return np.asarray(img_orig)
 
 
 class Cropper:

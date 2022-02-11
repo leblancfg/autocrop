@@ -288,4 +288,4 @@ def test_no_resize_flag(integration):
     ]
     command_line_interface()
     img = cv2.imread("tests/crop/obama.jpg")
-    assert img.shape == (434, 434, 3)
+    assert img.shape == (430, 430, 3)
