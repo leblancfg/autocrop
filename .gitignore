@@ -70,3 +70,8 @@ notes.md
 
 # Jupyter Notebooks
 .ipynb_checkpoints
+
+# Integration test results
+tests/test/
+tests/crop/
+tests/reject

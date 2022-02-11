@@ -108,3 +108,15 @@ def test_resize(resize, integration):
         assert img_array.shape == (500, 500, 3)
     else:
         assert img_array.shape == (434, 434, 3)
+
+
+@pytest.mark.parametrize("face_percent", [0, 101, "asdf"])
+def test_face_percent(face_percent):
+    if isinstance(face_percent, str):
+        with pytest.raises(TypeError) as e:
+            Cropper(face_percent=face_percent)
+            assert "TypeError" in str(e)
+    else:
+        with pytest.raises(ValueError) as e:
+            Cropper(face_percent=face_percent)
+            assert "argument must be between 0 and 1" in str(e)
