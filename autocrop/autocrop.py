@@ -10,13 +10,8 @@ from .constants import (
     MINFACE,
     GAMMA_THRES,
     GAMMA,
-    CV2_FILETYPES,
-    PILLOW_FILETYPES,
     CASCFILE,
 )
-
-COMBINED_FILETYPES = CV2_FILETYPES + PILLOW_FILETYPES
-INPUT_FILETYPES = COMBINED_FILETYPES + [s.upper() for s in COMBINED_FILETYPES]
 
 
 class ImageReadError(BaseException):
