@@ -123,7 +123,7 @@ def test_face_percent(face_percent):
 
 def test_transparent_png(integration):
     c = Cropper()
-    img = c.crop("tests/test/transparent.png")
+    img = c.crop("tests/test/expo_67.png")
 
     # Make sure the first pixel is transparent
     assert img[0, 0, 3] == 0
