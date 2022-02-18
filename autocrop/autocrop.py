@@ -170,7 +170,6 @@ class Cropper:
         # Scale the image
         try:
             img_height, img_width = image.shape[:2]
-            breakpoint()
         except AttributeError:
             raise ImageReadError
         minface = int(np.sqrt(img_height**2 + img_width**2) / MINFACE)

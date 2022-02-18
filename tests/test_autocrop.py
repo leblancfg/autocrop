@@ -82,7 +82,8 @@ def test_adjust_boundaries(values, expected_result):
     [(500, 500), (900, 500), (500, 900), (1000, 1200)],
 )
 def test_detect_face_in_cropped_image(height, width, integration):
-    """An image cropped by Cropper should have a face detectable.
+    """
+    An image cropped by Cropper should have a face detectable.
     This defends us against image warping or crops outside the region
     of interest.
     """
@@ -124,6 +125,9 @@ def test_face_percent(face_percent):
 def test_transparent_png(integration):
     c = Cropper()
     img = c.crop("tests/test/expo_67.png")
+
+    # Make sure we're still RGBA
+    assert img.shape[-1] == 4
 
     # Make sure the first pixel is transparent
     assert img[0, 0, 3] == 0
