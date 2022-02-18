@@ -47,13 +47,10 @@ def distance(pt1, pt2):
 
 def bgr_to_rbg(img):
     """Given a BGR (cv2) numpy array, returns a RBG (standard) array."""
-    # Don't do anything for grayscale images
-    if img.ndim == 2:
+    dimensions = len(img.shape)
+    if dimensions == 2:
         return img
-
-    # Flip the channels. Use explicit indexing in case RGBA is used.
-    img[:, :, [0, 1, 2]] = img[:, :, [2, 1, 0]]
-    return img
+    return img[..., ::-1]
 
 
 def gamma(img, correction):
@@ -170,7 +167,6 @@ class Cropper:
         # Scale the image
         try:
             img_height, img_width = image.shape[:2]
-            breakpoint()
         except AttributeError:
             raise ImageReadError
         minface = int(np.sqrt(img_height**2 + img_width**2) / MINFACE)
