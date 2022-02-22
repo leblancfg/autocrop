@@ -79,7 +79,7 @@ def test_adjust_boundaries(values, expected_result):
 @pytest.mark.slow
 @pytest.mark.parametrize(
     "height, width",
-    [(500, 500), (900, 500), (500, 900), (1000, 1200)],
+    [(500, 500), (800, 500), (500, 800), (1000, 1200)],
 )
 def test_detect_face_in_cropped_image(height, width, integration):
     """
@@ -87,9 +87,8 @@ def test_detect_face_in_cropped_image(height, width, integration):
     This defends us against image warping or crops outside the region
     of interest.
     """
-    c = Cropper(height=height, width=width)
+    c = Cropper(height=height, width=width, face_percent=1, resize=False)
     faces = [f for f in glob("tests/test/*") if not f.endswith("md")]
-    print(faces)
     for face in faces:
         try:
             img_array = c.crop(face)
