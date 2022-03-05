@@ -48,7 +48,8 @@ Further examples and use cases are found in the [accompanying Jupyter Notebook](
     options:
       -h, --help            Show this help message and exit
       -v, --version         Show program's version number and exit
-      --no-confirm          Bypass any confirmation prompts
+      --no-confirm, --skip-prompt
+                            Bypass any confirmation prompts
       -n, --no-resize       Do not resize images to the specified width and height, but instead use the original image's pixels.
       -i, --input INPUT
                             Folder where images to crop are located. Default: current working directory
