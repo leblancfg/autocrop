@@ -245,7 +245,11 @@ def parse_args(args):
         action="version",
         version="%(prog)s version {}".format(__version__),
     )
-    parser.add_argument("--no-confirm", action="store_true", help=help_d["y"])
+    parser.add_argument(
+        "--no-confirm",
+        "--skip-prompt",
+        action="store_true", help=help_d["y"]
+    )
     parser.add_argument(
         "-n",
         "--no-resize",
