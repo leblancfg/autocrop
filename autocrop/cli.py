@@ -247,7 +247,7 @@ def parse_args(args):
     )
     parser.add_argument(
         "--no-confirm",
-        "--skip-prompt"
+        "--skip-prompt",
         action="store_true", help=help_d["y"]
     )
     parser.add_argument(
