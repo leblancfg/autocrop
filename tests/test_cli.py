@@ -192,9 +192,16 @@ def test_user_does_not_get_prompted_if_output_d_is_given(mock_confirm):
 
 @mock.patch("autocrop.cli.main", lambda *args: None)
 @mock.patch("autocrop.cli.confirmation")
-def test_user_does_not_get_prompted_if_no_confirm(mock_confirm):
+@pytest.mark.parametrize(
+    "flag",
+    [
+        ("--no-confirm"),
+        ("--skip-prompt"),
+    ],
+)
+def test_user_does_not_get_prompted_if_no_confirm(mock_confirm, flag):
     mock_confirm.return_value = False
-    sys.argv = ["", "-i", "tests/data", "--no-confirm"]
+    sys.argv = ["", "-i", "tests/data", flag]
     assert mock_confirm.call_count == 0
     command_line_interface()
     assert mock_confirm.call_count == 0
