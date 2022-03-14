@@ -47,10 +47,13 @@ def distance(pt1, pt2):
 
 def bgr_to_rbg(img):
     """Given a BGR (cv2) numpy array, returns a RBG (standard) array."""
-    dimensions = len(img.shape)
-    if dimensions == 2:
+    # Don't do anything for grayscale images
+    if img.ndim == 2:
         return img
-    return img[..., ::-1]
+
+    # Flip the channels. Use explicit indexing in case RGBA is used.
+    img[:, :, [0, 1, 2]] = img[:, :, [2, 1, 0]]
+    return img
 
 
 def gamma(img, correction):

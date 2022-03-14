@@ -12,6 +12,8 @@ from unittest import mock
 from autocrop.autocrop import Cropper
 from autocrop.cli import command_line_interface, main, size, confirmation, chk_extension
 
+NUM_FILES = 12
+
 
 @pytest.fixture()
 def integration():
@@ -160,7 +162,7 @@ def test_main_overwrites_when_same_input_and_output(integration):
     sys.argv = ["", "--no-confirm", "-i", "tests/test", "-o", "tests/test"]
     command_line_interface()
     output_files = os.listdir(sys.argv[-1])
-    assert len(output_files) == 11
+    assert len(output_files) == NUM_FILES
 
 
 # @mock.patch("autocrop.autocrop.Cropper", side_)
@@ -176,7 +178,7 @@ def test_main_overwrites_when_no_output(monkeypatch, integration):
     m = MonkeyCrop()
     monkeypatch.setattr(Cropper, "crop", m.crop)
     main("tests/test", None, None, None)
-    assert m.count == 10
+    assert m.count == NUM_FILES - 1
 
 
 @mock.patch("autocrop.cli.main", lambda *args: None)
@@ -212,7 +214,7 @@ def test_noface_files_copied_over_if_output_d_specified(integration):
     sys.argv = ["", "-i", "tests/test", "-o", "tests/crop"]
     command_line_interface()
     output_files = os.listdir(sys.argv[-1])
-    assert len(output_files) == 10
+    assert len(output_files) == NUM_FILES - 1
 
 
 @pytest.mark.slow
@@ -229,7 +231,7 @@ def test_nofaces_copied_to_reject_d_if_both_reject_and_output_d(integration):
     command_line_interface()
     output_files = os.listdir(sys.argv[-3])
     reject_files = os.listdir(sys.argv[-1])
-    assert len(output_files) == 7
+    assert len(output_files) == NUM_FILES - 4
     assert len(reject_files) == 3
 
 
@@ -240,7 +242,7 @@ def test_image_files_overwritten_if_no_output_dir(integration):
     command_line_interface()
     # We have the same number of files
     output_files = os.listdir(sys.argv[-1])
-    assert len(output_files) == 11
+    assert len(output_files) == NUM_FILES
     # Images with a face have been cropped
     shape = cv2.imread("tests/test/king.jpg").shape
     assert shape == (500, 500, 3)
