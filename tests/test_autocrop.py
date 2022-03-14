@@ -2,6 +2,7 @@
 
 from glob import glob
 import shutil
+
 import pytest  # noqa: F401
 import cv2
 import numpy as np
@@ -79,7 +80,7 @@ def test_adjust_boundaries(values, expected_result):
 @pytest.mark.slow
 @pytest.mark.parametrize(
     "height, width",
-    [(500, 500), (800, 500), (500, 800), (1000, 1200)],
+    [(500, 500), (700, 500), (500, 700), (1000, 1200)],
 )
 def test_detect_face_in_cropped_image(height, width, integration):
     """
