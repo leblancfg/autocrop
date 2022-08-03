@@ -8,4 +8,5 @@ tox
 portray
 wheel
 twine
+hypothesis
 -r requirements.txt
