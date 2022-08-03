@@ -83,7 +83,7 @@ def check_positive_scalar(num):
 def open_file(input_filename):
     """Given a filename, returns a numpy array"""
     with Image.open(input_filename) as img_orig:
-        return np.asarray(img_orig)
+        return np.array(img_orig)
 
 
 class Cropper:
@@ -207,7 +207,7 @@ class Cropper:
         # Resize
         if self.resize:
             with Image.fromarray(image) as img:
-                image = np.asarray(img.resize((self.width, self.height)))
+                image = np.array(img.resize((self.width, self.height)))
 
         # Underexposition fix
         if self.gamma:
