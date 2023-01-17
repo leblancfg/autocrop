@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "autocrop"
+version = "1.3.0"
+description = "Automatically crops faces from batches of pictures"
+authors = ["Francois Leblanc <leblancfg@gmail.com>"]
+license = "BSD License (BSD 2-Clause)"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
