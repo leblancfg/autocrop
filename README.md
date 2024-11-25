@@ -31,7 +31,7 @@ cropper = Cropper()
 cropped_array = cropper.crop('portrait.png')
 
 # Save the cropped image with PIL if a face was detected:
-if cropped_array:
+if cropped_array is not None:
     cropped_image = Image.fromarray(cropped_array)
     cropped_image.save('cropped.png')
 ~~~
