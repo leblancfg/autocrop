@@ -96,6 +96,27 @@ def test_adjust_boundaries(values, expected_result):
     assert result == expected_result
 
 
+@pytest.mark.parametrize(
+    "values",
+    [
+        (663, 2495, 185, 867, 327, 354),
+        (612, 1020, 13, 280, 26, 33),
+        (612, 1020, 979, 282, 24, 34),
+        (612, 1020, 1003, 169, 16, 21),
+        (612, 1020, 993, 351, 26, 44),
+        (612, 1020, 996, 271, 21, 26),
+        (612, 1020, 9, 382, 30, 49),
+        (612, 1020, 0, 231, 14, 27),
+    ],
+)
+def test_crop_positions_stay_inside_image_bounds(values):
+    imgh, imgw, x, y, w, h = values
+    c = Cropper()
+    v1, v2, h1, h2 = c._crop_positions(imgh, imgw, x, y, w, h)
+    assert 0 <= v1 < v2 <= imgh
+    assert 0 <= h1 < h2 <= imgw
+
+
 @pytest.mark.slow
 @pytest.mark.parametrize(
     "height, width",
