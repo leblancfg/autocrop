@@ -61,3 +61,31 @@ $ just check
 
 If you have any questions, please email me at
 [leblancfg@gmail.com](mailto:leblancfg@gmail.com).
+
+## Releasing
+
+PyPI releases are published from GitHub Actions with PyPI trusted publishing, so
+the release workflow does not use a long-lived API token.
+
+One-time PyPI setup:
+
+1. Open the PyPI project: `https://pypi.org/project/autocrop/`.
+2. Go to **Publishing**, then add a trusted publisher.
+3. Use these values:
+   - Owner: `leblancfg`
+   - Repository name: `autocrop`
+   - Workflow filename: `build.yml`
+   - Environment name: leave blank unless the workflow later adds a protected environment
+4. Save the trusted publisher.
+
+Release flow:
+
+1. Merge the release commit that updates `autocrop/__version__.py` and `changelog.md`.
+2. Create and publish a GitHub Release with a tag that exactly matches the
+   package version, for example `v1.3.1`.
+3. The `Build` workflow checks out that tag, verifies the tag matches the
+   package version, builds the sdist and wheel, and publishes to PyPI through
+   OIDC.
+
+If the GitHub Release already exists but PyPI did not publish, rerun
+`.github/workflows/build.yml` manually with the release tag.
