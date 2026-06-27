@@ -1,0 +1,14 @@
+title: autocrop
+description: Face-aware image cropping for Python and shell workflows.
+url: https://leblancfg.com
+baseurl: /autocrop
+repository: leblancfg/autocrop
+markdown: kramdown
+highlighter: rouge
+permalink: pretty
+kramdown:
+  smart_quotes: apos,apos,quot,quot
+exclude:
+  - vendor
+  - Gemfile
+  - Gemfile.lock
