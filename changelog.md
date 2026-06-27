@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+### Added
+* Add `--skip-prompt` as a synonym for `--no-confirm`.
+
+### Changed
+* Use Pillow for resizing.
+* Update contributor setup documentation.
+* Update GitHub Actions versions and CI support through Python 3.14.
+* Allow pytest 9 in development requirements.
+
+### Fixed
+* Open files through Pillow to handle transparency.
+* Preserve RGB channels for path inputs.
+* Keep crop positions inside image bounds.
+
 ## 1.3.1 - 2022-02-08
 ### API Additions
 * The `Cropper` class now accepts a `resize` arg, to determine whether to resize the image after cropping it or not.
