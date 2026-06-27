@@ -127,18 +127,20 @@ In some cases, you may wish the package directly, instead of through [PyPI](http
 cd ~
 git clone https://github.com/leblancfg/autocrop
 cd autocrop
-pip install .
+uv venv
+uv pip install .
 ~~~
 
 ### conda
 Development of a `conda-forge` package for the [Anaconda Python distribution](https://www.anaconda.com/download/) is currently stalled due to the complexity of setting up the workflow with OpenCV. Please leave feedback on [issue #7](https://github.com/leblancfg/autocrop/issues/7) to see past attempts if you are insterested in helping out!
 
 ### Requirements
-Best practice for your projects is of course to [use virtual environments](http://docs.python-guide.org/en/latest/dev/virtualenvs/). At the very least, you will need to [have pip installed](https://pip.pypa.io/en/stable/installing/).
+Best practice for your projects is of course to use virtual environments. For
+local development, autocrop uses [uv](https://docs.astral.sh/uv/).
 
 Autocrop is [currently being tested on](https://github.com/leblancfg/autocrop/actions/workflows/ci.yml):
 
-* Python 3.7 to 3.10
+* Python 3.10 to 3.14
 * OS:
     - Linux
     - macOS
