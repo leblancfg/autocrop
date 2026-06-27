@@ -15,6 +15,7 @@ from .constants import (
     QUESTION_OVERWRITE,
     INPUT_FILETYPES,
 )
+from .detectors import VALID_DETECTORS
 
 
 def _preserve_metadata(input_filename, output_filename, source_stat):
@@ -89,6 +90,7 @@ def main(
     fwidth: int = 500,
     facePercent: int = 50,
     resize: bool = True,
+    detector: str = "haar",
     quiet: bool = True,
 ) -> None:
     """
@@ -117,6 +119,8 @@ def main(
         * Image extension to save at output.
     - `resize`: `bool`, default=`True`
         * If `False`, don't resize the image, but use the original size.
+    - `detector`: `str`, default=`haar`
+        * Face detector backend to use.
 
     Side Effects:
     -------------
@@ -143,7 +147,11 @@ def main(
 
     # Main loop
     cropper = Cropper(
-        width=fwidth, height=fheight, face_percent=facePercent, resize=resize
+        width=fwidth,
+        height=fheight,
+        face_percent=facePercent,
+        resize=resize,
+        detector=detector,
     )
     for input_filename in input_files:
         basename = os.path.basename(input_filename)
@@ -275,11 +283,22 @@ def output_format(input_format=None, extension=None):
 
 
 def crop_image(
-    path_or_array, image_format, extension, fheight, fwidth, face_percent, resize
+    path_or_array,
+    image_format,
+    extension,
+    fheight,
+    fwidth,
+    face_percent,
+    resize,
+    detector="haar",
 ):
     """Crop a single image path or numpy array."""
     cropper = Cropper(
-        width=fwidth, height=fheight, face_percent=face_percent, resize=resize
+        width=fwidth,
+        height=fheight,
+        face_percent=face_percent,
+        resize=resize,
+        detector=detector,
     )
     image = cropper.crop(path_or_array)
     if image is None:
@@ -311,13 +330,21 @@ def crop_file_to_output(
     face_percent=50,
     resize=True,
     stdout=None,
+    detector="haar",
 ):
     """Crop one image file to a file path or stdout."""
     with Image.open(input_filename) as img_orig:
         input_format = img_orig.format
 
     image, image_format = crop_image(
-        input_filename, input_format, extension, fheight, fwidth, face_percent, resize
+        input_filename,
+        input_format,
+        extension,
+        fheight,
+        fwidth,
+        face_percent,
+        resize,
+        detector,
     )
     if image is None:
         print(f"No face detected: {input_filename}", file=sys.stderr)
@@ -338,6 +365,7 @@ def crop_stdin_to_stdout(
     fwidth=500,
     face_percent=50,
     resize=True,
+    detector="haar",
 ):
     """Read image bytes from stdin, crop, and write image bytes to stdout."""
     stdin = stdin or sys.stdin.buffer
@@ -356,7 +384,14 @@ def crop_stdin_to_stdout(
         return 1
 
     image, image_format = crop_image(
-        input_image, input_format, extension, fheight, fwidth, face_percent, resize
+        input_image,
+        input_format,
+        extension,
+        fheight,
+        fwidth,
+        face_percent,
+        resize,
+        detector,
     )
     if image is None:
         print("No face detected on stdin image", file=sys.stderr)
@@ -385,6 +420,7 @@ def parse_args(args):
         "facePercent": "Percentage of face to image height",
         "no_resize": """Do not resize images to the specified width and height,
                       but instead use the original image's pixels.""",
+        "detector": "Face detector backend to use",
     }
 
     parser = argparse.ArgumentParser(description=help_d["desc"])
@@ -434,6 +470,12 @@ def parse_args(args):
     parser.add_argument(
         "-e", "--extension", type=chk_extension, default=None, help=help_d["extension"]
     )
+    parser.add_argument(
+        "--detector",
+        choices=VALID_DETECTORS,
+        default="haar",
+        help=help_d["detector"],
+    )
 
     parsed = parser.parse_args(args)
     if parsed.input is not None and parsed.source is not None:
@@ -470,6 +512,7 @@ def run_single_file_mode(args, input_source, resize):
         args.width,
         args.facePercent,
         resize,
+        detector=args.detector,
     )
 
 
@@ -496,6 +539,7 @@ def run_directory_mode(args, input_source, resize):
         args.width,
         args.facePercent,
         resize,
+        args.detector,
     )
     return 0
 
@@ -524,6 +568,7 @@ def command_line_interface():
             fwidth=args.width,
             face_percent=args.facePercent,
             resize=resize,
+            detector=args.detector,
         )
         sys.exit(status)
 

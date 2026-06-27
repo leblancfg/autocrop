@@ -2,16 +2,13 @@ import itertools
 
 import cv2
 import numpy as np
-import os
-import sys
 from PIL import Image
 
 from .constants import (
-    MINFACE,
     GAMMA_THRES,
     GAMMA,
-    CASCFILE,
 )
+from .detectors import build_detector
 
 
 class ImageReadError(BaseException):
@@ -123,22 +120,21 @@ class Cropper:
         padding=None,
         fix_gamma=True,
         resize=True,
+        detector="haar",
+        yunet_model_path=None,
     ):
         self.height = check_positive_scalar(height)
         self.width = check_positive_scalar(width)
         self.aspect_ratio = width / height
         self.gamma = fix_gamma
         self.resize = resize
+        self.detector = build_detector(detector, model_path=yunet_model_path)
 
         # Face percent
         if face_percent > 100 or face_percent < 1:
             fp_error = "The face_percent argument must be between 1 and 100"
             raise ValueError(fp_error)
         self.face_percent = check_positive_scalar(face_percent)
-
-        # XML Resource
-        directory = os.path.dirname(sys.modules["autocrop"].__file__)
-        self.casc_path = os.path.join(directory, CASCFILE)
 
     def crop(self, path_or_array):
         """
@@ -174,26 +170,15 @@ class Cropper:
             img_height, img_width = image.shape[:2]
         except AttributeError:
             raise ImageReadError
-        minface = int(np.sqrt(img_height**2 + img_width**2) / MINFACE)
-
-        # Create the haar cascade
-        face_cascade = cv2.CascadeClassifier(self.casc_path)
-
         # ====== Detect faces in the image ======
-        faces = face_cascade.detectMultiScale(
-            gray,
-            scaleFactor=1.1,
-            minNeighbors=5,
-            minSize=(minface, minface),
-            flags=cv2.CASCADE_FIND_BIGGEST_OBJECT | cv2.CASCADE_DO_ROUGH_SEARCH,
-        )
+        faces = self.detector.detect(image, gray)
 
         # Handle no faces
         if len(faces) == 0:
             return None
 
         # Make padding from biggest face found
-        x, y, w, h = faces[-1]
+        x, y, w, h = max(faces, key=lambda face: face[2] * face[3])
         pos = self._crop_positions(
             img_height,
             img_width,

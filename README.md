@@ -42,12 +42,19 @@ if cropped_array is not None:
     cropped_image.save('cropped.png')
 ~~~
 
+Haar cascade detection remains the default detector. YuNet can be selected when
+you want OpenCV's neural-network face detector:
+
+~~~python
+cropper = Cropper(detector="yunet")
+~~~
+
 Further examples and use cases are found in the [accompanying Jupyter Notebook](https://github.com/leblancfg/autocrop/blob/master/examples/visual_tests.ipynb).
 
 ## From the command line
 
     usage: autocrop [-h] [-v] [--no-confirm] [-n] [-i INPUT] [-o OUTPUT] [-r REJECT] [-w WIDTH] [-H HEIGHT] [--facePercent FACEPERCENT]
-                    [-e EXTENSION]
+                    [-e EXTENSION] [--detector {haar,yunet}]
                     [source]
 
     Automatically crops faces from pictures
@@ -74,6 +81,8 @@ Further examples and use cases are found in the [accompanying Jupyter Notebook](
                             Percentage of face to image height
       -e, --extension EXTENSION
                             Enter the image extension which to save at output
+      --detector {haar,yunet}
+                            Face detector backend to use
 
 ### Examples
 
@@ -95,6 +104,8 @@ Further examples and use cases are found in the [accompanying Jupyter Notebook](
 	- `autocrop -i pics -o crop -w 400 -H 400 -e png`
 * Crop every image in the `pics` folder and output to the `crop` directory, but keep the original pixels from the images:
     - `autocrop -i pics -o crop --no-resize`
+* Use YuNet instead of Haar cascade face detection:
+    - `autocrop -i pics -o crop --detector yunet`
 
 Directory input now requires an explicit output directory. For recursive or filtered batch workflows, compose `autocrop` with shell tools instead of relying on implicit whole-folder behavior. Successful single-image and stdin runs are quiet except for cropped image bytes on stdout; diagnostics are written to stderr.
 
@@ -104,28 +115,28 @@ find pics -type f \( -iname '*.jpg' -o -iname '*.png' \) -print0 |
   while IFS= read -r -d '' file; do
     out="crop/${file#pics/}"
     mkdir -p "$(dirname "$out")"
-    autocrop "$file" -e jpg > "${out%.*}.jpg"
+    autocrop "$file" --detector yunet -e jpg > "${out%.*}.jpg"
   done
 ```
 
 With [`fd`](https://github.com/sharkdp/fd):
 
 ```sh
-fd -e jpg -e png . pics -x sh -c 'out="crop/${1#pics/}"; mkdir -p "$(dirname "$out")"; autocrop "$1" -e jpg > "${out%.*}.jpg"' sh {}
+fd -e jpg -e png . pics -x sh -c 'out="crop/${1#pics/}"; mkdir -p "$(dirname "$out")"; autocrop "$1" --detector yunet -e jpg > "${out%.*}.jpg"' sh {}
 ```
 
 With `xargs`:
 
 ```sh
 find pics -type f \( -iname '*.jpg' -o -iname '*.png' \) -print0 |
-  xargs -0 -I{} sh -c 'out="crop/${1#pics/}"; mkdir -p "$(dirname "$out")"; autocrop "$1" > "$out"' sh {}
+  xargs -0 -I{} sh -c 'out="crop/${1#pics/}"; mkdir -p "$(dirname "$out")"; autocrop "$1" --detector yunet > "$out"' sh {}
 ```
 
 With GNU `parallel`:
 
 ```sh
 find pics -type f \( -iname '*.jpg' -o -iname '*.png' \) -print0 |
-  parallel -0 'out="crop/{= s:^pics/:: =}"; mkdir -p "$(dirname "$out")"; autocrop {} > "$out"'
+  parallel -0 'out="crop/{= s:^pics/:: =}"; mkdir -p "$(dirname "$out")"; autocrop {} --detector yunet > "$out"'
 ```
 
 Explicit in-place directory output remains available by passing the same input and output directory, and still prompts unless `--no-confirm` is used:
@@ -204,6 +215,13 @@ Check out:
 Adapted from:
 
 * http://photo.stackexchange.com/questions/60411/how-can-i-batch-crop-based-on-face-location
+
+### Bundled detector models
+
+Autocrop vendors OpenCV Zoo's `face_detection_yunet_2023mar.onnx` so YuNet works
+offline and CI does not depend on runtime downloads. The model source is
+`opencv/opencv_zoo`, and OpenCV's model card notes that files in the
+`models/face_detection_yunet` directory are MIT licensed.
 
 ### Contributing
 
