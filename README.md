@@ -42,23 +42,24 @@ Further examples and use cases are found in the [accompanying Jupyter Notebook](
 
     usage: autocrop [-h] [-v] [--no-confirm] [-n] [-i INPUT] [-o OUTPUT] [-r REJECT] [-w WIDTH] [-H HEIGHT] [--facePercent FACEPERCENT]
                     [-e EXTENSION]
+                    [source]
 
-    Automatically crops faces from batches of pictures
+    Automatically crops faces from pictures
 
     options:
+      source                Image file, image directory, or '-' to read image bytes from stdin. Directory input requires --output.
       -h, --help            Show this help message and exit
       -v, --version         Show program's version number and exit
       --no-confirm, --skip-prompt
                             Bypass any confirmation prompts
       -n, --no-resize       Do not resize images to the specified width and height, but instead use the original image's pixels.
       -i, --input INPUT
-                            Folder where images to crop are located. Default: current working directory
+                            Image file or folder where images to crop are located. Use '-' to read image bytes from stdin.
       -o, -p, --output, --path OUTPUT
-                            Folder where cropped images will be moved to. Default: current working directory, meaning images are cropped in
-                            place.
+                            Output file for a single input image, or output directory for directory input. If omitted for a single image,
+                            cropped image bytes are written to stdout.
       -r, --reject REJECT
-                            Folder where images that could not be cropped will be moved to. Default: current working directory, meaning images
-                            that are not cropped will be left in place.
+                            Folder where images that could not be cropped will be moved to in directory mode.
       -w, --width WIDTH
                             Width of cropped files in px. Default=500
       -H, --height HEIGHT
@@ -70,6 +71,15 @@ Further examples and use cases are found in the [accompanying Jupyter Notebook](
 
 ### Examples
 
+* Crop one image and write the cropped image bytes to stdout:
+    - `autocrop portrait.jpg > cropped.jpg`
+* Crop image bytes from stdin. This uses `-` instead of `--` because `--` is already argparse's standard option terminator:
+    - `cat portrait.jpg | autocrop - > cropped.jpg`
+    - `autocrop -- > cropped.jpg < portrait.jpg`
+* Crop one image and write to an explicit output file:
+    - `autocrop portrait.jpg -o cropped.jpg`
+* Crop one image and write into an explicit output directory:
+    - `autocrop portrait.jpg -o crop`
 * Crop every image in the `pics` folder, resize them to 400 px squares, and output them in the `crop` directory:
 	- `autocrop -i pics -o crop -w 400 -H 400`.
 	- Images where a face can't be detected will be left in `crop`.
@@ -79,8 +89,44 @@ Further examples and use cases are found in the [accompanying Jupyter Notebook](
 	- `autocrop -i pics -o crop -w 400 -H 400 -e png`
 * Crop every image in the `pics` folder and output to the `crop` directory, but keep the original pixels from the images:
     - `autocrop -i pics -o crop --no-resize`
-	
-If no output folder is added, asks for confirmation and destructively crops images in-place.
+
+Directory input now requires an explicit output directory. For recursive or filtered batch workflows, compose `autocrop` with shell tools instead of relying on implicit whole-folder behavior. Successful single-image and stdin runs are quiet except for cropped image bytes on stdout; diagnostics are written to stderr.
+
+```sh
+mkdir -p crop
+find pics -type f \( -iname '*.jpg' -o -iname '*.png' \) -print0 |
+  while IFS= read -r -d '' file; do
+    out="crop/${file#pics/}"
+    mkdir -p "$(dirname "$out")"
+    autocrop "$file" -e jpg > "${out%.*}.jpg"
+  done
+```
+
+With [`fd`](https://github.com/sharkdp/fd):
+
+```sh
+fd -e jpg -e png . pics -x sh -c 'out="crop/${1#pics/}"; mkdir -p "$(dirname "$out")"; autocrop "$1" -e jpg > "${out%.*}.jpg"' sh {}
+```
+
+With `xargs`:
+
+```sh
+find pics -type f \( -iname '*.jpg' -o -iname '*.png' \) -print0 |
+  xargs -0 -I{} sh -c 'out="crop/${1#pics/}"; mkdir -p "$(dirname "$out")"; autocrop "$1" > "$out"' sh {}
+```
+
+With GNU `parallel`:
+
+```sh
+find pics -type f \( -iname '*.jpg' -o -iname '*.png' \) -print0 |
+  parallel -0 'out="crop/{= s:^pics/:: =}"; mkdir -p "$(dirname "$out")"; autocrop {} > "$out"'
+```
+
+Explicit in-place directory output remains available by passing the same input and output directory, and still prompts unless `--no-confirm` is used:
+
+```sh
+autocrop -i pics -o pics
+```
 
 ### Detecting faces from video files
 You can use autocrop to detect faces in frames extracted from a video. A great way to [perform the frame extraction step is with `ffmpeg`](https://ffmpeg.org/download.html):
