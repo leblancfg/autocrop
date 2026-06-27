@@ -41,8 +41,11 @@ jobs:
           pip install -r requirements-dev.txt
           pip install -e .
 
+      - name: Install just
+        uses: extractions/setup-just@v3
+
       - name: Run linters
-        run: make lint
+        run: just lint
 
       - name: Run tests
         run: |

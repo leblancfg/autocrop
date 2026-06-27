@@ -54,13 +54,14 @@ green-light changes.
 
 Specifically, we:
 
+* Use [just](https://just.systems/) as the project command runner
 * Use [flake8](http://flake8.pycqa.org/en/latest/) for coding style tests
 * Run a test suite using [pytest](https://docs.pytest.org/en/latest/)
 
 You can run the tests locally, like so:
 
 ```
-$ make check
+$ just check
 ```
 
 
