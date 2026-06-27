@@ -14,37 +14,29 @@ Please follow these steps:
   [autocrop](https://github.com/leblancfg/autocrop) repository
 
 ## Development Setup
-This project works with [virtualenv](https://virtualenv.pypa.io/en/latest/).
+This project uses [uv](https://docs.astral.sh/uv/) for development environments
+and command execution.
 
 To start things off, run:
 
 ```
-$ python3 -m venv env
-$ source env/bin/activate
-```
-
-Then, run:
-
-```
-$ pip install -U setuptools
-$ pip install -r requirements-dev.txt
-$ pip install -e .
+$ uv venv
+$ uv pip install -r requirements-dev.txt -e .
 ```
 
 You can then run `autocrop` like so:
 
 ```
-$ autocrop
+$ uv run autocrop
 ```
 
-As long as the virtual environment has been activated, this will command will
-use the files in your local Git checkout. This makes it super easy to work on
+This uses the files in your local Git checkout, which makes it easy to work on
 the code and test your changes.
 
-To set up your virtual environment again in future, just run:
+To refresh your local environment in future, run:
 
 ```
-$ source env/bin/activate
+$ uv pip install -r requirements-dev.txt -e .
 ```
 
 ## Tests
@@ -54,13 +46,14 @@ green-light changes.
 
 Specifically, we:
 
+* Use [just](https://just.systems/) as the project command runner
 * Use [flake8](http://flake8.pycqa.org/en/latest/) for coding style tests
 * Run a test suite using [pytest](https://docs.pytest.org/en/latest/)
 
 You can run the tests locally, like so:
 
 ```
-$ make check
+$ just check
 ```
 
 

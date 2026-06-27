@@ -1,10 +1,10 @@
 pytest>=9.0.3, <10
 flake8
+build
 mock
 pytest-cov
 codecov
 attrs
-tox
 portray
 wheel
 twine
