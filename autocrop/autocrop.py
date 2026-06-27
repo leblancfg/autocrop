@@ -158,8 +158,10 @@ class Cropper:
         """
         if isinstance(path_or_array, str):
             image = open_file(path_or_array)
+            image_is_bgr = False
         else:
             image = path_or_array
+            image_is_bgr = True
 
         # Some grayscale color profiles can throw errors, catch them
         try:
@@ -212,7 +214,9 @@ class Cropper:
         # Underexposition fix
         if self.gamma:
             image = check_underexposed(image, gray)
-        return bgr_to_rbg(image)
+        if image_is_bgr:
+            return bgr_to_rbg(image)
+        return image
 
     def _determine_safe_zoom(self, imgh, imgw, x, y, w, h):
         """
