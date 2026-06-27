@@ -6,6 +6,7 @@ import shutil
 import pytest  # noqa: F401
 import cv2
 import numpy as np
+from PIL import Image
 
 from autocrop.autocrop import gamma, Cropper
 
@@ -46,6 +47,26 @@ def test_obama_has_a_face():
     obama = cv2.imread(loc)
     c = Cropper()
     assert len(c.crop(obama)) == 500
+
+
+def test_path_crop_preserves_rgb_channels(tmp_path, monkeypatch):
+    class MockCascade:
+        def detectMultiScale(self, *args, **kwargs):
+            return np.array([[0, 0, 2, 2]])
+
+    source = np.array(
+        [
+            [[255, 0, 0], [0, 0, 255]],
+            [[0, 255, 0], [255, 255, 0]],
+        ],
+        dtype=np.uint8,
+    )
+    image_path = tmp_path / "rgb.png"
+    Image.fromarray(source).save(image_path)
+    monkeypatch.setattr(cv2, "CascadeClassifier", lambda *args: MockCascade())
+
+    c = Cropper(width=2, height=2, face_percent=100, resize=False, fix_gamma=False)
+    np.testing.assert_array_equal(c.crop(str(image_path)), source)
 
 
 def test_open_file_invalid_filetype_returns_error():
