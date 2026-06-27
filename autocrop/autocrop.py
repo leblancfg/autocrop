@@ -327,4 +327,24 @@ class Cropper:
         v1 = y - ypad
         v2 = y + h + ypad
 
-        return [int(v1), int(v2), int(h1), int(h2)]
+        v1, v2, h1, h2 = int(v1), int(v2), int(h1), int(h2)
+
+        if h1 < 0:
+            h2 -= h1
+            h1 = 0
+        if h2 > imgw:
+            h1 -= h2 - imgw
+            h2 = imgw
+        if v1 < 0:
+            v2 -= v1
+            v1 = 0
+        if v2 > imgh:
+            v1 -= v2 - imgh
+            v2 = imgh
+
+        return [
+            max(0, v1),
+            min(imgh, v2),
+            max(0, h1),
+            min(imgw, h2),
+        ]
