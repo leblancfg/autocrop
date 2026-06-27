@@ -1,4 +1,5 @@
 set dotenv-load := false
+uv-run := "uv run --with-requirements requirements-dev.txt --with-editable ."
 
 default:
     @just --list
@@ -7,42 +8,34 @@ clear-dist:
     rm -rf autocrop.egg-info build dist
 
 pypi-test: clear-dist
-    python setup.py sdist bdist_wheel
-    twine upload dist/* -r testpypi
+    {{ uv-run }} python -m build
+    {{ uv-run }} twine upload dist/* -r testpypi
 
 pypi:
-    twine upload dist/*
+    {{ uv-run }} twine upload dist/*
 
 test:
-    pytest
-
-test-all:
-    tox
+    {{ uv-run }} pytest
 
 lint:
-    flake8 --max-complexity=10 --count autocrop tests
+    {{ uv-run }} flake8 --max-complexity=10 --count autocrop tests
 
 check: lint test
 
 docs:
-    portray on_github_pages
+    {{ uv-run }} portray on_github_pages
 
 venv:
-    test -d env || python3 -m venv env
+    uv venv
 
 install:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    . env/bin/activate
-    pip install -r requirements.txt
-    pip install -r requirements-dev.txt
-    python setup.py install
+    uv pip install -r requirements-dev.txt -e .
 
 initial_setup: venv install
     @echo
     @echo "Initial setup successful."
     @echo
-    @echo "Activate your environment with: source env/bin/activate"
+    @echo "Activate your environment with: source .venv/bin/activate"
     @echo
-    @echo "Once you are done, deactivate with: deactivate"
+    @echo "You can also run commands directly with: uv run ..."
     @echo
