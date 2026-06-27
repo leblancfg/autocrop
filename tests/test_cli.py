@@ -25,6 +25,7 @@ from autocrop.cli import (
 NUM_FILES = 12
 SOURCE_ATIME_NS = 946684800123456000
 SOURCE_MTIME_NS = 978307200654321000
+EXIF_MAKE_TAG = 271
 
 
 @pytest.fixture()
@@ -83,6 +84,19 @@ def assert_timestamps_match_source(path):
     assert metadata.st_mtime_ns == SOURCE_MTIME_NS
 
 
+def exif_image(path):
+    exif = Image.Exif()
+    exif[EXIF_MAKE_TAG] = "autocrop-test-camera"
+    Image.new("RGB", (4, 4), "red").save(path, exif=exif)
+
+
+def assert_exif_matches_source(source, destination):
+    with Image.open(source) as source_image, Image.open(destination) as result_image:
+        assert result_image.getexif()[EXIF_MAKE_TAG] == source_image.getexif()[
+            EXIF_MAKE_TAG
+        ]
+
+
 def test_output_preserves_source_timestamps_for_new_file(tmp_path):
     source = tmp_path / "source.jpg"
     destination = tmp_path / "destination.jpg"
@@ -97,6 +111,19 @@ def test_output_preserves_source_timestamps_for_new_file(tmp_path):
         assert result.size == (2, 2)
 
 
+def test_output_preserves_exif_for_new_file(tmp_path):
+    source = tmp_path / "source.jpg"
+    destination = tmp_path / "destination.jpg"
+    exif_image(source)
+
+    image = np.full((2, 2, 3), 255, dtype=np.uint8)
+    output(str(source), str(destination), image)
+
+    assert_exif_matches_source(source, destination)
+    with Image.open(destination) as result:
+        assert result.size == (2, 2)
+
+
 def test_output_preserves_source_timestamps_when_overwriting(tmp_path):
     source = tmp_path / "source.jpg"
     Image.new("RGB", (4, 4), "red").save(source)
@@ -107,6 +134,18 @@ def test_output_preserves_source_timestamps_when_overwriting(tmp_path):
 
     assert_timestamps_match_source(source)
     with Image.open(source) as result:
+        assert result.size == (2, 2)
+
+
+def test_output_preserves_exif_when_overwriting(tmp_path):
+    source = tmp_path / "source.jpg"
+    exif_image(source)
+
+    image = np.full((2, 2, 3), 255, dtype=np.uint8)
+    output(str(source), str(source), image)
+
+    with Image.open(source) as result:
+        assert result.getexif()[EXIF_MAKE_TAG] == "autocrop-test-camera"
         assert result.size == (2, 2)
 
 
