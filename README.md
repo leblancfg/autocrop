@@ -131,9 +131,6 @@ uv venv
 uv pip install .
 ~~~
 
-### conda
-Development of a `conda-forge` package for the [Anaconda Python distribution](https://www.anaconda.com/download/) is currently stalled due to the complexity of setting up the workflow with OpenCV. Please leave feedback on [issue #7](https://github.com/leblancfg/autocrop/issues/7) to see past attempts if you are insterested in helping out!
-
 ### Requirements
 Best practice for your projects is of course to use virtual environments. For
 local development, autocrop uses [uv](https://docs.astral.sh/uv/).

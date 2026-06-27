@@ -1,0 +1,56 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "autocrop"
+dynamic = ["version"]
+description = "Automatically crops faces from batches of pictures"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "BSD-2-Clause"
+authors = [
+  { name = "François Leblanc", email = "leblancfg@gmail.com" },
+]
+dependencies = [
+  "numpy>=1.10",
+  "opencv-python-headless>=3,<5",
+  "Pillow>=9.0.0",
+]
+classifiers = [
+  "License :: OSI Approved :: BSD License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+]
+
+[project.urls]
+Homepage = "https://github.com/leblancfg/autocrop"
+Issues = "https://github.com/leblancfg/autocrop/issues"
+Changelog = "https://github.com/leblancfg/autocrop/blob/master/changelog.md"
+
+[project.scripts]
+autocrop = "autocrop:command_line_interface"
+
+[tool.hatch.version]
+path = "autocrop/__version__.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/autocrop",
+  "/README.md",
+  "/LICENSE",
+  "/LICENSE-3RD-PARTY.txt",
+  "/changelog.md",
+  "/requirements.txt",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["autocrop"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"autocrop/haarcascade_frontalface_default.xml" = "autocrop/haarcascade_frontalface_default.xml"
