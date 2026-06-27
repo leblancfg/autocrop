@@ -24,8 +24,10 @@ jobs:
     steps:
       - name: Resolve release tag
         id: release
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
         run: |
-          tag="${{ github.event.release.tag_name || inputs.tag }}"
+          tag="$RELEASE_TAG"
           if ! [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
             echo "Release tag must look like v1.2.3 or v1.2.3-beta.1" >&2
             exit 1
