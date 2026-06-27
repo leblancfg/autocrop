@@ -7,12 +7,24 @@ import sys
 
 import pytest
 import cv2
+import numpy as np
 from unittest import mock
+from PIL import Image
 
 from autocrop.autocrop import Cropper
-from autocrop.cli import command_line_interface, main, size, confirmation, chk_extension
+from autocrop.cli import (
+    command_line_interface,
+    main,
+    output,
+    reject,
+    size,
+    confirmation,
+    chk_extension,
+)
 
 NUM_FILES = 12
+SOURCE_ATIME_NS = 946684800123456000
+SOURCE_MTIME_NS = 978307200654321000
 
 
 @pytest.fixture()
@@ -58,6 +70,55 @@ def test_size_minus_14_not_valid():
         size(-14)
         print(e)
     assert "Invalid pixel" in str(e)
+
+
+def set_source_timestamps(path):
+    os.utime(path, ns=(SOURCE_ATIME_NS, SOURCE_MTIME_NS))
+    return os.stat(path)
+
+
+def assert_timestamps_match_source(path):
+    metadata = os.stat(path)
+    assert metadata.st_atime_ns == SOURCE_ATIME_NS
+    assert metadata.st_mtime_ns == SOURCE_MTIME_NS
+
+
+def test_output_preserves_source_timestamps_for_new_file(tmp_path):
+    source = tmp_path / "source.jpg"
+    destination = tmp_path / "destination.jpg"
+    Image.new("RGB", (4, 4), "red").save(source)
+    source_stat = set_source_timestamps(source)
+
+    image = np.full((2, 2, 3), 255, dtype=np.uint8)
+    output(str(source), str(destination), image, source_stat)
+
+    assert_timestamps_match_source(destination)
+    with Image.open(destination) as result:
+        assert result.size == (2, 2)
+
+
+def test_output_preserves_source_timestamps_when_overwriting(tmp_path):
+    source = tmp_path / "source.jpg"
+    Image.new("RGB", (4, 4), "red").save(source)
+    source_stat = set_source_timestamps(source)
+
+    image = np.full((2, 2, 3), 255, dtype=np.uint8)
+    output(str(source), str(source), image, source_stat)
+
+    assert_timestamps_match_source(source)
+    with Image.open(source) as result:
+        assert result.size == (2, 2)
+
+
+def test_reject_preserves_source_timestamps_for_new_file(tmp_path):
+    source = tmp_path / "source.jpg"
+    destination = tmp_path / "reject.jpg"
+    Image.new("RGB", (4, 4), "red").save(source)
+    source_stat = set_source_timestamps(source)
+
+    reject(str(source), str(destination), source_stat)
+
+    assert_timestamps_match_source(destination)
 
 
 @mock.patch("autocrop.cli.input_path", lambda p: p)
