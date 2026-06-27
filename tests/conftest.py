@@ -1,11 +1,5 @@
-from _pytest.mark import Mark
-
-
-empty_mark = Mark("", [], {})
-
-
 def by_slow_marker(item):
-    return item.get_closest_marker("slow", default=empty_mark)
+    return item.get_closest_marker("slow") is not None
 
 
 def pytest_collection_modifyitems(items):

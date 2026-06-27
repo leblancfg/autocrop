@@ -21,16 +21,14 @@ def integration():
     path_i = "tests/test"
     path_o = "tests/crop"
     path_r = "tests/reject"
+    for path in [path_i, path_o, path_r]:
+        shutil.rmtree(path, ignore_errors=True)
     shutil.copytree("tests/data", path_i)
     yield
 
     # Teardown
-    shutil.rmtree(path_i)
-    for path in [path_o, path_r]:
-        try:
-            shutil.rmtree(path)
-        except OSError:
-            pass
+    for path in [path_i, path_o, path_r]:
+        shutil.rmtree(path, ignore_errors=True)
 
 
 def test_size_140_is_valid():
