@@ -1,6 +1,7 @@
 import argparse
 import os
 import shutil
+import stat
 import sys
 from typing import Optional
 
@@ -14,26 +15,55 @@ from .constants import (
 )
 
 
-def output(input_filename, output_filename, image):
+def _preserve_metadata(input_filename, output_filename, source_stat):
+    """Preserve safe filesystem metadata from the source image."""
+    if input_filename != output_filename:
+        shutil.copystat(input_filename, output_filename)
+    os.chmod(output_filename, stat.S_IMODE(source_stat.st_mode))
+    os.utime(
+        output_filename,
+        ns=(source_stat.st_atime_ns, source_stat.st_mtime_ns),
+    )
+
+
+def _image_save_kwargs(input_filename):
+    """Return image metadata Pillow can preserve while writing the crop."""
+    save_kwargs = {}
+    with Image.open(input_filename) as img_orig:
+        if "exif" in img_orig.info:
+            save_kwargs["exif"] = img_orig.info["exif"]
+        if "icc_profile" in img_orig.info:
+            save_kwargs["icc_profile"] = img_orig.info["icc_profile"]
+    return save_kwargs
+
+
+def output(input_filename, output_filename, image, source_stat=None):
     """
     Move the input file to the output location and write over it with the
     cropped image data.
     """
+    if source_stat is None:
+        source_stat = os.stat(input_filename)
     if input_filename != output_filename:
         # Move the file to the output directory
         shutil.copy(input_filename, output_filename)
+    save_kwargs = _image_save_kwargs(input_filename)
     # Encode the image as an in-memory PNG
     img_new = Image.fromarray(image)
     # Write the new image (converting the format to match the output
     # filename if necessary)
-    img_new.save(output_filename)
+    img_new.save(output_filename, **save_kwargs)
+    _preserve_metadata(input_filename, output_filename, source_stat)
 
 
-def reject(input_filename, reject_filename):
+def reject(input_filename, reject_filename, source_stat=None):
     """Move the input file to the reject location."""
+    if source_stat is None:
+        source_stat = os.stat(input_filename)
     if input_filename != reject_filename:
         # Move the file to the reject directory
         shutil.copy(input_filename, reject_filename)
+    _preserve_metadata(input_filename, reject_filename, source_stat)
 
 
 def main(
@@ -109,6 +139,7 @@ def main(
             output_filename = os.path.join(output_d, basename)
         reject_filename = os.path.join(reject_d, basename)
         image = None
+        source_stat = os.stat(input_filename)
 
         # Attempt the crop
         try:
@@ -119,11 +150,11 @@ def main(
 
         # Did the crop produce an invalid image?
         if isinstance(image, type(None)):
-            reject(input_filename, reject_filename)
+            reject(input_filename, reject_filename, source_stat)
             print("No face detected: {}".format(reject_filename))
             reject_count += 1
         else:
-            output(input_filename, output_filename, image)
+            output(input_filename, output_filename, image, source_stat)
             print("Face detected:    {}".format(output_filename))
             output_count += 1
 
