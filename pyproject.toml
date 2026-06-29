@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "autocrop"
 dynamic = ["version"]
-description = "Automatically crops faces from batches of pictures"
+description = "Face-aware image cropping for Python and shell workflows"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "BSD-2-Clause"
@@ -14,7 +14,7 @@ authors = [
 ]
 dependencies = [
   "numpy>=1.10",
-  "opencv-python-headless>=3,<5",
+  "opencv-python-headless>=4.8,<5",
   "Pillow>=9.0.0",
 ]
 classifiers = [
@@ -31,10 +31,34 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/leblancfg/autocrop"
 Issues = "https://github.com/leblancfg/autocrop/issues"
-Changelog = "https://github.com/leblancfg/autocrop/blob/master/changelog.md"
+Changelog = "https://github.com/leblancfg/autocrop/blob/master/docs/changelog.md"
 
 [project.scripts]
 autocrop = "autocrop:command_line_interface"
+
+[dependency-groups]
+dev = [
+  "attrs",
+  "build",
+  "flake8",
+  "flake8-pyproject",
+  "mock",
+  "portray",
+  "pytest-cov",
+  "pytest>=9.0.3,<10",
+  "twine",
+  "wheel",
+]
+
+[tool.pytest.ini_options]
+markers = [
+  "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
+
+[tool.flake8]
+extend-ignore = ["E203"]
+max-line-length = 120
+exclude = ["venv/*"]
 
 [tool.hatch.version]
 path = "autocrop/__version__.py"
@@ -46,11 +70,11 @@ include = [
   "/LICENSE",
   "/LICENSE-3RD-PARTY.txt",
   "/changelog.md",
-  "/requirements.txt",
+  "/docs/changelog.md",
 ]
 
 [tool.hatch.build.targets.wheel]
 packages = ["autocrop"]
 
 [tool.hatch.build.targets.wheel.force-include]
-"autocrop/haarcascade_frontalface_default.xml" = "autocrop/haarcascade_frontalface_default.xml"
+"autocrop/face_detection_yunet_2023mar.onnx" = "autocrop/face_detection_yunet_2023mar.onnx"

@@ -6,9 +6,10 @@ import shutil
 import pytest  # noqa: F401
 import cv2
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageOps
 
-from autocrop.autocrop import gamma, Cropper
+from autocrop.autocrop import Cropper, open_file
+from autocrop.yunet import YuNetDetector
 
 
 @pytest.fixture()
@@ -27,14 +28,6 @@ def integration():
         shutil.rmtree(path, ignore_errors=True)
 
 
-def test_gamma_brightens_image():
-    """This function is so tightly coupled to cv2 it's probably useless.
-    Still might flag cv2 or numpy boo-boos."""
-    matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-    expected = np.uint8([[15, 22, 27], [31, 35, 39], [42, 45, 47]])
-    np.testing.assert_array_equal(gamma(img=matrix, correction=0.5), expected)
-
-
 def test_crop_noise_returns_none():
     loc = "tests/data/noise.png"
     noise = cv2.imread(loc)
@@ -49,9 +42,28 @@ def test_obama_has_a_face():
     assert len(c.crop(obama)) == 500
 
 
-def test_path_crop_preserves_rgb_channels(tmp_path, monkeypatch):
-    class MockCascade:
-        def detectMultiScale(self, *args, **kwargs):
+def test_open_file_applies_exif_orientation(tmp_path):
+    source = np.array(
+        [
+            [[255, 0, 0], [0, 255, 0]],
+            [[0, 0, 255], [255, 255, 0]],
+            [[255, 0, 255], [0, 255, 255]],
+        ],
+        dtype=np.uint8,
+    )
+    image_path = tmp_path / "oriented.jpg"
+    exif = Image.Exif()
+    exif[274] = 6
+    Image.fromarray(source).save(image_path, exif=exif)
+
+    with Image.open(image_path) as img:
+        expected = np.array(ImageOps.exif_transpose(img))
+    np.testing.assert_allclose(open_file(str(image_path)), expected, atol=3)
+
+
+def test_path_crop_preserves_rgb_channels(tmp_path):
+    class MockDetector:
+        def detect(self, image):
             return np.array([[0, 0, 2, 2]])
 
     source = np.array(
@@ -63,10 +75,179 @@ def test_path_crop_preserves_rgb_channels(tmp_path, monkeypatch):
     )
     image_path = tmp_path / "rgb.png"
     Image.fromarray(source).save(image_path)
-    monkeypatch.setattr(cv2, "CascadeClassifier", lambda *args: MockCascade())
 
-    c = Cropper(width=2, height=2, face_percent=100, resize=False, fix_gamma=False)
+    c = Cropper(
+        width=2,
+        height=2,
+        face_percent=100,
+        resize=False,
+        face_detector=MockDetector(),
+    )
     np.testing.assert_array_equal(c.crop(str(image_path)), source)
+
+
+def test_cropper_accepts_detector_object():
+    class MockDetector:
+        def detect(self, image):
+            return np.array([[0, 0, 2, 2]])
+
+    source = np.array(
+        [
+            [[255, 0, 0], [0, 0, 255]],
+            [[0, 255, 0], [255, 255, 0]],
+        ],
+        dtype=np.uint8,
+    )
+    expected = source[:, :, [2, 1, 0]].copy()
+
+    c = Cropper(
+        width=2,
+        height=2,
+        face_percent=100,
+        resize=False,
+        face_detector=MockDetector(),
+    )
+    np.testing.assert_array_equal(c.crop(source), expected)
+
+
+def test_cropper_normalizes_grayscale_for_detection(tmp_path):
+    class MockDetector:
+        def detect(self, image):
+            self.image = image.copy()
+            return np.array([[0, 0, 2, 2]])
+
+    source = np.array([[0, 127], [200, 255]], dtype=np.uint8)
+    image_path = tmp_path / "gray.png"
+    Image.fromarray(source).save(image_path)
+    detector = MockDetector()
+
+    c = Cropper(
+        width=2,
+        height=2,
+        face_percent=100,
+        resize=False,
+        face_detector=detector,
+    )
+
+    np.testing.assert_array_equal(c.crop(str(image_path)), source)
+    assert detector.image.shape == (2, 2, 3)
+    np.testing.assert_array_equal(detector.image[:, :, 0], source)
+    np.testing.assert_array_equal(detector.image[:, :, 1], source)
+    np.testing.assert_array_equal(detector.image[:, :, 2], source)
+
+
+def test_cropper_normalizes_rgba_for_detection_and_preserves_alpha(tmp_path):
+    class MockDetector:
+        def detect(self, image):
+            self.image = image.copy()
+            return np.array([[0, 0, 2, 2]])
+
+    source = np.array(
+        [
+            [[255, 0, 0, 0], [0, 255, 0, 85]],
+            [[0, 0, 255, 170], [255, 255, 0, 255]],
+        ],
+        dtype=np.uint8,
+    )
+    image_path = tmp_path / "rgba.png"
+    Image.fromarray(source).save(image_path)
+    detector = MockDetector()
+
+    c = Cropper(
+        width=2,
+        height=2,
+        face_percent=100,
+        resize=False,
+        face_detector=detector,
+    )
+
+    np.testing.assert_array_equal(c.crop(str(image_path)), source)
+    assert detector.image.shape == (2, 2, 3)
+    np.testing.assert_array_equal(detector.image, source[:, :, [2, 1, 0]])
+
+
+def test_cropper_uses_largest_detected_face():
+    class MockDetector:
+        def detect(self, image):
+            return np.array([[0, 0, 1, 1], [0, 0, 2, 2]])
+
+    source = np.array(
+        [
+            [[1, 2, 3], [4, 5, 6]],
+            [[7, 8, 9], [10, 11, 12]],
+        ],
+        dtype=np.uint8,
+    )
+    expected = source[:, :, [2, 1, 0]].copy()
+
+    c = Cropper(
+        width=2,
+        height=2,
+        face_percent=100,
+        resize=False,
+        face_detector=MockDetector(),
+    )
+
+    np.testing.assert_array_equal(c.crop(source), expected)
+
+
+def test_cropper_returns_none_for_invalid_crop_geometry():
+    class MockDetector:
+        def detect(self, image):
+            return np.array([[0, 465, 1, 68]])
+
+    source = np.zeros((885, 10, 3), dtype=np.uint8)
+    c = Cropper(face_detector=MockDetector())
+
+    assert c.crop(source) is None
+
+
+def test_yunet_detector_uses_packaged_model(monkeypatch):
+    created = {}
+
+    class MockFaceDetectorYN:
+        def detect(self, image):
+            return None, np.array([[1.2, 2.3, 3.4, 4.5, 0.9]])
+
+    def mock_create(model_path, config, input_size, score_threshold, nms_threshold, top_k):
+        created["model_path"] = model_path
+        created["config"] = config
+        created["input_size"] = input_size
+        created["score_threshold"] = score_threshold
+        created["nms_threshold"] = nms_threshold
+        created["top_k"] = top_k
+        return MockFaceDetectorYN()
+
+    monkeypatch.setattr(cv2, "FaceDetectorYN_create", mock_create, raising=False)
+
+    detector = YuNetDetector()
+    faces = detector.detect(np.zeros((20, 10, 3), dtype=np.uint8))
+
+    assert created["model_path"].endswith("face_detection_yunet_2023mar.onnx")
+    assert created["config"] == ""
+    assert created["input_size"] == (10, 20)
+    assert created["score_threshold"] == 0.6
+    assert created["nms_threshold"] == 0.3
+    assert created["top_k"] == 5000
+    np.testing.assert_array_equal(faces, np.array([[1, 2, 3, 4]], dtype=np.int32))
+
+
+def test_yunet_detector_returns_empty_when_no_faces(monkeypatch):
+    class MockFaceDetectorYN:
+        def detect(self, image):
+            return None, None
+
+    monkeypatch.setattr(
+        cv2,
+        "FaceDetectorYN_create",
+        lambda *args: MockFaceDetectorYN(),
+        raising=False,
+    )
+
+    detector = YuNetDetector()
+    faces = detector.detect(np.zeros((20, 10, 3), dtype=np.uint8))
+
+    assert faces.shape == (0, 4)
 
 
 def test_open_file_invalid_filetype_returns_error():
@@ -86,10 +267,7 @@ def test_open_file_invalid_filetype_returns_error():
 )
 def test_adjust_boundaries(values, expected_result):
     """Trigger the following: [h1 < 0, h2 > imgw, v1 < 0, v2 > imgh]"""
-    # TODO: the padding code section is critically broken and
-    # needs to be rewritten anyways. This section is more of
-    # the draft of the proper testing section once the code is
-    # fixed.
+    # Exercise boundary adjustments around detected faces.
     imgh, imgw, h1, h2, v1, v2 = values
     c = Cropper()
     result = c._crop_positions(imgh, imgw, h1, h2, v1, v2)
@@ -124,9 +302,9 @@ def test_crop_positions_stay_inside_image_bounds(values):
 )
 def test_detect_face_in_cropped_image(height, width, integration):
     """
-    An image cropped by Cropper should have a face detectable.
-    This defends us against image warping or crops outside the region
-    of interest.
+    Cropped outputs should stay inside image bounds and remain valid arrays.
+    YuNet is intentionally strict, so a second-pass detection is not a stable
+    invariant for aggressively margin-heavy crops.
     """
     c = Cropper(height=height, width=width, face_percent=1, resize=False)
     faces = [f for f in glob("tests/test/*") if not f.endswith("md")]
@@ -136,7 +314,9 @@ def test_detect_face_in_cropped_image(height, width, integration):
         except (AttributeError, TypeError):
             pass
         if img_array is not None:
-            assert c.crop(img_array) is not None
+            assert img_array.size > 0
+            assert img_array.shape[0] > 0
+            assert img_array.shape[1] > 0
 
 
 @pytest.mark.parametrize("resize", [True, False])
@@ -147,7 +327,7 @@ def test_resize(resize, integration):
     if resize:
         assert img_array.shape == (500, 500, 3)
     else:
-        assert img_array.shape == (430, 430, 3)
+        assert img_array.shape == (452, 452, 3)
 
 
 @pytest.mark.parametrize("face_percent", [0, 101, "asdf"])

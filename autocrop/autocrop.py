@@ -2,20 +2,13 @@ import itertools
 
 import cv2
 import numpy as np
-import os
-import sys
-from PIL import Image
+from PIL import Image, ImageOps
 
-from .constants import (
-    MINFACE,
-    GAMMA_THRES,
-    GAMMA,
-    CASCFILE,
-)
+from .yunet import YuNetDetector
 
 
-class ImageReadError(BaseException):
-    """Custom exception to catch an OpenCV failure type."""
+class ImageReadError(Exception):
+    """Raised when an input cannot be interpreted as an image array."""
 
     pass
 
@@ -35,6 +28,8 @@ def intersect(v1, v2):
     dp = a1 - b1
     dap = perp(da)
     denom = np.dot(dap, db).astype(float)
+    if denom == 0:
+        return None
     num = np.dot(dap, dp)
     return (num / denom) * db + b1
 
@@ -56,20 +51,27 @@ def bgr_to_rbg(img):
     return img
 
 
-def gamma(img, correction):
-    """Simple gamma correction to brighten faces"""
-    img = cv2.pow(img / 255.0, correction)
-    return np.uint8(img * 255)
-
-
-def check_underexposed(image, gray):
+def detector_color_image(image, image_is_bgr):
     """
-    Returns the (cropped) image with GAMMA applied if underexposition
-    is detected.
+    Return a 3-channel BGR image suitable for OpenCV DNN face detectors.
+
+    The crop itself still uses the original image array, so grayscale and alpha
+    channels can be preserved in the returned crop.
     """
-    uexp = cv2.calcHist([gray], [0], None, [256], [0, 256])
-    if sum(uexp[-26:]) < GAMMA_THRES * sum(uexp):
-        image = gamma(image, GAMMA)
+    if image.ndim == 2:
+        return cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+
+    channels = image.shape[2]
+    if channels == 1:
+        return cv2.cvtColor(image[:, :, 0], cv2.COLOR_GRAY2BGR)
+    if channels == 4:
+        if image_is_bgr:
+            return image[:, :, :3].copy()
+        return cv2.cvtColor(image, cv2.COLOR_RGBA2BGR)
+    if channels == 3:
+        if image_is_bgr:
+            return image
+        return cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     return image
 
 
@@ -81,20 +83,18 @@ def check_positive_scalar(num):
 
 
 def open_file(input_filename):
-    """Given a filename, returns a numpy array"""
+    """Given a filename, returns an EXIF-oriented numpy array."""
     with Image.open(input_filename) as img_orig:
-        return np.array(img_orig)
+        return np.array(ImageOps.exif_transpose(img_orig))
 
 
 class Cropper:
     """
     Crops the largest detected face from images.
 
-    This class uses the `CascadeClassifier` from OpenCV to
-    perform the `crop` by taking in either a filepath or
-    Numpy array, and returning a Numpy array. By default,
-    also provides a slight gamma fix to lighten the face
-    in its new context.
+    This class uses OpenCV's YuNet face detector to perform the
+    `crop` by taking in either a filepath or Numpy array, and
+    returning a Numpy array.
 
     Parameters:
     -----------
@@ -106,13 +106,12 @@ class Cropper:
     * `face_percent`: `int`, default=`50`
         - Aka zoom factor. Percent of the overall size of
         the cropped image containing the detected coordinates.
-    * `fix_gamma`: `bool`, default=`True`
-        - Cropped faces are often underexposed when taken
-        out of their context. If under a threshold, sets the
-        gamma to 0.9.
     * `resize`: `bool`, default=`True`
         - Resizes the image to the specified width and height,
         otherwise, returns the original image pixels.
+
+    NumPy array inputs are interpreted as OpenCV-style BGR/BGRA arrays. Returned
+    arrays are RGB/RGBA so they can be passed directly to Pillow or Matplotlib.
     """
 
     def __init__(
@@ -120,25 +119,29 @@ class Cropper:
         width=500,
         height=500,
         face_percent=50,
-        padding=None,
-        fix_gamma=True,
         resize=True,
+        face_detector=None,
+        yunet_model_path=None,
+        yunet_score_threshold=0.6,
+        yunet_nms_threshold=0.3,
+        yunet_top_k=5000,
     ):
         self.height = check_positive_scalar(height)
         self.width = check_positive_scalar(width)
         self.aspect_ratio = width / height
-        self.gamma = fix_gamma
         self.resize = resize
+        self.face_detector = face_detector or YuNetDetector(
+            model_path=yunet_model_path,
+            score_threshold=yunet_score_threshold,
+            nms_threshold=yunet_nms_threshold,
+            top_k=yunet_top_k,
+        )
 
         # Face percent
         if face_percent > 100 or face_percent < 1:
             fp_error = "The face_percent argument must be between 1 and 100"
             raise ValueError(fp_error)
         self.face_percent = check_positive_scalar(face_percent)
-
-        # XML Resource
-        directory = os.path.dirname(sys.modules["autocrop"].__file__)
-        self.casc_path = os.path.join(directory, CASCFILE)
 
     def crop(self, path_or_array):
         """
@@ -149,7 +152,8 @@ class Cropper:
         Parameters
         ----------
         - `path_or_array` : {`str`, `np.ndarray`}
-            * The filepath or numpy array of the image.
+            * The filepath or numpy array of the image. Array inputs are
+              interpreted as OpenCV-style BGR/BGRA arrays.
 
         Returns
         -------
@@ -163,37 +167,24 @@ class Cropper:
             image = path_or_array
             image_is_bgr = True
 
-        # Some grayscale color profiles can throw errors, catch them
-        try:
-            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        except cv2.error:
-            gray = image
+        detection_image = detector_color_image(image, image_is_bgr)
 
         # Scale the image
         try:
             img_height, img_width = image.shape[:2]
         except AttributeError:
             raise ImageReadError
-        minface = int(np.sqrt(img_height**2 + img_width**2) / MINFACE)
-
-        # Create the haar cascade
-        face_cascade = cv2.CascadeClassifier(self.casc_path)
-
         # ====== Detect faces in the image ======
-        faces = face_cascade.detectMultiScale(
-            gray,
-            scaleFactor=1.1,
-            minNeighbors=5,
-            minSize=(minface, minface),
-            flags=cv2.CASCADE_FIND_BIGGEST_OBJECT | cv2.CASCADE_DO_ROUGH_SEARCH,
-        )
+        faces = self.face_detector.detect(detection_image)
 
         # Handle no faces
         if len(faces) == 0:
             return None
 
-        # Make padding from biggest face found
-        x, y, w, h = faces[-1]
+        # Make crop margins from biggest face found
+        x, y, w, h = max(faces, key=lambda face: face[2] * face[3])
+        if w <= 0 or h <= 0:
+            return None
         pos = self._crop_positions(
             img_height,
             img_width,
@@ -203,6 +194,9 @@ class Cropper:
             h,
         )
 
+        if pos[0] >= pos[1] or pos[2] >= pos[3]:
+            return None
+
         # ====== Actual cropping ======
         image = image[pos[0] : pos[1], pos[2] : pos[3]]
 
@@ -211,9 +205,6 @@ class Cropper:
             with Image.fromarray(image) as img:
                 image = np.array(img.resize((self.width, self.height)))
 
-        # Underexposition fix
-        if self.gamma:
-            image = check_underexposed(image, gray)
         if image_is_bgr:
             return bgr_to_rbg(image)
         return image
@@ -275,9 +266,12 @@ class Cropper:
             a = distance(*corner_vector)
             intersects = list(intersect(corner_vector, side) for side in image_sides)
             for pt in intersects:
+                if pt is None or not np.isfinite(pt).all():
+                    continue
                 if (pt >= 0).all() and (pt <= i[2]).all():  # if intersect within image
                     dist_to_pt = distance(center, pt)
-                    corner_ratios.append(100 * a / dist_to_pt)
+                    if dist_to_pt > 0:
+                        corner_ratios.append(100 * a / dist_to_pt)
         return max(corner_ratios)
 
     def _crop_positions(
@@ -321,7 +315,7 @@ class Cropper:
             width_crop = w * 100.0 / zoom
             height_crop = float(width_crop) / self.aspect_ratio
 
-        # Calculate padding by centering face
+        # Calculate margins by centering face
         xpad = (width_crop - w) / 2
         ypad = (height_crop - h) / 2
 

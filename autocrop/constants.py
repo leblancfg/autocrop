@@ -1,13 +1,118 @@
-from PIL import Image
+YUNET_MODEL = "face_detection_yunet_2023mar.onnx"
 
-FIXEXP = True  # Flag to fix underexposition
-MINFACE = 8  # Minimum face size ratio; too low and we get false positives
-INCREMENT = 0.06
-GAMMA_THRES = 0.001
-GAMMA = 0.90
-FACE_RATIO = 6  # Face / padding ratio
-QUESTION_OVERWRITE = "Overwrite image files?"
-CASCFILE = "haarcascade_frontalface_default.xml"
+# Static Pillow extension-to-format map. Keeping this static avoids calling
+# Image.registered_extensions() at import time, which imports/registers every
+# Pillow image plugin before autocrop has done any work.
+IMAGE_FORMATS_BY_EXTENSION = {
+    ".apng": "PNG",
+    ".avif": "AVIF",
+    ".avifs": "AVIF",
+    ".blp": "BLP",
+    ".bmp": "BMP",
+    ".bufr": "BUFR",
+    ".bw": "SGI",
+    ".cur": "CUR",
+    ".dcx": "DCX",
+    ".dds": "DDS",
+    ".dib": "DIB",
+    ".emf": "WMF",
+    ".eps": "EPS",
+    ".fit": "FITS",
+    ".fits": "FITS",
+    ".flc": "FLI",
+    ".fli": "FLI",
+    ".ftc": "FTEX",
+    ".ftu": "FTEX",
+    ".gbr": "GBR",
+    ".gif": "GIF",
+    ".grib": "GRIB",
+    ".h5": "HDF5",
+    ".hdf": "HDF5",
+    ".icb": "TGA",
+    ".icns": "ICNS",
+    ".ico": "ICO",
+    ".iim": "IPTC",
+    ".im": "IM",
+    ".j2c": "JPEG2000",
+    ".j2k": "JPEG2000",
+    ".jfif": "JPEG",
+    ".jp2": "JPEG2000",
+    ".jpc": "JPEG2000",
+    ".jpe": "JPEG",
+    ".jpeg": "JPEG",
+    ".jpf": "JPEG2000",
+    ".jpg": "JPEG",
+    ".jpx": "JPEG2000",
+    ".mpeg": "MPEG",
+    ".mpg": "MPEG",
+    ".mpo": "MPO",
+    ".msp": "MSP",
+    ".palm": "PALM",
+    ".pbm": "PPM",
+    ".pcd": "PCD",
+    ".pcx": "PCX",
+    ".pdf": "PDF",
+    ".pfm": "PPM",
+    ".pgm": "PPM",
+    ".png": "PNG",
+    ".pnm": "PPM",
+    ".ppm": "PPM",
+    ".ps": "EPS",
+    ".psd": "PSD",
+    ".pxr": "PIXAR",
+    ".qoi": "QOI",
+    ".ras": "SUN",
+    ".rgb": "SGI",
+    ".rgba": "SGI",
+    ".sgi": "SGI",
+    ".tga": "TGA",
+    ".tif": "TIFF",
+    ".tiff": "TIFF",
+    ".vda": "TGA",
+    ".vst": "TGA",
+    ".webp": "WEBP",
+    ".wmf": "WMF",
+    ".xbm": "XBM",
+    ".xpm": "XPM",
+}
 
-PILLOW_FILETYPES = [k for k in Image.registered_extensions().keys()]
-INPUT_FILETYPES = PILLOW_FILETYPES + [s.upper() for s in PILLOW_FILETYPES]
+# Writable output formats that autocrop accepts for explicit output paths.
+# This is intentionally narrower than Pillow's readable formats so we can fail
+# early instead of accepting read-only extensions and crashing during save.
+OUTPUT_FORMATS_BY_EXTENSION = {
+    ".apng": "PNG",
+    ".bmp": "BMP",
+    ".dib": "DIB",
+    ".eps": "EPS",
+    ".gif": "GIF",
+    ".icns": "ICNS",
+    ".ico": "ICO",
+    ".j2c": "JPEG2000",
+    ".j2k": "JPEG2000",
+    ".jpe": "JPEG",
+    ".jpeg": "JPEG",
+    ".jpg": "JPEG",
+    ".jp2": "JPEG2000",
+    ".jpc": "JPEG2000",
+    ".jpf": "JPEG2000",
+    ".jpx": "JPEG2000",
+    ".pbm": "PPM",
+    ".pcx": "PCX",
+    ".pdf": "PDF",
+    ".pgm": "PPM",
+    ".png": "PNG",
+    ".pnm": "PPM",
+    ".ppm": "PPM",
+    ".ps": "EPS",
+    ".rgb": "SGI",
+    ".rgba": "SGI",
+    ".sgi": "SGI",
+    ".tga": "TGA",
+    ".tif": "TIFF",
+    ".tiff": "TIFF",
+    ".webp": "WEBP",
+}
+
+INPUT_FILETYPES = frozenset(IMAGE_FORMATS_BY_EXTENSION)
+OUTPUT_FILETYPES = frozenset(OUTPUT_FORMATS_BY_EXTENSION)
+OUTPUT_FORMATS = frozenset(OUTPUT_FORMATS_BY_EXTENSION.values())

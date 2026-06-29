@@ -4,9 +4,12 @@
 import os
 import sys
 
+from . import _timing
 from .autocrop import Cropper
 from .cli import command_line_interface
 from .__version__ import __version__
+
+_timing.mark_imports_complete()
 
 __doc__ = """
 Image cropping module for Python with face detection

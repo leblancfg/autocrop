@@ -2,7 +2,7 @@
 layout: default
 title: Quickstart
 heading: Quickstart
-lead: Install autocrop, crop one folder, then move to scriptable examples.
+lead: Install autocrop, crop one image, then move to scriptable examples.
 description: Install and run autocrop from the command line or Python.
 ---
 
@@ -17,20 +17,39 @@ For local development:
 ```sh
 git clone https://github.com/leblancfg/autocrop
 cd autocrop
-python -m venv env
-. env/bin/activate
-pip install -r requirements-dev.txt
-pip install -e .
+uv sync
+uv run autocrop --help
 ```
 
-## Crop a folder
+## Crop one image
 
 ```sh
-autocrop -i portraits -o cropped -w 500 -H 500
+autocrop portrait.jpg > portrait-cropped.jpg
 ```
 
-Images with a detected face are written to `cropped`. Images without a detected
-face are copied to the reject destination when one is configured.
+Write to an explicit file or directory, or include timings on stderr:
+
+```sh
+autocrop portrait.jpg -o portrait-cropped.jpg
+autocrop portrait.jpg -o portrait-cropped.png
+autocrop portrait.jpg -o cropped/
+autocrop portrait.jpg --verbose > portrait-cropped.jpg
+```
+
+## Crop many images
+
+Autocrop processes one image at a time. Use `find`, `fd`, or another file
+selection tool for batch jobs:
+
+```sh
+mkdir -p cropped
+find portraits -type f \( -iname '*.jpg' -o -iname '*.png' \) -print0 |
+  while IFS= read -r -d '' file; do
+    out="cropped/${file#portraits/}"
+    mkdir -p "$(dirname "$out")"
+    autocrop "$file" > "$out"
+  done
+```
 
 ## Crop from Python
 
@@ -45,4 +64,5 @@ if cropped is not None:
     Image.fromarray(cropped).save("portrait-cropped.jpg")
 ```
 
-`Cropper.crop()` returns `None` when no face is detected.
+`Cropper.crop()` returns `None` when no face is detected. NumPy array inputs are
+interpreted as OpenCV-style BGR/BGRA arrays; returned arrays are RGB/RGBA.

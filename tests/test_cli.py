@@ -1,12 +1,10 @@
 """Tests for cli"""
-import argparse
 import io
 import os
-import shutil
+import re
 import sys
 
 import pytest
-import cv2
 import numpy as np
 from unittest import mock
 from PIL import Image
@@ -16,36 +14,23 @@ from autocrop.cli import (
     command_line_interface,
     crop_file_to_output,
     crop_stdin_to_stdout,
-    main,
     output,
     output_format,
-    reject,
     resolve_file_output,
     size,
-    confirmation,
-    chk_extension,
+    validate_output_extension,
 )
 
-NUM_FILES = 12
 SOURCE_ATIME_NS = 946684800123456000
 SOURCE_MTIME_NS = 978307200654321000
 EXIF_MAKE_TAG = 271
+EXIF_ORIENTATION_TAG = 274
 
 
-@pytest.fixture()
-def integration():
-    # Setup
-    path_i = "tests/test"
-    path_o = "tests/crop"
-    path_r = "tests/reject"
-    for path in [path_i, path_o, path_r]:
-        shutil.rmtree(path, ignore_errors=True)
-    shutil.copytree("tests/data", path_i)
-    yield
-
-    # Teardown
-    for path in [path_i, path_o, path_r]:
-        shutil.rmtree(path, ignore_errors=True)
+def verbose_timing(captured_err, key):
+    match = re.search(rf"{key}=([0-9]+\.[0-9]+)s", captured_err)
+    assert match is not None
+    return float(match.group(1))
 
 
 def test_size_140_is_valid():
@@ -153,26 +138,31 @@ def test_output_preserves_exif_when_overwriting(tmp_path):
         assert result.size == (2, 2)
 
 
-def test_reject_preserves_source_timestamps_for_new_file(tmp_path):
+def test_output_removes_exif_orientation(tmp_path):
     source = tmp_path / "source.jpg"
-    destination = tmp_path / "reject.jpg"
-    Image.new("RGB", (4, 4), "red").save(source)
-    source_stat = set_source_timestamps(source)
+    destination = tmp_path / "destination.jpg"
+    exif = Image.Exif()
+    exif[EXIF_MAKE_TAG] = "autocrop-test-camera"
+    exif[EXIF_ORIENTATION_TAG] = 6
+    Image.new("RGB", (4, 4), "red").save(source, exif=exif)
 
-    reject(str(source), str(destination), source_stat)
+    image = np.full((2, 2, 3), 255, dtype=np.uint8)
+    output(str(source), str(destination), image)
 
-    assert_timestamps_match_source(destination)
+    with Image.open(destination) as result:
+        assert result.getexif()[EXIF_MAKE_TAG] == "autocrop-test-camera"
+        assert EXIF_ORIENTATION_TAG not in result.getexif()
 
 
-@mock.patch("autocrop.cli.main")
-def test_cli_no_args_requires_input_from_tty(mock_main, monkeypatch):
-    mock_main.return_value = None
+@mock.patch("autocrop.cli.crop_file_to_output")
+def test_cli_no_args_requires_input_from_tty(mock_crop, monkeypatch):
+    mock_crop.return_value = 0
     monkeypatch.setattr("sys.stdin.isatty", lambda: True)
-    sys.argv = ["", "--no-confirm"]
+    sys.argv = ["autocrop"]
     with pytest.raises(SystemExit) as e:
         command_line_interface()
     assert "input image" in str(e.value)
-    assert mock_main.call_count == 0
+    assert mock_crop.call_count == 0
 
 
 @mock.patch("autocrop.cli.crop_file_to_output")
@@ -211,26 +201,60 @@ def test_cli_no_args_reads_stdin_when_input_is_piped(mock_crop, monkeypatch):
 @mock.patch("autocrop.cli.crop_file_to_output")
 def test_cli_width_140_is_valid(mock_crop):
     mock_crop.return_value = 0
-    sys.argv = ["autocrop", "tests/data/obama.jpg", "-w", "140", "--no-confirm"]
+    sys.argv = ["autocrop", "tests/data/obama.jpg", "-w", "140"]
     assert mock_crop.call_count == 0
     with pytest.raises(SystemExit) as e:
         command_line_interface()
     assert e.value.code == 0
     assert mock_crop.call_count == 1
     args, _ = mock_crop.call_args
-    assert args[4] == 140
+    assert args[3] == 140
+
+
+def test_cli_short_version_exits(capsys):
+    sys.argv = ["autocrop", "-V"]
+    with pytest.raises(SystemExit) as e:
+        command_line_interface()
+    captured = capsys.readouterr()
+    assert e.value.code == 0
+    assert "autocrop version" in captured.out
+    assert captured.err == ""
+
+
+@pytest.mark.parametrize("flag", ["--verbose", "-v"])
+@mock.patch("autocrop.cli.crop_file_to_output")
+def test_cli_verbose_is_passed_to_file_mode(mock_crop, flag):
+    mock_crop.return_value = 0
+    sys.argv = ["autocrop", "tests/data/obama.jpg", flag]
+    with pytest.raises(SystemExit) as e:
+        command_line_interface()
+    assert e.value.code == 0
+    _, kwargs = mock_crop.call_args
+    assert kwargs["verbose"] is True
+
+
+@pytest.mark.parametrize("flag", ["--verbose", "-v"])
+@mock.patch("autocrop.cli.crop_stdin_to_stdout")
+def test_cli_verbose_is_passed_to_stdin_mode(mock_crop, flag):
+    mock_crop.return_value = 0
+    sys.argv = ["autocrop", "-", flag]
+    with pytest.raises(SystemExit) as e:
+        command_line_interface()
+    assert e.value.code == 0
+    _, kwargs = mock_crop.call_args
+    assert kwargs["verbose"] is True
 
 
 def test_cli_invalid_input_path_errors_out():
-    sys.argv = ["autocrop", "-i", "asdfasdf"]
+    sys.argv = ["autocrop", "asdfasdf"]
     with pytest.raises(SystemExit) as e:
         command_line_interface()
     assert e.type == SystemExit
     assert "SystemExit" in str(e)
 
 
-def test_cli_no_images_in_input_path():
-    sys.argv = ["autocrop", "-i", "tests"]
+def test_cli_directory_input_errors_out():
+    sys.argv = ["autocrop", "tests"]
     with pytest.raises(SystemExit) as e:
         command_line_interface()
     assert e.type == SystemExit
@@ -254,199 +278,55 @@ def test_cli_width_minus_14_not_valid():
 
 
 @pytest.mark.parametrize(
-    "from_user, response, output",
+    "filename, expected",
     [
-        (["x", "x", "No"], False, "Please respond with 'y' or 'n'\n" * 2),
-        (["y"], True, ""),
-        (["n"], False, ""),
-        (["x", "y"], True, "Please respond with 'y' or 'n'\n"),
+        ("crop.png", "crop.png"),
+        ("crop.JPG", "crop.JPG"),
+        ("crop.webp", "crop.webp"),
     ],
 )
-def test_confirmation_get_from_user(from_user, response, output):
-    question = "Overwrite image files?"
-    input_str = "autocrop.cli.compat_input"
-
-    with mock.patch(input_str, lambda x: from_user.pop(0)):
-        with mock.patch("sys.stdout", new_callable=io.StringIO):
-            assert response == confirmation(question)
-            assert output == sys.stdout.getvalue()
+def test_validate_output_extension_accepts_writable_extensions(filename, expected):
+    assert validate_output_extension(filename) == expected
 
 
-@mock.patch("autocrop.cli.main", lambda *args: None)
-@mock.patch("autocrop.cli.confirmation")
-def test_directory_input_without_output_errors(mock_confirm):
-    mock_confirm.return_value = False
-    sys.argv = ["", "-i", "tests/data"]
-    with pytest.raises(SystemExit) as e:
-        assert mock_confirm.call_count == 0
-        command_line_interface()
-    assert mock_confirm.call_count == 0
-    assert e.type == SystemExit
-    assert "directory input requires --output" in str(e.value)
+@pytest.mark.parametrize("filename", ["crop.psd", "crop.mpeg", "crop", "crop.fake"])
+def test_validate_output_extension_rejects_unsupported_extensions(filename):
+    with pytest.raises(Exception) as excinfo:
+        validate_output_extension(filename)
+    assert "Output file type is not supported" in str(excinfo.value)
 
 
-@mock.patch("autocrop.cli.main", lambda *args: None)
-@mock.patch("autocrop.cli.confirmation")
-def test_user_gets_prompted_if_output_same_as_input(mock_confirm):
-    mock_confirm.return_value = False
-    sys.argv = ["", "-i", "tests/data", "-o", "tests/data"]
-    with pytest.raises(SystemExit) as e:
-        assert mock_confirm.call_count == 0
-        command_line_interface()
-    assert mock_confirm.call_count == 1
-    assert e.type == SystemExit
-
-
-@pytest.mark.slow
-def test_main_overwrites_when_same_input_and_output(integration):
-    sys.argv = ["", "--no-confirm", "-i", "tests/test", "-o", "tests/test"]
-    command_line_interface()
-    output_files = os.listdir(sys.argv[-1])
-    assert len(output_files) == NUM_FILES
-
-
-# @mock.patch("autocrop.autocrop.Cropper", side_)
-def test_main_overwrites_when_no_output(monkeypatch, integration):
-    class MonkeyCrop:
-        def __init__(self, *args):
-            self.count = 0
-
-        def crop(self, *args):
-            self.count += 1
-            return None
-
-    m = MonkeyCrop()
-    monkeypatch.setattr(Cropper, "crop", m.crop)
-    main("tests/test", None, None, None)
-    assert m.count == NUM_FILES - 1
-
-
-@mock.patch("autocrop.cli.main", lambda *args: None)
-@mock.patch("autocrop.cli.output_path", lambda p: p)
-@mock.patch("autocrop.cli.confirmation")
-def test_user_does_not_get_prompted_if_output_d_is_given(mock_confirm):
-    mock_confirm.return_value = False
-    sys.argv = ["", "-i", "tests/data", "-o", "tests/crop"]
-    assert mock_confirm.call_count == 0
-    command_line_interface()
-    assert mock_confirm.call_count == 0
-
-
-@mock.patch("autocrop.cli.main", lambda *args: None)
-@mock.patch("autocrop.cli.confirmation")
-@pytest.mark.parametrize(
-    "flag",
-    [
-        ("--no-confirm"),
-        ("--skip-prompt"),
-    ],
-)
-def test_user_does_not_get_prompted_if_no_confirm(mock_confirm, flag):
-    mock_confirm.return_value = False
-    sys.argv = ["", "-i", "tests/data", "-o", "tests/crop", flag]
-    assert mock_confirm.call_count == 0
-    command_line_interface()
-    assert mock_confirm.call_count == 0
-
-
-@pytest.mark.slow
-def test_noface_files_copied_over_if_output_d_specified(integration):
-    sys.argv = ["", "-i", "tests/test", "-o", "tests/crop"]
-    command_line_interface()
-    output_files = os.listdir(sys.argv[-1])
-    assert len(output_files) == NUM_FILES - 1
-
-
-@pytest.mark.slow
-def test_nofaces_copied_to_reject_d_if_both_reject_and_output_d(integration):
-    sys.argv = [
-        "",
-        "-i",
-        "tests/test",
-        "-o",
-        "tests/crop",
-        "-r",
-        "tests/reject",
-    ]
-    command_line_interface()
-    output_files = os.listdir(sys.argv[-3])
-    reject_files = os.listdir(sys.argv[-1])
-    assert len(output_files) == NUM_FILES - 4
-    assert len(reject_files) == 3
-
-
-@pytest.mark.slow
-@mock.patch("autocrop.cli.confirmation", lambda *args: True)
-def test_image_files_overwritten_if_no_output_dir(integration):
-    sys.argv = ["", "-i", "tests/test", "-o", "tests/test"]
-    command_line_interface()
-    # We have the same number of files
-    output_files = os.listdir("tests/test")
-    assert len(output_files) == NUM_FILES
-    # Images with a face have been cropped
-    shape = cv2.imread("tests/test/king.jpg").shape
-    assert shape == (500, 500, 3)
-
-
-@pytest.mark.parametrize(
-    "extension, error_expected, expected",
-    [
-        (".png", False, "png"),
-        ("png", False, "png"),
-        ("PNG", False, "png"),
-        ("fake_ext", True, None),
-        (".fake_ext", True, None),
-        ("", True, None),
-    ],
-)
-def test_check_extension(extension, error_expected, expected):
-    if error_expected:
-        pytest.raises(argparse.ArgumentTypeError, chk_extension, extension)
-    else:
-        assert chk_extension(extension) == expected
-
-
-def test_output_format_uses_pillow_format_name_for_extensions():
-    assert output_format("PNG", "jpg") == "JPEG"
+def test_output_format_uses_output_filename_extension():
+    assert output_format("PNG", "cropped.jpg") == "JPEG"
 
 
 def test_resolve_file_output_keeps_output_directory_behavior(tmp_path):
-    output_filename = resolve_file_output("tests/data/obama.jpg", str(tmp_path), None)
+    output_filename = resolve_file_output("tests/data/obama.jpg", str(tmp_path))
     assert output_filename == os.path.join(str(tmp_path), "obama.jpg")
 
 
-@pytest.mark.slow
-def test_extension_parameter(integration):
-    sys.argv = [
-        "",
-        "-i",
-        "tests/test",
-        "-o",
-        "tests/crop",
-        "-r",
-        "tests/reject",
-        "-e",
-        "png",
-    ]
-    command_line_interface()
-    output_files = os.listdir("tests/crop")
-    assert all(f.endswith(".png") for f in output_files)
+def test_resolve_file_output_rejects_unsupported_output_extension(tmp_path):
+    with pytest.raises(Exception) as excinfo:
+        resolve_file_output("tests/data/obama.jpg", str(tmp_path / "cropped.psd"))
+    assert "Output file type is not supported" in str(excinfo.value)
 
 
-@pytest.mark.slow
-def test_no_resize_flag(integration):
-    sys.argv = [
-        "",
-        "--no-confirm",
-        "-i",
-        "tests/test",
-        "-o",
-        "tests/crop",
-        "--no-resize",
-    ]
-    command_line_interface()
-    img = cv2.imread("tests/crop/obama.jpg")
-    assert img.shape == (430, 430, 3)
+def test_crop_file_to_output_writes_explicit_file(monkeypatch, tmp_path):
+    image = Image.open("tests/data/obama.jpg")
+    cropped = image.resize((32, 32))
+    destination = tmp_path / "cropped.jpg"
+    monkeypatch.setattr(Cropper, "crop", lambda *args: np.array(cropped))
+
+    status = crop_file_to_output(
+        "tests/data/obama.jpg",
+        output_filename=str(destination),
+        fheight=32,
+        fwidth=32,
+    )
+
+    with Image.open(destination) as result:
+        assert status == 0
+        assert result.size == (32, 32)
 
 
 def test_crop_file_to_output_writes_cropped_bytes_to_stdout(monkeypatch, capsys):
@@ -470,6 +350,34 @@ def test_crop_file_to_output_writes_cropped_bytes_to_stdout(monkeypatch, capsys)
     assert capsys.readouterr().err == ""
 
 
+def test_crop_file_to_output_verbose_writes_timings_to_stderr(monkeypatch, capsys):
+    image = Image.open("tests/data/obama.jpg")
+    cropped = image.resize((32, 32))
+    stdout = io.BytesIO()
+    monkeypatch.setattr(Cropper, "crop", lambda *args: np.array(cropped))
+
+    status = crop_file_to_output(
+        "tests/data/obama.jpg",
+        stdout=stdout,
+        fheight=32,
+        fwidth=32,
+        verbose=True,
+    )
+
+    captured = capsys.readouterr()
+    assert status == 0
+    assert captured.out == ""
+    assert "Input: tests/data/obama.jpg" in captured.err
+    assert "Output: stdout" in captured.err
+    assert "Format: JPEG" in captured.err
+    assert "Timings:" in captured.err
+    for key in ["total=", "imports=", "read=", "process=", "write="]:
+        assert key in captured.err
+    assert verbose_timing(captured.err, "total") >= verbose_timing(
+        captured.err, "imports"
+    )
+
+
 def test_crop_file_to_output_writes_failures_to_stderr(monkeypatch, capsys):
     stdout = io.BytesIO()
     monkeypatch.setattr(Cropper, "crop", lambda *args: None)
@@ -481,6 +389,38 @@ def test_crop_file_to_output_writes_failures_to_stderr(monkeypatch, capsys):
     assert stdout.getvalue() == b""
     assert captured.out == ""
     assert "No face detected: tests/data/noise.png" in captured.err
+
+
+class BrokenPipeStream(io.BytesIO):
+    def write(self, data):
+        raise BrokenPipeError
+
+
+def test_crop_file_to_output_handles_broken_stdout_pipe(monkeypatch, capsys):
+    image = Image.open("tests/data/obama.jpg")
+    cropped = image.resize((32, 32))
+    monkeypatch.setattr(Cropper, "crop", lambda *args: np.array(cropped))
+
+    status = crop_file_to_output("tests/data/obama.jpg", stdout=BrokenPipeStream())
+
+    captured = capsys.readouterr()
+    assert status == 1
+    assert captured.out == ""
+    assert captured.err == ""
+
+
+def test_crop_file_to_output_writes_invalid_file_to_stderr(tmp_path, capsys):
+    invalid = tmp_path / "invalid.jpg"
+    invalid.write_bytes(b"not an image")
+    stdout = io.BytesIO()
+
+    status = crop_file_to_output(str(invalid), stdout=stdout)
+
+    captured = capsys.readouterr()
+    assert status == 1
+    assert stdout.getvalue() == b""
+    assert captured.out == ""
+    assert "Could not read image file" in captured.err
 
 
 def test_crop_stdin_to_stdout_infers_image_type(monkeypatch):
@@ -499,6 +439,31 @@ def test_crop_stdin_to_stdout_infers_image_type(monkeypatch):
         assert status == 0
         assert result.size == (20, 20)
         assert result.format == "PNG"
+
+
+def test_crop_stdin_to_stdout_verbose_writes_timings_to_stderr(monkeypatch, capsys):
+    source = io.BytesIO()
+    Image.new("RGB", (40, 40), "white").save(source, format="PNG")
+    source.seek(0)
+    stdout = io.BytesIO()
+    monkeypatch.setattr(
+        Cropper, "crop", lambda *args: np.array(Image.new("RGB", (20, 20), "white"))
+    )
+
+    status = crop_stdin_to_stdout(stdin=source, stdout=stdout, verbose=True)
+
+    captured = capsys.readouterr()
+    assert status == 0
+    assert captured.out == ""
+    assert "Input: stdin" in captured.err
+    assert "Output: stdout" in captured.err
+    assert "Format: PNG" in captured.err
+    assert "Timings:" in captured.err
+    for key in ["total=", "imports=", "read=", "process=", "write="]:
+        assert key in captured.err
+    assert verbose_timing(captured.err, "total") >= verbose_timing(
+        captured.err, "imports"
+    )
 
 
 def test_crop_stdin_to_stdout_writes_invalid_input_to_stderr(capsys):

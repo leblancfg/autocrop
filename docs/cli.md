@@ -6,33 +6,29 @@ lead: Use autocrop directly, or compose it with shell tools for larger jobs.
 description: autocrop command-line usage and shell examples.
 ---
 
-## Current stable usage
+## Single-image usage
 
-```sh
-autocrop -i portraits -o cropped
-autocrop -i portraits -o cropped -w 400 -H 400
-autocrop -i portraits -o cropped -e png
-autocrop -i portraits -o cropped --no-resize
-```
-
-The stable CLI is folder-oriented and prompts before destructive in-place
-cropping unless `--no-confirm` is passed.
-
-## Next CLI direction
-
-The next major CLI should behave more like a classic shell command:
-
-- a single input image can be cropped to stdout
-- diagnostics should go to stderr
-- explicit output paths should still work
-- recursive folder handling should be documented through shell tools, not owned by autocrop
+Autocrop v2 behaves like a classic shell command: one input image is cropped,
+cropped image bytes go to stdout by default, and diagnostics go to stderr.
+Explicit output files use their extension to choose the output format. Unsupported or read-only
+output extensions fail before image processing starts.
 
 ```sh
 autocrop portrait.jpg > portrait-cropped.jpg
 cat portrait.jpg | autocrop - > portrait-cropped.jpg
+autocrop portrait.jpg -o portrait-cropped.jpg
+autocrop portrait.jpg -o portrait-cropped.png
+autocrop portrait.jpg -o cropped/
+autocrop portrait.jpg --verbose > portrait-cropped.jpg
 ```
 
-For batch jobs:
+`--verbose` writes basic processing details and timings to stderr, including total, imports, read,
+process, and write time. YuNet is the built-in face detector; there is no detector-selection flag.
+
+## Shell-composed batch jobs
+
+Autocrop intentionally does not walk directories. For recursive or filtered
+batch jobs, compose it with shell tools:
 
 ```sh
 mkdir -p cropped
@@ -44,8 +40,27 @@ find portraits -type f \( -iname '*.jpg' -o -iname '*.png' \) -print0 |
   done
 ```
 
+Convert output to JPEG while batching:
+
+```sh
+mkdir -p cropped
+find portraits -type f \( -iname '*.jpg' -o -iname '*.png' \) -print0 |
+  while IFS= read -r -d '' file; do
+    out="cropped/${file#portraits/}"
+    mkdir -p "$(dirname "$out")"
+    autocrop "$file" -o "${out%.*}.jpg"
+  done
+```
+
 With `fd`:
 
 ```sh
 fd -e jpg -e png . portraits -x sh -c 'out="cropped/${1#portraits/}"; mkdir -p "$(dirname "$out")"; autocrop "$1" > "$out"' sh {}
+```
+
+With `xargs`:
+
+```sh
+find portraits -type f \( -iname '*.jpg' -o -iname '*.png' \) -print0 |
+  xargs -0 -I{} sh -c 'out="cropped/${1#portraits/}"; mkdir -p "$(dirname "$out")"; autocrop "$1" > "$out"' sh {}
 ```
