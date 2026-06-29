@@ -1,9 +1,9 @@
 ---
 layout: default
-title: v2 notes
-heading: v2 notes
+title: Migration path
+heading: Migration path
 lead: Proposed breaking changes and migration notes for the next major release.
-description: autocrop v2 migration notes and design direction.
+description: autocrop migration notes and next major release direction.
 ---
 
 ## Goals
@@ -16,8 +16,8 @@ description: autocrop v2 migration notes and design direction.
 
 ## CLI changes under discussion
 
-The current CLI is folder-first. v2 should make single-image mode the default
-shape and move recursive workflows to shell composition.
+The current CLI is folder-first. The next major release should make single-image
+mode the default shape and move recursive workflows to shell composition.
 
 ```sh
 autocrop portrait.jpg > cropped.jpg
@@ -26,8 +26,8 @@ find portraits -type f -name '*.jpg' -print0 | xargs -0 -I{} sh -c 'autocrop "$1
 
 ## Detector changes under discussion
 
-YuNet is likely useful for v2, but it changes detection behavior. The proposed
-shape is:
+YuNet is likely useful for the next major release, but it changes detection
+behavior. The proposed shape is:
 
 - Haar remains available
 - YuNet is added behind an explicit detector option first
@@ -35,7 +35,7 @@ shape is:
 
 ## Packaging changes
 
-The v2 cleanup should align runtime and contributor paths:
+The migration path should align runtime and contributor paths:
 
 - Python 3.10-3.14 support
 - `just` for project commands

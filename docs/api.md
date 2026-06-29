@@ -44,7 +44,7 @@ if cropped is not None:
     Image.fromarray(cropped).save("portrait-cropped.jpg")
 ```
 
-## v2 API notes
+## Migration notes
 
-The v2 work should make detector choice explicit, including YuNet support, while
-keeping Haar available for compatibility during the transition.
+The next major release should make detector choice explicit, including YuNet
+support, while keeping Haar available for compatibility during the transition.
