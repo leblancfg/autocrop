@@ -176,46 +176,6 @@ def test_cli_no_args_requires_input_from_tty(mock_main, monkeypatch):
 
 
 @mock.patch("autocrop.cli.crop_file_to_output")
-def test_cli_accepts_yunet_detector_for_file_mode(mock_crop):
-    mock_crop.return_value = 0
-    sys.argv = ["autocrop", "tests/data/obama.jpg", "--detector", "yunet"]
-    with pytest.raises(SystemExit) as e:
-        command_line_interface()
-    assert e.value.code == 0
-    _, kwargs = mock_crop.call_args
-    assert kwargs["detector"] == "yunet"
-
-
-@mock.patch("autocrop.cli.crop_stdin_to_stdout")
-def test_cli_accepts_yunet_detector_for_stdin_mode(mock_crop):
-    mock_crop.return_value = 0
-    sys.argv = ["autocrop", "-", "--detector", "yunet"]
-    with pytest.raises(SystemExit) as e:
-        command_line_interface()
-    assert e.value.code == 0
-    _, kwargs = mock_crop.call_args
-    assert kwargs["detector"] == "yunet"
-
-
-@mock.patch("autocrop.cli.output_path", lambda p: p)
-@mock.patch("autocrop.cli.main")
-def test_cli_accepts_yunet_detector_for_directory_mode(mock_main):
-    mock_main.return_value = None
-    sys.argv = [
-        "autocrop",
-        "-i",
-        "tests/data",
-        "-o",
-        "tests/crop",
-        "--detector",
-        "yunet",
-    ]
-    command_line_interface()
-    args, _ = mock_main.call_args
-    assert args[-1] == "yunet"
-
-
-@mock.patch("autocrop.cli.crop_file_to_output")
 def test_cli_file_without_output_writes_to_stdout(mock_crop):
     mock_crop.return_value = 0
     sys.argv = ["autocrop", "tests/data/obama.jpg"]
@@ -411,8 +371,8 @@ def test_nofaces_copied_to_reject_d_if_both_reject_and_output_d(integration):
     command_line_interface()
     output_files = os.listdir(sys.argv[-3])
     reject_files = os.listdir(sys.argv[-1])
-    assert len(output_files) == NUM_FILES - 4
-    assert len(reject_files) == 3
+    assert len(output_files) == NUM_FILES - 2
+    assert len(reject_files) == 1
 
 
 @pytest.mark.slow
@@ -486,7 +446,7 @@ def test_no_resize_flag(integration):
     ]
     command_line_interface()
     img = cv2.imread("tests/crop/obama.jpg")
-    assert img.shape == (430, 430, 3)
+    assert img.shape == (452, 452, 3)
 
 
 def test_crop_file_to_output_writes_cropped_bytes_to_stdout(monkeypatch, capsys):

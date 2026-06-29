@@ -8,7 +8,7 @@ from .constants import (
     GAMMA_THRES,
     GAMMA,
 )
-from .detectors import build_detector
+from .yunet import YuNetDetector
 
 
 class ImageReadError(BaseException):
@@ -160,15 +160,23 @@ class Cropper:
         padding=None,
         fix_gamma=True,
         resize=True,
-        detector="haar",
+        face_detector=None,
         yunet_model_path=None,
+        yunet_score_threshold=0.6,
+        yunet_nms_threshold=0.3,
+        yunet_top_k=5000,
     ):
         self.height = check_positive_scalar(height)
         self.width = check_positive_scalar(width)
         self.aspect_ratio = width / height
         self.gamma = fix_gamma
         self.resize = resize
-        self.detector = build_detector(detector, model_path=yunet_model_path)
+        self.face_detector = face_detector or YuNetDetector(
+            model_path=yunet_model_path,
+            score_threshold=yunet_score_threshold,
+            nms_threshold=yunet_nms_threshold,
+            top_k=yunet_top_k,
+        )
 
         # Face percent
         if face_percent > 100 or face_percent < 1:
@@ -208,7 +216,7 @@ class Cropper:
         except AttributeError:
             raise ImageReadError
         # ====== Detect faces in the image ======
-        faces = self.detector.detect(detection_image, gray)
+        faces = self.face_detector.detect(detection_image, gray)
 
         # Handle no faces
         if len(faces) == 0:
