@@ -54,6 +54,7 @@ CLI invocation.
 * Avoid Pillow plugin registration during import by using static image extension metadata.
 * Interpret NumPy array inputs explicitly as OpenCV-style BGR/BGRA and return RGB/RGBA arrays.
 * Use Pillow for resizing.
+* Remove unused Python documentation/upload development dependencies.
 * Update contributor setup documentation.
 * Update GitHub Actions versions and CI support through Python 3.14.
 * Allow pytest 9 in development requirements.

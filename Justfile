@@ -7,12 +7,8 @@ default:
 clear-dist:
     rm -rf autocrop.egg-info build dist
 
-pypi-test: clear-dist
+build: clear-dist
     uv build
-    {{ uv-run }} twine upload dist/* -r testpypi
-
-pypi:
-    {{ uv-run }} twine upload dist/*
 
 test:
     {{ uv-run }} pytest
@@ -21,9 +17,6 @@ lint:
     {{ uv-run }} flake8 --max-complexity=10 --count autocrop tests
 
 check: lint test
-
-docs:
-    {{ uv-run }} portray on_github_pages
 
 venv:
     uv venv

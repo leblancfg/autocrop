@@ -38,16 +38,9 @@ autocrop = "autocrop:command_line_interface"
 
 [dependency-groups]
 dev = [
-  "attrs",
-  "build",
   "flake8",
   "flake8-pyproject",
-  "mock",
-  "portray",
-  "pytest-cov",
   "pytest>=9.0.3,<10",
-  "twine",
-  "wheel",
 ]
 
 [tool.pytest.ini_options]
