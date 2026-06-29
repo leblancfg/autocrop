@@ -6,9 +6,9 @@ import shutil
 import pytest  # noqa: F401
 import cv2
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageOps
 
-from autocrop.autocrop import Cropper
+from autocrop.autocrop import Cropper, open_file
 from autocrop.yunet import YuNetDetector
 
 
@@ -42,9 +42,28 @@ def test_obama_has_a_face():
     assert len(c.crop(obama)) == 500
 
 
+def test_open_file_applies_exif_orientation(tmp_path):
+    source = np.array(
+        [
+            [[255, 0, 0], [0, 255, 0]],
+            [[0, 0, 255], [255, 255, 0]],
+            [[255, 0, 255], [0, 255, 255]],
+        ],
+        dtype=np.uint8,
+    )
+    image_path = tmp_path / "oriented.jpg"
+    exif = Image.Exif()
+    exif[274] = 6
+    Image.fromarray(source).save(image_path, exif=exif)
+
+    with Image.open(image_path) as img:
+        expected = np.array(ImageOps.exif_transpose(img))
+    np.testing.assert_allclose(open_file(str(image_path)), expected, atol=3)
+
+
 def test_path_crop_preserves_rgb_channels(tmp_path):
     class MockDetector:
-        def detect(self, image, gray):
+        def detect(self, image):
             return np.array([[0, 0, 2, 2]])
 
     source = np.array(
@@ -69,7 +88,7 @@ def test_path_crop_preserves_rgb_channels(tmp_path):
 
 def test_cropper_accepts_detector_object():
     class MockDetector:
-        def detect(self, image, gray):
+        def detect(self, image):
             return np.array([[0, 0, 2, 2]])
 
     source = np.array(
@@ -93,9 +112,8 @@ def test_cropper_accepts_detector_object():
 
 def test_cropper_normalizes_grayscale_for_detection(tmp_path):
     class MockDetector:
-        def detect(self, image, gray):
+        def detect(self, image):
             self.image = image.copy()
-            self.gray = gray.copy()
             return np.array([[0, 0, 2, 2]])
 
     source = np.array([[0, 127], [200, 255]], dtype=np.uint8)
@@ -116,12 +134,11 @@ def test_cropper_normalizes_grayscale_for_detection(tmp_path):
     np.testing.assert_array_equal(detector.image[:, :, 0], source)
     np.testing.assert_array_equal(detector.image[:, :, 1], source)
     np.testing.assert_array_equal(detector.image[:, :, 2], source)
-    np.testing.assert_array_equal(detector.gray, source)
 
 
 def test_cropper_normalizes_rgba_for_detection_and_preserves_alpha(tmp_path):
     class MockDetector:
-        def detect(self, image, gray):
+        def detect(self, image):
             self.image = image.copy()
             return np.array([[0, 0, 2, 2]])
 
@@ -151,7 +168,7 @@ def test_cropper_normalizes_rgba_for_detection_and_preserves_alpha(tmp_path):
 
 def test_cropper_uses_largest_detected_face():
     class MockDetector:
-        def detect(self, image, gray):
+        def detect(self, image):
             return np.array([[0, 0, 1, 1], [0, 0, 2, 2]])
 
     source = np.array(
@@ -172,6 +189,17 @@ def test_cropper_uses_largest_detected_face():
     )
 
     np.testing.assert_array_equal(c.crop(source), expected)
+
+
+def test_cropper_returns_none_for_invalid_crop_geometry():
+    class MockDetector:
+        def detect(self, image):
+            return np.array([[0, 465, 1, 68]])
+
+    source = np.zeros((885, 10, 3), dtype=np.uint8)
+    c = Cropper(face_detector=MockDetector())
+
+    assert c.crop(source) is None
 
 
 def test_yunet_detector_uses_packaged_model(monkeypatch):
@@ -239,10 +267,7 @@ def test_open_file_invalid_filetype_returns_error():
 )
 def test_adjust_boundaries(values, expected_result):
     """Trigger the following: [h1 < 0, h2 > imgw, v1 < 0, v2 > imgh]"""
-    # TODO: the padding code section is critically broken and
-    # needs to be rewritten anyways. This section is more of
-    # the draft of the proper testing section once the code is
-    # fixed.
+    # Exercise boundary adjustments around detected faces.
     imgh, imgw, h1, h2, v1, v2 = values
     c = Cropper()
     result = c._crop_positions(imgh, imgw, h1, h2, v1, v2)

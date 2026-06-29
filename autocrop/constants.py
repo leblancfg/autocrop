@@ -1,4 +1,3 @@
-QUESTION_OVERWRITE = "Overwrite image files?"
 YUNET_MODEL = "face_detection_yunet_2023mar.onnx"
 
 # Static Pillow extension-to-format map. Keeping this static avoids calling
@@ -77,4 +76,43 @@ IMAGE_FORMATS_BY_EXTENSION = {
     ".xpm": "XPM",
 }
 
+# Writable output formats that autocrop accepts for explicit output paths.
+# This is intentionally narrower than Pillow's readable formats so we can fail
+# early instead of accepting read-only extensions and crashing during save.
+OUTPUT_FORMATS_BY_EXTENSION = {
+    ".apng": "PNG",
+    ".bmp": "BMP",
+    ".dib": "DIB",
+    ".eps": "EPS",
+    ".gif": "GIF",
+    ".icns": "ICNS",
+    ".ico": "ICO",
+    ".j2c": "JPEG2000",
+    ".j2k": "JPEG2000",
+    ".jpe": "JPEG",
+    ".jpeg": "JPEG",
+    ".jpg": "JPEG",
+    ".jp2": "JPEG2000",
+    ".jpc": "JPEG2000",
+    ".jpf": "JPEG2000",
+    ".jpx": "JPEG2000",
+    ".pbm": "PPM",
+    ".pcx": "PCX",
+    ".pdf": "PDF",
+    ".pgm": "PPM",
+    ".png": "PNG",
+    ".pnm": "PPM",
+    ".ppm": "PPM",
+    ".ps": "EPS",
+    ".rgb": "SGI",
+    ".rgba": "SGI",
+    ".sgi": "SGI",
+    ".tga": "TGA",
+    ".tif": "TIFF",
+    ".tiff": "TIFF",
+    ".webp": "WEBP",
+}
+
 INPUT_FILETYPES = frozenset(IMAGE_FORMATS_BY_EXTENSION)
+OUTPUT_FILETYPES = frozenset(OUTPUT_FORMATS_BY_EXTENSION)
+OUTPUT_FORMATS = frozenset(OUTPUT_FORMATS_BY_EXTENSION.values())

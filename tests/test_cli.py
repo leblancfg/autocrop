@@ -1,5 +1,4 @@
 """Tests for cli"""
-import argparse
 import io
 import os
 import re
@@ -19,12 +18,13 @@ from autocrop.cli import (
     output_format,
     resolve_file_output,
     size,
-    chk_extension,
+    validate_output_extension,
 )
 
 SOURCE_ATIME_NS = 946684800123456000
 SOURCE_MTIME_NS = 978307200654321000
 EXIF_MAKE_TAG = 271
+EXIF_ORIENTATION_TAG = 274
 
 
 def verbose_timing(captured_err, key):
@@ -138,6 +138,22 @@ def test_output_preserves_exif_when_overwriting(tmp_path):
         assert result.size == (2, 2)
 
 
+def test_output_removes_exif_orientation(tmp_path):
+    source = tmp_path / "source.jpg"
+    destination = tmp_path / "destination.jpg"
+    exif = Image.Exif()
+    exif[EXIF_MAKE_TAG] = "autocrop-test-camera"
+    exif[EXIF_ORIENTATION_TAG] = 6
+    Image.new("RGB", (4, 4), "red").save(source, exif=exif)
+
+    image = np.full((2, 2, 3), 255, dtype=np.uint8)
+    output(str(source), str(destination), image)
+
+    with Image.open(destination) as result:
+        assert result.getexif()[EXIF_MAKE_TAG] == "autocrop-test-camera"
+        assert EXIF_ORIENTATION_TAG not in result.getexif()
+
+
 @mock.patch("autocrop.cli.crop_file_to_output")
 def test_cli_no_args_requires_input_from_tty(mock_crop, monkeypatch):
     mock_crop.return_value = 0
@@ -192,7 +208,7 @@ def test_cli_width_140_is_valid(mock_crop):
     assert e.value.code == 0
     assert mock_crop.call_count == 1
     args, _ = mock_crop.call_args
-    assert args[4] == 140
+    assert args[3] == 140
 
 
 def test_cli_short_version_exits(capsys):
@@ -262,30 +278,37 @@ def test_cli_width_minus_14_not_valid():
 
 
 @pytest.mark.parametrize(
-    "extension, error_expected, expected",
+    "filename, expected",
     [
-        (".png", False, "png"),
-        ("png", False, "png"),
-        ("PNG", False, "png"),
-        ("fake_ext", True, None),
-        (".fake_ext", True, None),
-        ("", True, None),
+        ("crop.png", "crop.png"),
+        ("crop.JPG", "crop.JPG"),
+        ("crop.webp", "crop.webp"),
     ],
 )
-def test_check_extension(extension, error_expected, expected):
-    if error_expected:
-        pytest.raises(argparse.ArgumentTypeError, chk_extension, extension)
-    else:
-        assert chk_extension(extension) == expected
+def test_validate_output_extension_accepts_writable_extensions(filename, expected):
+    assert validate_output_extension(filename) == expected
 
 
-def test_output_format_uses_pillow_format_name_for_extensions():
-    assert output_format("PNG", "jpg") == "JPEG"
+@pytest.mark.parametrize("filename", ["crop.psd", "crop.mpeg", "crop", "crop.fake"])
+def test_validate_output_extension_rejects_unsupported_extensions(filename):
+    with pytest.raises(Exception) as excinfo:
+        validate_output_extension(filename)
+    assert "Output file type is not supported" in str(excinfo.value)
+
+
+def test_output_format_uses_output_filename_extension():
+    assert output_format("PNG", "cropped.jpg") == "JPEG"
 
 
 def test_resolve_file_output_keeps_output_directory_behavior(tmp_path):
-    output_filename = resolve_file_output("tests/data/obama.jpg", str(tmp_path), None)
+    output_filename = resolve_file_output("tests/data/obama.jpg", str(tmp_path))
     assert output_filename == os.path.join(str(tmp_path), "obama.jpg")
+
+
+def test_resolve_file_output_rejects_unsupported_output_extension(tmp_path):
+    with pytest.raises(Exception) as excinfo:
+        resolve_file_output("tests/data/obama.jpg", str(tmp_path / "cropped.psd"))
+    assert "Output file type is not supported" in str(excinfo.value)
 
 
 def test_crop_file_to_output_writes_explicit_file(monkeypatch, tmp_path):
@@ -366,6 +389,38 @@ def test_crop_file_to_output_writes_failures_to_stderr(monkeypatch, capsys):
     assert stdout.getvalue() == b""
     assert captured.out == ""
     assert "No face detected: tests/data/noise.png" in captured.err
+
+
+class BrokenPipeStream(io.BytesIO):
+    def write(self, data):
+        raise BrokenPipeError
+
+
+def test_crop_file_to_output_handles_broken_stdout_pipe(monkeypatch, capsys):
+    image = Image.open("tests/data/obama.jpg")
+    cropped = image.resize((32, 32))
+    monkeypatch.setattr(Cropper, "crop", lambda *args: np.array(cropped))
+
+    status = crop_file_to_output("tests/data/obama.jpg", stdout=BrokenPipeStream())
+
+    captured = capsys.readouterr()
+    assert status == 1
+    assert captured.out == ""
+    assert captured.err == ""
+
+
+def test_crop_file_to_output_writes_invalid_file_to_stderr(tmp_path, capsys):
+    invalid = tmp_path / "invalid.jpg"
+    invalid.write_bytes(b"not an image")
+    stdout = io.BytesIO()
+
+    status = crop_file_to_output(str(invalid), stdout=stdout)
+
+    captured = capsys.readouterr()
+    assert status == 1
+    assert stdout.getvalue() == b""
+    assert captured.out == ""
+    assert "Could not read image file" in captured.err
 
 
 def test_crop_stdin_to_stdout_infers_image_type(monkeypatch):

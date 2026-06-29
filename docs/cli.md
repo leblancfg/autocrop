@@ -10,11 +10,14 @@ description: autocrop command-line usage and shell examples.
 
 Autocrop v2 behaves like a classic shell command: one input image is cropped,
 cropped image bytes go to stdout by default, and diagnostics go to stderr.
+Explicit output files use their extension to choose the output format. Unsupported or read-only
+output extensions fail before image processing starts.
 
 ```sh
 autocrop portrait.jpg > portrait-cropped.jpg
 cat portrait.jpg | autocrop - > portrait-cropped.jpg
 autocrop portrait.jpg -o portrait-cropped.jpg
+autocrop portrait.jpg -o portrait-cropped.png
 autocrop portrait.jpg -o cropped/
 autocrop portrait.jpg --verbose > portrait-cropped.jpg
 ```
@@ -45,7 +48,7 @@ find portraits -type f \( -iname '*.jpg' -o -iname '*.png' \) -print0 |
   while IFS= read -r -d '' file; do
     out="cropped/${file#portraits/}"
     mkdir -p "$(dirname "$out")"
-    autocrop "$file" -e jpg > "${out%.*}.jpg"
+    autocrop "$file" -o "${out%.*}.jpg"
   done
 ```
 

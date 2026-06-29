@@ -7,12 +7,23 @@ import sys
 import time
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageOps
 
 from . import _timing
 from .__version__ import __version__
 from .autocrop import Cropper
-from .constants import IMAGE_FORMATS_BY_EXTENSION, INPUT_FILETYPES
+from .constants import (
+    INPUT_FILETYPES,
+    OUTPUT_FILETYPES,
+    OUTPUT_FORMATS,
+    OUTPUT_FORMATS_BY_EXTENSION,
+)
+
+ORIENTATION_EXIF_TAG = 274
+
+
+class CliError(Exception):
+    """A user-facing CLI error that should not produce a traceback."""
 
 
 def _preserve_metadata(input_filename, output_filename, source_stat):
@@ -30,28 +41,42 @@ def _image_save_kwargs(input_filename):
     """Return image metadata Pillow can preserve while writing the crop."""
     save_kwargs = {}
     with Image.open(input_filename) as img_orig:
-        if "exif" in img_orig.info:
-            save_kwargs["exif"] = img_orig.info["exif"]
+        exif = img_orig.getexif()
+        if exif:
+            if ORIENTATION_EXIF_TAG in exif:
+                del exif[ORIENTATION_EXIF_TAG]
+            if exif:
+                save_kwargs["exif"] = exif.tobytes()
         if "icc_profile" in img_orig.info:
             save_kwargs["icc_profile"] = img_orig.info["icc_profile"]
     return save_kwargs
 
 
-def output(input_filename, output_filename, image, source_stat=None):
+def image_for_format(image, image_format):
+    """Return a Pillow image compatible with the requested output format."""
+    img_new = Image.fromarray(image)
+    if image_format in {"JPEG", "EPS", "PCX"} and img_new.mode in {"LA", "P", "RGBA"}:
+        return img_new.convert("RGB")
+    return img_new
+
+
+def output(input_filename, output_filename, image, source_stat=None, image_format=None):
     """Write cropped image data to an output file."""
     if source_stat is None:
         source_stat = os.stat(input_filename)
+    if image_format is None:
+        image_format = output_format(output_filename=output_filename)
     if input_filename != output_filename:
         shutil.copy(input_filename, output_filename)
     save_kwargs = _image_save_kwargs(input_filename)
-    img_new = Image.fromarray(image)
-    img_new.save(output_filename, **save_kwargs)
+    img_new = image_for_format(image, image_format)
+    img_new.save(output_filename, format=image_format, **save_kwargs)
     _preserve_metadata(input_filename, output_filename, source_stat)
 
 
 def output_bytes(image, output_stream, image_format):
     """Write cropped image bytes to a binary stream."""
-    img_new = Image.fromarray(image)
+    img_new = image_for_format(image, image_format)
     img_new.save(output_stream, format=image_format)
 
 
@@ -82,23 +107,22 @@ def size(i):
         raise argparse.ArgumentTypeError(error)
 
 
-def chk_extension(extension):
-    """Check if the extension passed is valid or not."""
-    error = "Invalid image extension"
-    extension = str(extension).lower()
-    if not extension.startswith("."):
-        extension = f".{extension}"
-    if extension in INPUT_FILETYPES:
-        return extension.replace(".", "")
-    else:
-        raise argparse.ArgumentTypeError(error)
-
-
-def output_format(input_format=None, extension=None):
+def output_format(input_format=None, output_filename=None):
     """Return a Pillow format name for stream or file output."""
-    if extension:
-        return IMAGE_FORMATS_BY_EXTENSION[f".{extension}"]
-    return input_format or "PNG"
+    if output_filename:
+        ext = os.path.splitext(output_filename)[1].lower()
+        return OUTPUT_FORMATS_BY_EXTENSION[ext]
+    if input_format in OUTPUT_FORMATS:
+        return input_format
+    return "PNG"
+
+
+def validate_output_extension(output_filename):
+    """Return output_filename if its extension is writable by autocrop."""
+    extension = os.path.splitext(output_filename)[1].lower()
+    if extension in OUTPUT_FILETYPES:
+        return output_filename
+    raise CliError(f"Output file type is not supported: {extension or output_filename}")
 
 
 def empty_timings():
@@ -146,7 +170,7 @@ def print_verbose(input_label, output_label, image_format, timings):
 def crop_image(
     path_or_array,
     image_format,
-    extension,
+    output_filename,
     fheight,
     fwidth,
     face_percent,
@@ -162,7 +186,7 @@ def crop_image(
     image = cropper.crop(path_or_array)
     if image is None:
         return None, None
-    return image, output_format(image_format, extension)
+    return image, output_format(image_format, output_filename)
 
 
 def cropper_array_from_pillow_image(img_orig):
@@ -173,7 +197,8 @@ def cropper_array_from_pillow_image(img_orig):
     to RGB/RGBA before returning. Pillow decodes stream input as RGB/RGBA, so swap
     the first and third channels up front to keep stdin output colors stable.
     """
-    input_image = np.array(img_orig)
+    oriented = ImageOps.exif_transpose(img_orig)
+    input_image = np.array(oriented)
     if input_image.ndim == 3 and input_image.shape[2] >= 3:
         input_image = input_image.copy()
         input_image[:, :, [0, 2]] = input_image[:, :, [2, 0]]
@@ -182,14 +207,16 @@ def cropper_array_from_pillow_image(img_orig):
 
 def read_input_file(input_filename):
     """Read one image file into the ndarray form expected by Cropper."""
-    with Image.open(input_filename) as img_orig:
-        return img_orig.format, cropper_array_from_pillow_image(img_orig)
+    try:
+        with Image.open(input_filename) as img_orig:
+            return img_orig.format, cropper_array_from_pillow_image(img_orig)
+    except OSError as exc:
+        raise CliError(f"Could not read image file: {input_filename}: {exc}") from exc
 
 
 def crop_file_to_output(
     input_filename,
     output_filename=None,
-    extension=None,
     fheight=500,
     fwidth=500,
     face_percent=50,
@@ -213,7 +240,7 @@ def crop_file_to_output(
             lambda: crop_image(
                 input_image,
                 input_format,
-                extension,
+                output_filename,
                 fheight,
                 fwidth,
                 face_percent,
@@ -234,9 +261,19 @@ def crop_file_to_output(
             timed_step(
                 timings,
                 "write",
-                lambda: output(input_filename, output_filename, image),
+                lambda: output(
+                    input_filename,
+                    output_filename,
+                    image,
+                    image_format=image_format,
+                ),
             )
         return 0
+    except CliError as exc:
+        print(exc, file=sys.stderr)
+        return 1
+    except BrokenPipeError:
+        return 1
     finally:
         finish_timings(timings, started)
         if verbose:
@@ -246,7 +283,6 @@ def crop_file_to_output(
 def crop_stdin_to_stdout(
     stdin=None,
     stdout=None,
-    extension=None,
     fheight=500,
     fwidth=500,
     face_percent=50,
@@ -289,7 +325,7 @@ def crop_stdin_to_stdout(
             lambda: crop_image(
                 input_image,
                 input_format,
-                extension,
+                None,
                 fheight,
                 fwidth,
                 face_percent,
@@ -301,6 +337,8 @@ def crop_stdin_to_stdout(
             return 1
         timed_step(timings, "write", lambda: output_bytes(image, stdout, image_format))
         return 0
+    except BrokenPipeError:
+        return 1
     finally:
         finish_timings(timings, started)
         if verbose:
@@ -314,7 +352,6 @@ def parse_args(args):
         "source": "Image file, or '-' to read image bytes from stdin.",
         "output": """Output file, or output directory for a single input image.
                       If omitted, cropped image bytes are written to stdout.""",
-        "extension": "Enter the image extension which to save at output",
         "width": "Width of cropped files in px. Default=500",
         "height": "Height of cropped files in px. Default=500",
         "facePercent": "Percentage of face to image height",
@@ -361,37 +398,31 @@ def parse_args(args):
     parser.add_argument(
         "--facePercent", type=size, default=50, help=help_d["facePercent"]
     )
-    parser.add_argument(
-        "-e", "--extension", type=chk_extension, default=None, help=help_d["extension"]
-    )
     return parser.parse_args(args)
 
 
-def resolve_file_output(input_source, output_arg, extension):
+def resolve_file_output(input_source, output_arg):
     """Resolve --output for single-image mode."""
     if output_arg is None:
         return None
     output_ext = os.path.splitext(output_arg)[1]
     if os.path.isdir(output_arg) or not output_ext:
         os.makedirs(output_arg, exist_ok=True)
-        basename = os.path.basename(input_source)
-        if extension:
-            basename = os.path.splitext(basename)[0] + "." + extension
-        return os.path.join(output_arg, basename)
+        output_filename = os.path.join(output_arg, os.path.basename(input_source))
+        return validate_output_extension(output_filename)
 
     output_dir = os.path.dirname(os.path.abspath(output_arg))
     if output_dir:
         os.makedirs(output_dir, exist_ok=True)
-    return os.path.abspath(output_arg)
+    return validate_output_extension(os.path.abspath(output_arg))
 
 
 def run_single_file_mode(args, input_source, resize):
     """Run single-image file mode."""
-    output_filename = resolve_file_output(input_source, args.output, args.extension)
+    output_filename = resolve_file_output(input_source, args.output)
     return crop_file_to_output(
         input_source,
         output_filename,
-        args.extension,
         args.height,
         args.width,
         args.facePercent,
@@ -417,7 +448,6 @@ def command_line_interface():
 
     if input_source == "-":
         status = crop_stdin_to_stdout(
-            extension=args.extension,
             fheight=args.height,
             fwidth=args.width,
             face_percent=args.facePercent,
@@ -426,5 +456,9 @@ def command_line_interface():
         )
         sys.exit(status)
 
-    status = run_single_file_mode(args, input_source, resize)
+    try:
+        status = run_single_file_mode(args, input_source, resize)
+    except CliError as exc:
+        print(exc, file=sys.stderr)
+        status = 2
     sys.exit(status)

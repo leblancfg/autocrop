@@ -1,5 +1,5 @@
 import os
-import sys
+from importlib.resources import files
 
 import cv2
 import numpy as np
@@ -18,8 +18,7 @@ class YuNetDetector:
         top_k=5000,
     ):
         if model_path is None:
-            directory = os.path.dirname(sys.modules["autocrop"].__file__)
-            model_path = os.path.join(directory, YUNET_MODEL)
+            model_path = str(files("autocrop").joinpath(YUNET_MODEL))
         self.model_path = model_path
         self.score_threshold = score_threshold
         self.nms_threshold = nms_threshold
@@ -27,8 +26,7 @@ class YuNetDetector:
         self._detector = None
         self._input_size = None
 
-    def detect(self, image, gray=None):
-        del gray  # YuNet receives a normalized 3-channel BGR image.
+    def detect(self, image):
         if not hasattr(cv2, "FaceDetectorYN_create"):
             raise RuntimeError("OpenCV FaceDetectorYN is not available")
         if not os.path.exists(self.model_path):

@@ -2,13 +2,13 @@ import itertools
 
 import cv2
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageOps
 
 from .yunet import YuNetDetector
 
 
-class ImageReadError(BaseException):
-    """Custom exception to catch an OpenCV failure type."""
+class ImageReadError(Exception):
+    """Raised when an input cannot be interpreted as an image array."""
 
     pass
 
@@ -28,6 +28,8 @@ def intersect(v1, v2):
     dp = a1 - b1
     dap = perp(da)
     denom = np.dot(dap, db).astype(float)
+    if denom == 0:
+        return None
     num = np.dot(dap, dp)
     return (num / denom) * db + b1
 
@@ -47,18 +49,6 @@ def bgr_to_rbg(img):
     # Flip the channels. Use explicit indexing in case RGBA is used.
     img[:, :, [0, 1, 2]] = img[:, :, [2, 1, 0]]
     return img
-
-
-def detector_gray_image(image, image_is_bgr):
-    """Return a grayscale image for face detection heuristics."""
-    del image_is_bgr  # Preserve historical grayscale conversion behavior.
-    if image.ndim == 2:
-        return image
-
-    try:
-        return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    except cv2.error:
-        return image
 
 
 def detector_color_image(image, image_is_bgr):
@@ -93,9 +83,9 @@ def check_positive_scalar(num):
 
 
 def open_file(input_filename):
-    """Given a filename, returns a numpy array"""
+    """Given a filename, returns an EXIF-oriented numpy array."""
     with Image.open(input_filename) as img_orig:
-        return np.array(img_orig)
+        return np.array(ImageOps.exif_transpose(img_orig))
 
 
 class Cropper:
@@ -119,6 +109,9 @@ class Cropper:
     * `resize`: `bool`, default=`True`
         - Resizes the image to the specified width and height,
         otherwise, returns the original image pixels.
+
+    NumPy array inputs are interpreted as OpenCV-style BGR/BGRA arrays. Returned
+    arrays are RGB/RGBA so they can be passed directly to Pillow or Matplotlib.
     """
 
     def __init__(
@@ -126,7 +119,6 @@ class Cropper:
         width=500,
         height=500,
         face_percent=50,
-        padding=None,
         resize=True,
         face_detector=None,
         yunet_model_path=None,
@@ -160,7 +152,8 @@ class Cropper:
         Parameters
         ----------
         - `path_or_array` : {`str`, `np.ndarray`}
-            * The filepath or numpy array of the image.
+            * The filepath or numpy array of the image. Array inputs are
+              interpreted as OpenCV-style BGR/BGRA arrays.
 
         Returns
         -------
@@ -174,7 +167,6 @@ class Cropper:
             image = path_or_array
             image_is_bgr = True
 
-        gray = detector_gray_image(image, image_is_bgr)
         detection_image = detector_color_image(image, image_is_bgr)
 
         # Scale the image
@@ -183,14 +175,16 @@ class Cropper:
         except AttributeError:
             raise ImageReadError
         # ====== Detect faces in the image ======
-        faces = self.face_detector.detect(detection_image, gray)
+        faces = self.face_detector.detect(detection_image)
 
         # Handle no faces
         if len(faces) == 0:
             return None
 
-        # Make padding from biggest face found
+        # Make crop margins from biggest face found
         x, y, w, h = max(faces, key=lambda face: face[2] * face[3])
+        if w <= 0 or h <= 0:
+            return None
         pos = self._crop_positions(
             img_height,
             img_width,
@@ -199,6 +193,9 @@ class Cropper:
             w,
             h,
         )
+
+        if pos[0] >= pos[1] or pos[2] >= pos[3]:
+            return None
 
         # ====== Actual cropping ======
         image = image[pos[0] : pos[1], pos[2] : pos[3]]
@@ -269,9 +266,12 @@ class Cropper:
             a = distance(*corner_vector)
             intersects = list(intersect(corner_vector, side) for side in image_sides)
             for pt in intersects:
+                if pt is None or not np.isfinite(pt).all():
+                    continue
                 if (pt >= 0).all() and (pt <= i[2]).all():  # if intersect within image
                     dist_to_pt = distance(center, pt)
-                    corner_ratios.append(100 * a / dist_to_pt)
+                    if dist_to_pt > 0:
+                        corner_ratios.append(100 * a / dist_to_pt)
         return max(corner_ratios)
 
     def _crop_positions(
@@ -315,7 +315,7 @@ class Cropper:
             width_crop = w * 100.0 / zoom
             height_crop = float(width_crop) / self.aspect_ratio
 
-        # Calculate padding by centering face
+        # Calculate margins by centering face
         xpad = (width_crop - w) / 2
         ypad = (height_crop - h) / 2
 

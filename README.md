@@ -27,7 +27,7 @@ Autocrop can be used [from the command line](#from-the-command-line) or directly
 ## From the command line
 
     usage: autocrop [-h] [-V] [-v] [-n] [-o OUTPUT] [-w WIDTH] [-H HEIGHT]
-                    [--facePercent FACEPERCENT] [-e EXTENSION]
+                    [--facePercent FACEPERCENT]
                     [source]
 
     Automatically crops faces from pictures
@@ -49,15 +49,14 @@ Autocrop can be used [from the command line](#from-the-command-line) or directly
       -H, --height HEIGHT   Height of cropped files in px. Default=500
       --facePercent FACEPERCENT
                             Percentage of face to image height
-      -e, --extension EXTENSION
-                            Enter the image extension which to save at output
 
 ## From Python
 
 Import the `Cropper` class, set some parameters (optional), and start cropping.
 
-The `crop` method accepts filepaths or `np.ndarray`, and returns Numpy arrays. These are easily
-handled with [PIL](https://pillow.readthedocs.io/) or [Matplotlib](https://matplotlib.org/).
+The `crop` method accepts filepaths or OpenCV-style BGR/BGRA `np.ndarray` inputs, and returns
+RGB/RGBA Numpy arrays. These are easily handled with
+[PIL](https://pillow.readthedocs.io/) or [Matplotlib](https://matplotlib.org/).
 
 ```python
 from PIL import Image
@@ -93,8 +92,8 @@ Further examples and use cases are found in the
   - `autocrop portrait.jpg --verbose > cropped.jpg`
 - Crop one image and write into an explicit output directory:
   - `autocrop portrait.jpg -o crop`
-- Same as above but the output extension will be `png`:
-  - `autocrop portrait.jpg -o crop -e png`
+- Convert output format by choosing an explicit output extension:
+  - `autocrop portrait.jpg -o cropped.png`
 - Crop one image but keep the original crop pixels instead of resizing:
   - `autocrop portrait.jpg --no-resize > cropped.jpg`
 
@@ -121,14 +120,14 @@ find pics -type f \( -iname '*.jpg' -o -iname '*.png' \) -print0 |
   while IFS= read -r -d '' file; do
     out="crop/${file#pics/}"
     mkdir -p "$(dirname "$out")"
-    autocrop "$file" -e jpg > "${out%.*}.jpg"
+    autocrop "$file" -o "${out%.*}.jpg"
   done
 ```
 
 With [`fd`](https://github.com/sharkdp/fd):
 
 ```sh
-fd -e jpg -e png . pics -x sh -c 'out="crop/${1#pics/}"; mkdir -p "$(dirname "$out")"; autocrop "$1" -e jpg > "${out%.*}.jpg"' sh {}
+fd -e jpg -e png . pics -x sh -c 'out="crop/${1#pics/}"; mkdir -p "$(dirname "$out")"; autocrop "$1" -o "${out%.*}.jpg"' sh {}
 ```
 
 With `xargs`:
@@ -159,13 +158,13 @@ ffmpeg -i input.mp4 -filter:v fps=fps=1/60 frames/ffmpeg_%0d.bmp
 # Crop faces as jpg
 find frames -type f -name '*.bmp' -print0 |
   while IFS= read -r -d '' file; do
-    autocrop "$file" -e jpg > "faces/$(basename "${file%.*}").jpg"
+    autocrop "$file" -o "faces/$(basename "${file%.*}").jpg"
   done
 ```
 
 # Supported file types
 
-The following file types are supported:
+The following input file types are supported:
 
 - EPS files (`.eps`)
 - GIF files (`.gif`) (only the first frame of an animated GIF is used)
@@ -185,6 +184,12 @@ The following file types are supported:
 - Windows bitmap files (`.bmp`, `.dib`)
 - Windows ICO files (`.ico`)
 - X bitmap files (`.xbm`)
+
+Explicit output files are limited to writable formats with these extensions:
+`.apng`, `.bmp`, `.dib`, `.eps`, `.gif`, `.icns`, `.ico`, `.j2c`, `.j2k`,
+`.jpe`, `.jpeg`, `.jpg`, `.jp2`, `.jpc`, `.jpf`, `.jpx`, `.pbm`, `.pcx`,
+`.pdf`, `.pgm`, `.png`, `.pnm`, `.ppm`, `.ps`, `.rgb`, `.rgba`, `.sgi`,
+`.tga`, `.tif`, `.tiff`, and `.webp`.
 
 # Misc
 

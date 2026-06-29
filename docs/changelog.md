@@ -19,6 +19,7 @@ CLI invocation.
 
 #### CLI
 * Single-image mode writes cropped image bytes to stdout by default.
+* Explicit output files infer output format from the output extension; `-e`/`--extension` was removed.
 * Use `autocrop portrait.jpg > cropped.jpg` or `cat portrait.jpg | autocrop - > cropped.jpg`.
 * Autocrop no longer scans directories; compose it with `find`, `fd`, `xargs`, or similar tools for batch jobs.
 * Removed directory-mode options: `-i`/`--input`, `-r`/`--reject`, and `--no-confirm`/`--skip-prompt`.
@@ -39,15 +40,19 @@ CLI invocation.
 ### Added
 * Add YuNet face detection using the vendored OpenCV Zoo model.
 * Add `--verbose` CLI output with import, read, process, write, and total timings on stderr.
+* Apply EXIF orientation before detection and cropping.
 
 ### Removed
 * Remove directory-scanning CLI mode; compose `autocrop` with `find`, `fd`, or similar tools for batch work.
 * Remove `-i`/`--input`, `-r`/`--reject`, and `--no-confirm`/`--skip-prompt`.
+* Remove `-e`/`--extension`; use an explicit output file extension to choose output format.
 * Remove Haar cascade detection and the `--detector` CLI option.
 * Remove automatic gamma/exposure adjustment from cropped output.
 
 ### Changed
+* Require OpenCV 4.8 or newer for YuNet support.
 * Avoid Pillow plugin registration during import by using static image extension metadata.
+* Interpret NumPy array inputs explicitly as OpenCV-style BGR/BGRA and return RGB/RGBA arrays.
 * Use Pillow for resizing.
 * Update contributor setup documentation.
 * Update GitHub Actions versions and CI support through Python 3.14.
@@ -57,6 +62,8 @@ CLI invocation.
 * Open files through Pillow to handle transparency.
 * Preserve RGB channels for path inputs.
 * Keep crop positions inside image bounds.
+* Avoid tracebacks for invalid image files and broken stdout pipes.
+* Treat degenerate crop geometry as no detected face.
 
 ## 1.3.1 - 2022-02-08
 ### API Additions

@@ -31,6 +31,7 @@ Write to an explicit file or directory, or include timings on stderr:
 
 ```sh
 autocrop portrait.jpg -o portrait-cropped.jpg
+autocrop portrait.jpg -o portrait-cropped.png
 autocrop portrait.jpg -o cropped/
 autocrop portrait.jpg --verbose > portrait-cropped.jpg
 ```
@@ -63,4 +64,5 @@ if cropped is not None:
     Image.fromarray(cropped).save("portrait-cropped.jpg")
 ```
 
-`Cropper.crop()` returns `None` when no face is detected.
+`Cropper.crop()` returns `None` when no face is detected. NumPy array inputs are
+interpreted as OpenCV-style BGR/BGRA arrays; returned arrays are RGB/RGBA.
