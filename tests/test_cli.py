@@ -2,6 +2,7 @@
 import argparse
 import io
 import os
+import re
 import sys
 
 import pytest
@@ -24,6 +25,12 @@ from autocrop.cli import (
 SOURCE_ATIME_NS = 946684800123456000
 SOURCE_MTIME_NS = 978307200654321000
 EXIF_MAKE_TAG = 271
+
+
+def verbose_timing(captured_err, key):
+    match = re.search(rf"{key}=([0-9]+\.[0-9]+)s", captured_err)
+    assert match is not None
+    return float(match.group(1))
 
 
 def test_size_140_is_valid():
@@ -331,6 +338,9 @@ def test_crop_file_to_output_verbose_writes_timings_to_stderr(monkeypatch, capsy
     assert "Timings:" in captured.err
     for key in ["total=", "imports=", "read=", "process=", "write="]:
         assert key in captured.err
+    assert verbose_timing(captured.err, "total") >= verbose_timing(
+        captured.err, "imports"
+    )
 
 
 def test_crop_file_to_output_writes_failures_to_stderr(monkeypatch, capsys):
@@ -384,6 +394,9 @@ def test_crop_stdin_to_stdout_verbose_writes_timings_to_stderr(monkeypatch, caps
     assert "Timings:" in captured.err
     for key in ["total=", "imports=", "read=", "process=", "write="]:
         assert key in captured.err
+    assert verbose_timing(captured.err, "total") >= verbose_timing(
+        captured.err, "imports"
+    )
 
 
 def test_crop_stdin_to_stdout_writes_invalid_input_to_stderr(capsys):

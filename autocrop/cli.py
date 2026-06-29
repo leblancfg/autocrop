@@ -121,6 +121,11 @@ def timed_step(timings, key, callback):
         timings[key] += time.perf_counter() - started
 
 
+def finish_timings(timings, started):
+    """Set total time, including package imports and command runtime."""
+    timings["total"] = timings["imports"] + time.perf_counter() - started
+
+
 def print_verbose(input_label, output_label, image_format, timings):
     """Write human-readable verbose diagnostics to stderr."""
     print(f"Input: {input_label}", file=sys.stderr)
@@ -233,7 +238,7 @@ def crop_file_to_output(
             )
         return 0
     finally:
-        timings["total"] = time.perf_counter() - started
+        finish_timings(timings, started)
         if verbose:
             print_verbose(input_filename, output_label, image_format, timings)
 
@@ -292,7 +297,7 @@ def crop_stdin_to_stdout(
         timed_step(timings, "write", lambda: output_bytes(image, stdout, image_format))
         return 0
     finally:
-        timings["total"] = time.perf_counter() - started
+        finish_timings(timings, started)
         if verbose:
             print_verbose("stdin", "stdout", image_format, timings)
 
