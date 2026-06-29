@@ -7,6 +7,12 @@
     <title>{% if page.title %}{{ page.title | escape }} | {% endif %}{{ site.title | escape }}</title>
     <meta name="description" content="{{ page.description | default: site.description | escape }}" />
     <meta name="author" content="François Leblanc" />
+    <meta property="og:title" content="{% if page.title %}{{ page.title | escape }} | {% endif %}{{ site.title | escape }}" />
+    <meta property="og:description" content="{{ page.description | default: site.description | escape }}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="{{ '/assets/social-preview.svg' | absolute_url }}" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="{{ '/assets/social-preview.svg' | absolute_url }}" />
     <link rel="canonical" href="{{ page.url | absolute_url }}" />
     <link rel="icon" href="{{ '/assets/favicon.svg' | relative_url }}" type="image/svg+xml" />
     <link rel="stylesheet" href="{{ '/assets/styles.css' | relative_url }}" />
@@ -16,7 +22,7 @@
       <header class="site-header">
         <div class="header-top">
           <a class="brand-mark" href="{{ '/' | relative_url }}" aria-label="autocrop home">
-            <span aria-hidden="true"></span>
+            <img src="{{ '/assets/autocrop-logo.svg' | relative_url }}" alt="" width="54" height="54" />
           </a>
           <nav class="project-links" aria-label="Project links">
             <a href="https://github.com/leblancfg/autocrop">GitHub</a>

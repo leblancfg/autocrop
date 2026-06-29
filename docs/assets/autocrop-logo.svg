@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">autocrop logo</title>
+  <desc id="desc">A filled face silhouette framed by crop marks in each corner.</desc>
+  <g fill="none" stroke="#24435A" stroke-linecap="square" stroke-linejoin="round">
+    <path d="M20 43V20h23M85 20h23v23M108 85v23H85M43 108H20V85" stroke-width="8"/>
+  </g>
+  <circle cx="64" cy="55" r="22" fill="#24435A"/>
+  <path fill="#24435A" d="M29 108c5.5-19.5 18.2-30 35-30s29.5 10.5 35 30H29Z"/>
+</svg>

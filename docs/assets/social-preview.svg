@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" aria-labelledby="title desc" role="img" viewBox="0 0 1280 640">
+  <title id="title">autocrop</title>
+  <desc id="desc">Crop images around detected faces from Python or the shell.</desc>
+  <style>
+    text{font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+    .kicker{font-size:22px;font-weight:600;fill:#6e7268;letter-spacing:4px}
+    .title{font-size:116px;font-weight:800;fill:#1d2933;letter-spacing:-3px}
+    .sub{font-size:33px;font-weight:600;fill:#6e7268}
+    .small{font-size:23px;font-weight:500;fill:#8b8f86}
+    .wordmark{fill:#6e7268;font-size:24px;font-weight:600;letter-spacing:.3px}
+  </style>
+  <rect width="1280" height="640" fill="#ECEBE6"/>
+  <text x="88" y="214" class="kicker mono">FACE-AWARE · FOR PYTHON</text>
+  <text x="84" y="320" class="title">autocrop</text>
+  <text x="90" y="384" class="sub">crop images around faces</text>
+  <text x="90" y="430" class="small">from Python or the shell</text>
+  <g transform="translate(76 532) scale(.375)">
+    <g fill="none" stroke="#24435A" stroke-linecap="square" stroke-linejoin="round">
+      <path d="M20 43V20h23M85 20h23v23M108 85v23H85M43 108H20V85" stroke-width="8"/>
+    </g>
+    <circle cx="64" cy="55" r="22" fill="#24435A"/>
+    <path fill="#24435A" d="M29 108c5.5-19.5 18.2-30 35-30s29.5 10.5 35 30H29Z"/>
+  </g>
+  <text x="134" y="565" class="wordmark mono">autocrop</text>
+</svg>
