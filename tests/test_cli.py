@@ -195,10 +195,21 @@ def test_cli_width_140_is_valid(mock_crop):
     assert args[4] == 140
 
 
+def test_cli_short_version_exits(capsys):
+    sys.argv = ["autocrop", "-V"]
+    with pytest.raises(SystemExit) as e:
+        command_line_interface()
+    captured = capsys.readouterr()
+    assert e.value.code == 0
+    assert "autocrop version" in captured.out
+    assert captured.err == ""
+
+
+@pytest.mark.parametrize("flag", ["--verbose", "-v"])
 @mock.patch("autocrop.cli.crop_file_to_output")
-def test_cli_verbose_is_passed_to_file_mode(mock_crop):
+def test_cli_verbose_is_passed_to_file_mode(mock_crop, flag):
     mock_crop.return_value = 0
-    sys.argv = ["autocrop", "tests/data/obama.jpg", "--verbose"]
+    sys.argv = ["autocrop", "tests/data/obama.jpg", flag]
     with pytest.raises(SystemExit) as e:
         command_line_interface()
     assert e.value.code == 0
@@ -206,10 +217,11 @@ def test_cli_verbose_is_passed_to_file_mode(mock_crop):
     assert kwargs["verbose"] is True
 
 
+@pytest.mark.parametrize("flag", ["--verbose", "-v"])
 @mock.patch("autocrop.cli.crop_stdin_to_stdout")
-def test_cli_verbose_is_passed_to_stdin_mode(mock_crop):
+def test_cli_verbose_is_passed_to_stdin_mode(mock_crop, flag):
     mock_crop.return_value = 0
-    sys.argv = ["autocrop", "-", "--verbose"]
+    sys.argv = ["autocrop", "-", flag]
     with pytest.raises(SystemExit) as e:
         command_line_interface()
     assert e.value.code == 0

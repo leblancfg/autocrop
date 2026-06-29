@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "autocrop"
 dynamic = ["version"]
-description = "Automatically crops faces from batches of pictures"
+description = "Face-aware image cropping for Python and shell workflows"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "BSD-2-Clause"

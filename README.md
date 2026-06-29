@@ -26,7 +26,8 @@ Autocrop can be used [from the command line](#from-the-command-line) or directly
 
 ## From the command line
 
-    usage: autocrop [-h] [-v] [--verbose] [-n] [-o OUTPUT] [-w WIDTH] [-H HEIGHT] [--facePercent FACEPERCENT] [-e EXTENSION]
+    usage: autocrop [-h] [-V] [-v] [-n] [-o OUTPUT] [-w WIDTH] [-H HEIGHT]
+                    [--facePercent FACEPERCENT] [-e EXTENSION]
                     [source]
 
     Automatically crops faces from pictures
@@ -35,12 +36,15 @@ Autocrop can be used [from the command line](#from-the-command-line) or directly
       source                Image file, or '-' to read image bytes from stdin.
 
     options:
-      -h, --help            Show this help message and exit
-      -v, --version         Show program's version number and exit
-      --verbose             Write timings and basic processing details to stderr
-      -n, --no-resize       Do not resize images to the specified width and height, but instead use the original image's pixels.
-      -o, -p, --output, --path OUTPUT
-                            Output file, or output directory for a single input image. If omitted, cropped image bytes are written to stdout.
+      -h, --help            show this help message and exit
+      -V, --version         show program's version number and exit
+      -v, --verbose         Write timings and basic processing details to stderr
+      -n, --no-resize       Do not resize images to the specified width and
+                            height, but instead use the original image's pixels.
+      -o, --output, -p, --path OUTPUT
+                            Output file, or output directory for a single input
+                            image. If omitted, cropped image bytes are written to
+                            stdout.
       -w, --width WIDTH     Width of cropped files in px. Default=500
       -H, --height HEIGHT   Height of cropped files in px. Default=500
       --facePercent FACEPERCENT
@@ -221,7 +225,7 @@ Check out:
 
 - https://github.com/opencv/opencv_zoo/tree/main/models/face_detection_yunet
 
-Adapted from:
+Adapted (ages ago now!) from:
 
 - http://photo.stackexchange.com/questions/60411/how-can-i-batch-crop-based-on-face-location
 
