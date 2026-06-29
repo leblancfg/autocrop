@@ -1,5 +1,5 @@
 set dotenv-load := false
-uv-run := "uv run --with-requirements requirements-dev.txt --with-editable ."
+uv-run := "uv run"
 
 default:
     @just --list
@@ -8,7 +8,7 @@ clear-dist:
     rm -rf autocrop.egg-info build dist
 
 pypi-test: clear-dist
-    {{ uv-run }} python -m build
+    uv build
     {{ uv-run }} twine upload dist/* -r testpypi
 
 pypi:
@@ -29,9 +29,9 @@ venv:
     uv venv
 
 install:
-    uv pip install -r requirements-dev.txt -e .
+    uv sync
 
-initial_setup: venv install
+initial_setup: install
     @echo
     @echo "Initial setup successful."
     @echo

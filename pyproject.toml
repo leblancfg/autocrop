@@ -36,6 +36,20 @@ Changelog = "https://github.com/leblancfg/autocrop/blob/master/changelog.md"
 [project.scripts]
 autocrop = "autocrop:command_line_interface"
 
+[dependency-groups]
+dev = [
+  "attrs",
+  "build",
+  "codecov",
+  "flake8",
+  "mock",
+  "portray",
+  "pytest-cov",
+  "pytest>=9.0.3,<10",
+  "twine",
+  "wheel",
+]
+
 [tool.hatch.version]
 path = "autocrop/__version__.py"
 
@@ -46,7 +60,6 @@ include = [
   "/LICENSE",
   "/LICENSE-3RD-PARTY.txt",
   "/changelog.md",
-  "/requirements.txt",
 ]
 
 [tool.hatch.build.targets.wheel]

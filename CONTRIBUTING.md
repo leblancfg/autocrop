@@ -20,8 +20,7 @@ and command execution.
 To start things off, run:
 
 ```
-$ uv venv
-$ uv pip install -r requirements-dev.txt -e .
+$ uv sync
 ```
 
 You can then run `autocrop` like so:
@@ -36,7 +35,7 @@ the code and test your changes.
 To refresh your local environment in future, run:
 
 ```
-$ uv pip install -r requirements-dev.txt -e .
+$ uv sync
 ```
 
 ## Tests

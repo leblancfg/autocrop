@@ -190,13 +190,17 @@ In some cases, you may wish the package directly, instead of through [PyPI](http
 cd ~
 git clone https://github.com/leblancfg/autocrop
 cd autocrop
-uv venv
-uv pip install .
+uv sync
 ~~~
 
-### Requirements
+### Development environment
 Best practice for your projects is of course to use virtual environments. For
-local development, autocrop uses [uv](https://docs.astral.sh/uv/).
+local development, autocrop uses [uv](https://docs.astral.sh/uv/):
+
+~~~sh
+uv sync
+uv run autocrop --help
+~~~
 
 Autocrop is [currently being tested on](https://github.com/leblancfg/autocrop/actions/workflows/ci.yml):
 
