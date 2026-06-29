@@ -59,14 +59,54 @@ def gamma(img, correction):
     return np.uint8(img * 255)
 
 
+def detector_gray_image(image, image_is_bgr):
+    """Return a grayscale image for face detection heuristics."""
+    del image_is_bgr  # Preserve historical grayscale conversion behavior.
+    if image.ndim == 2:
+        return image
+
+    try:
+        return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    except cv2.error:
+        return image
+
+
+def detector_color_image(image, image_is_bgr):
+    """
+    Return a 3-channel BGR image suitable for OpenCV DNN face detectors.
+
+    The crop itself still uses the original image array, so grayscale and alpha
+    channels can be preserved in the returned crop.
+    """
+    if image.ndim == 2:
+        return cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+
+    channels = image.shape[2]
+    if channels == 1:
+        return cv2.cvtColor(image[:, :, 0], cv2.COLOR_GRAY2BGR)
+    if channels == 4:
+        if image_is_bgr:
+            return image[:, :, :3].copy()
+        return cv2.cvtColor(image, cv2.COLOR_RGBA2BGR)
+    if channels == 3:
+        if image_is_bgr:
+            return image
+        return cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    return image
+
+
 def check_underexposed(image, gray):
     """
     Returns the (cropped) image with GAMMA applied if underexposition
-    is detected.
+    is detected. Alpha channels are preserved unchanged.
     """
     uexp = cv2.calcHist([gray], [0], None, [256], [0, 256])
     if sum(uexp[-26:]) < GAMMA_THRES * sum(uexp):
-        image = gamma(image, GAMMA)
+        if image.ndim == 3 and image.shape[2] == 4:
+            image = image.copy()
+            image[:, :, :3] = gamma(image[:, :, :3], GAMMA)
+        else:
+            image = gamma(image, GAMMA)
     return image
 
 
@@ -159,11 +199,8 @@ class Cropper:
             image = path_or_array
             image_is_bgr = True
 
-        # Some grayscale color profiles can throw errors, catch them
-        try:
-            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        except cv2.error:
-            gray = image
+        gray = detector_gray_image(image, image_is_bgr)
+        detection_image = detector_color_image(image, image_is_bgr)
 
         # Scale the image
         try:
@@ -171,7 +208,7 @@ class Cropper:
         except AttributeError:
             raise ImageReadError
         # ====== Detect faces in the image ======
-        faces = self.detector.detect(image, gray)
+        faces = self.detector.detect(detection_image, gray)
 
         # Handle no faces
         if len(faces) == 0:

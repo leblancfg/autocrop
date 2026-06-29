@@ -8,7 +8,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from autocrop.autocrop import gamma, Cropper
+from autocrop.autocrop import check_underexposed, gamma, Cropper
 from autocrop.detectors import YuNetDetector
 
 
@@ -93,6 +93,76 @@ def test_cropper_accepts_detector_object():
         detector=MockDetector(),
     )
     np.testing.assert_array_equal(c.crop(source), expected)
+
+
+def test_cropper_normalizes_grayscale_for_detection(tmp_path):
+    class MockDetector:
+        def detect(self, image, gray):
+            self.image = image.copy()
+            self.gray = gray.copy()
+            return np.array([[0, 0, 2, 2]])
+
+    source = np.array([[0, 127], [200, 255]], dtype=np.uint8)
+    image_path = tmp_path / "gray.png"
+    Image.fromarray(source).save(image_path)
+    detector = MockDetector()
+
+    c = Cropper(
+        width=2,
+        height=2,
+        face_percent=100,
+        resize=False,
+        fix_gamma=False,
+        detector=detector,
+    )
+
+    np.testing.assert_array_equal(c.crop(str(image_path)), source)
+    assert detector.image.shape == (2, 2, 3)
+    np.testing.assert_array_equal(detector.image[:, :, 0], source)
+    np.testing.assert_array_equal(detector.image[:, :, 1], source)
+    np.testing.assert_array_equal(detector.image[:, :, 2], source)
+    np.testing.assert_array_equal(detector.gray, source)
+
+
+def test_cropper_normalizes_rgba_for_detection_and_preserves_alpha(tmp_path):
+    class MockDetector:
+        def detect(self, image, gray):
+            self.image = image.copy()
+            return np.array([[0, 0, 2, 2]])
+
+    source = np.array(
+        [
+            [[255, 0, 0, 0], [0, 255, 0, 85]],
+            [[0, 0, 255, 170], [255, 255, 0, 255]],
+        ],
+        dtype=np.uint8,
+    )
+    image_path = tmp_path / "rgba.png"
+    Image.fromarray(source).save(image_path)
+    detector = MockDetector()
+
+    c = Cropper(
+        width=2,
+        height=2,
+        face_percent=100,
+        resize=False,
+        fix_gamma=False,
+        detector=detector,
+    )
+
+    np.testing.assert_array_equal(c.crop(str(image_path)), source)
+    assert detector.image.shape == (2, 2, 3)
+    np.testing.assert_array_equal(detector.image, source[:, :, [2, 1, 0]])
+
+
+def test_underexposure_fix_preserves_alpha_channel():
+    source = np.array([[[4, 9, 16, 127]]], dtype=np.uint8)
+    gray = np.zeros((1, 1), dtype=np.uint8)
+
+    result = check_underexposed(source, gray)
+
+    assert result[0, 0, 3] == source[0, 0, 3]
+    assert not np.array_equal(result[0, 0, :3], source[0, 0, :3])
 
 
 def test_cropper_uses_largest_detected_face():
