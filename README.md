@@ -11,7 +11,6 @@
 Perfect for profile picture processing for your website or batch work for ID cards, autocrop will
 output images centered around the biggest face detected.
 
-Docs site draft: the proposed documentation refresh lives in `docs/`.
 
 # Installation
 
