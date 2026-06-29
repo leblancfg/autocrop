@@ -99,22 +99,21 @@ main {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 54px;
-  height: 54px;
-  border: 3px solid var(--accent);
-  border-radius: 14px;
-  background:
-    linear-gradient(90deg, transparent 42%, var(--accent) 42%, var(--accent) 58%, transparent 58%),
-    linear-gradient(180deg, transparent 42%, var(--accent) 42%, var(--accent) 58%, transparent 58%),
-    var(--accent-soft);
+  width: 62px;
+  height: 62px;
+  padding: 4px;
+  border-radius: 12px;
 }
 
-.brand-mark span {
-  width: 20px;
-  height: 20px;
-  border: 3px solid var(--accent);
-  border-radius: 50%;
-  background: var(--bg);
+.brand-mark:hover {
+  background: var(--accent-soft);
+  text-decoration: none;
+}
+
+.brand-mark img {
+  display: block;
+  width: 54px;
+  height: 54px;
 }
 
 .eyebrow {
