@@ -11,6 +11,7 @@ description: autocrop migration notes and next major release direction.
 - make the CLI composable and pipeable
 - keep file output explicit and predictable
 - replace Haar cascade detection with YuNet
+- process one image per autocrop invocation
 - preserve image and filesystem metadata where possible
 - modernize development workflow around just and uv
 
@@ -23,18 +24,22 @@ autocrop portrait.jpg > cropped.jpg
 cat portrait.jpg | autocrop - > cropped.jpg
 ```
 
-Directory mode requires an explicit output directory:
+Autocrop no longer scans directories. Use shell composition for batch work:
 
 ```sh
-autocrop -i portraits -o cropped
-```
-
-Recursive workflows should use shell composition:
-
-```sh
+mkdir -p cropped
 find portraits -type f -name '*.jpg' -print0 |
-  xargs -0 -I{} sh -c 'autocrop "$1" > "cropped/$(basename "$1")"' sh {}
+  while IFS= read -r -d '' file; do
+    autocrop "$file" > "cropped/$(basename "$file")"
+  done
 ```
+
+Removed:
+
+- directory-scanning input mode
+- `-i` / `--input`
+- `-r` / `--reject`
+- `--no-confirm` / `--skip-prompt`
 
 ## Detector changes
 

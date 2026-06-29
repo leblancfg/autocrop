@@ -27,30 +27,22 @@ Autocrop can be used [from the command line](#from-the-command-line) or directly
 
 ## From the command line
 
-    usage: autocrop [-h] [-v] [--no-confirm] [-n] [-i INPUT] [-o OUTPUT] [-r REJECT] [-w WIDTH] [-H HEIGHT] [--facePercent FACEPERCENT]
-                    [-e EXTENSION]
+    usage: autocrop [-h] [-v] [-n] [-o OUTPUT] [-w WIDTH] [-H HEIGHT] [--facePercent FACEPERCENT] [-e EXTENSION]
                     [source]
 
     Automatically crops faces from pictures
 
+    positional arguments:
+      source                Image file, or '-' to read image bytes from stdin.
+
     options:
-      source                Image file, image directory, or '-' to read image bytes from stdin. Directory input requires --output.
       -h, --help            Show this help message and exit
       -v, --version         Show program's version number and exit
-      --no-confirm, --skip-prompt
-                            Bypass any confirmation prompts
       -n, --no-resize       Do not resize images to the specified width and height, but instead use the original image's pixels.
-      -i, --input INPUT
-                            Image file or folder where images to crop are located. Use '-' to read image bytes from stdin.
       -o, -p, --output, --path OUTPUT
-                            Output file for a single input image, or output directory for directory input. If omitted for a single image,
-                            cropped image bytes are written to stdout.
-      -r, --reject REJECT
-                            Folder where images that could not be cropped will be moved to in directory mode.
-      -w, --width WIDTH
-                            Width of cropped files in px. Default=500
-      -H, --height HEIGHT
-                            Height of cropped files in px. Default=500
+                            Output file, or output directory for a single input image. If omitted, cropped image bytes are written to stdout.
+      -w, --width WIDTH     Width of cropped files in px. Default=500
+      -H, --height HEIGHT   Height of cropped files in px. Default=500
       --facePercent FACEPERCENT
                             Percentage of face to image height
       -e, --extension EXTENSION
@@ -95,21 +87,27 @@ Further examples and use cases are found in the
   - `autocrop portrait.jpg -o cropped.jpg`
 - Crop one image and write into an explicit output directory:
   - `autocrop portrait.jpg -o crop`
-- Crop every image in the `pics` folder, resize them to 400 px squares, and output them in the
-  `crop` directory:
-  - `autocrop -i pics -o crop -w 400 -H 400`.
-  - Images where a face can't be detected will be left in `crop`.
-- Same as above, but output the images with undetected faces to the `reject` directory:
-  - `autocrop -i pics -o crop -r reject -w 400 -H 400`.
-- Same as above but the image extension will be `png`:
-  - `autocrop -i pics -o crop -w 400 -H 400 -e png`
-- Crop every image in the `pics` folder and output to the `crop` directory, but keep the original
-  pixels from the images:
-  - `autocrop -i pics -o crop --no-resize`
-Directory input now requires an explicit output directory. For recursive or filtered batch
-workflows, compose `autocrop` with shell tools instead of relying on implicit whole-folder behavior.
-Successful single-image and stdin runs are quiet except for cropped image bytes on stdout;
-diagnostics are written to stderr.
+- Same as above but the output extension will be `png`:
+  - `autocrop portrait.jpg -o crop -e png`
+- Crop one image but keep the original crop pixels instead of resizing:
+  - `autocrop portrait.jpg --no-resize > cropped.jpg`
+
+Autocrop intentionally processes one image per invocation. For recursive or filtered batch
+workflows, compose `autocrop` with shell tools.
+
+With `find`:
+
+```sh
+mkdir -p crop
+find pics -type f \( -iname '*.jpg' -o -iname '*.png' \) -print0 |
+  while IFS= read -r -d '' file; do
+    out="crop/${file#pics/}"
+    mkdir -p "$(dirname "$out")"
+    autocrop "$file" > "$out"
+  done
+```
+
+Convert outputs to JPEG while batching:
 
 ```sh
 mkdir -p crop
@@ -141,13 +139,6 @@ find pics -type f \( -iname '*.jpg' -o -iname '*.png' \) -print0 |
   parallel -0 'out="crop/{= s:^pics/:: =}"; mkdir -p "$(dirname "$out")"; autocrop {} > "$out"'
 ```
 
-Explicit in-place directory output remains available by passing the same input and output directory,
-and still prompts unless `--no-confirm` is used:
-
-```sh
-autocrop -i pics -o pics
-```
-
 ### Detecting faces from video files
 
 You can use autocrop to detect faces in frames extracted from a video. A great way to
@@ -160,7 +151,10 @@ mkdir frames faces
 ffmpeg -i input.mp4 -filter:v fps=fps=1/60 frames/ffmpeg_%0d.bmp
 
 # Crop faces as jpg
-autocrop -i frames -o faces -e jpg
+find frames -type f -name '*.bmp' -print0 |
+  while IFS= read -r -d '' file; do
+    autocrop "$file" -e jpg > "faces/$(basename "${file%.*}").jpg"
+  done
 ```
 
 # Supported file types

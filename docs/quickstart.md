@@ -27,14 +27,27 @@ uv run autocrop --help
 autocrop portrait.jpg > portrait-cropped.jpg
 ```
 
-## Crop a folder
+Write to an explicit file or directory:
 
 ```sh
-autocrop -i portraits -o cropped -w 500 -H 500
+autocrop portrait.jpg -o portrait-cropped.jpg
+autocrop portrait.jpg -o cropped/
 ```
 
-Images with a detected face are written to `cropped`. Images without a detected
-face are copied to the reject destination when one is configured.
+## Crop many images
+
+Autocrop processes one image at a time. Use `find`, `fd`, or another file
+selection tool for batch jobs:
+
+```sh
+mkdir -p cropped
+find portraits -type f \( -iname '*.jpg' -o -iname '*.png' \) -print0 |
+  while IFS= read -r -d '' file; do
+    out="cropped/${file#portraits/}"
+    mkdir -p "$(dirname "$out")"
+    autocrop "$file" > "$out"
+  done
+```
 
 ## Crop from Python
 

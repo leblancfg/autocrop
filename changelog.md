@@ -7,10 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
-* Add `--skip-prompt` as a synonym for `--no-confirm`.
 * Add YuNet face detection using the vendored OpenCV Zoo model.
 
 ### Removed
+* Remove directory-scanning CLI mode; compose `autocrop` with `find`, `fd`, or similar tools for batch work.
+* Remove `-i`/`--input`, `-r`/`--reject`, and `--no-confirm`/`--skip-prompt`.
 * Remove Haar cascade detection and the `--detector` CLI option.
 * Remove automatic gamma/exposure adjustment from cropped output.
 
