@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#E8EAEC" />
+    <title>{% if page.title %}{{ page.title | escape }} | {% endif %}{{ site.title | escape }}</title>
+    <meta name="description" content="{{ page.description | default: site.description | escape }}" />
+    <meta name="author" content="François Leblanc" />
+    <link rel="canonical" href="{{ page.url | absolute_url }}" />
+    <link rel="icon" href="{{ '/assets/favicon.svg' | relative_url }}" type="image/svg+xml" />
+    <link rel="stylesheet" href="{{ '/assets/styles.css' | relative_url }}" />
+  </head>
+  <body>
+    <main>
+      <header class="site-header">
+        <div class="header-top">
+          <a class="brand-mark" href="{{ '/' | relative_url }}" aria-label="autocrop home">
+            <span aria-hidden="true"></span>
+          </a>
+          <nav class="project-links" aria-label="Project links">
+            <a href="https://github.com/leblancfg/autocrop">GitHub</a>
+            <a href="https://pypi.org/project/autocrop/">PyPI</a>
+          </nav>
+        </div>
+        <p class="eyebrow">face-aware cropping</p>
+        <h1>{{ page.heading | default: page.title | default: site.title }}</h1>
+        {% if page.lead %}
+        <p class="lead">{{ page.lead }}</p>
+        {% endif %}
+        <nav class="site-nav" aria-label="Documentation navigation">
+          <a class="{% if page.url == '/' %}active{% endif %}" href="{{ '/' | relative_url }}">Overview</a>
+          <a class="{% if page.url == '/quickstart/' %}active{% endif %}" href="{{ '/quickstart/' | relative_url }}">Quickstart</a>
+          <a class="{% if page.url == '/cli/' %}active{% endif %}" href="{{ '/cli/' | relative_url }}">CLI</a>
+          <a class="{% if page.url == '/api/' %}active{% endif %}" href="{{ '/api/' | relative_url }}">API</a>
+          <a class="{% if page.url == '/v2/' %}active{% endif %}" href="{{ '/v2/' | relative_url }}">v2 notes</a>
+        </nav>
+      </header>
+
+      <article class="content">{{ content }}</article>
+
+      <footer>
+        BSD licensed. Source on <a href="https://github.com/leblancfg/autocrop">GitHub</a>.
+      </footer>
+    </main>
+  </body>
+</html>
