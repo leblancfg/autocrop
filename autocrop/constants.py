@@ -1,7 +1,5 @@
 from PIL import Image
 
-GAMMA_THRES = 0.001
-GAMMA = 0.90
 QUESTION_OVERWRITE = "Overwrite image files?"
 YUNET_MODEL = "face_detection_yunet_2023mar.onnx"
 

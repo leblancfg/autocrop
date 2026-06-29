@@ -4,10 +4,6 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from .constants import (
-    GAMMA_THRES,
-    GAMMA,
-)
 from .yunet import YuNetDetector
 
 
@@ -53,12 +49,6 @@ def bgr_to_rbg(img):
     return img
 
 
-def gamma(img, correction):
-    """Simple gamma correction to brighten faces"""
-    img = cv2.pow(img / 255.0, correction)
-    return np.uint8(img * 255)
-
-
 def detector_gray_image(image, image_is_bgr):
     """Return a grayscale image for face detection heuristics."""
     del image_is_bgr  # Preserve historical grayscale conversion behavior.
@@ -95,21 +85,6 @@ def detector_color_image(image, image_is_bgr):
     return image
 
 
-def check_underexposed(image, gray):
-    """
-    Returns the (cropped) image with GAMMA applied if underexposition
-    is detected. Alpha channels are preserved unchanged.
-    """
-    uexp = cv2.calcHist([gray], [0], None, [256], [0, 256])
-    if sum(uexp[-26:]) < GAMMA_THRES * sum(uexp):
-        if image.ndim == 3 and image.shape[2] == 4:
-            image = image.copy()
-            image[:, :, :3] = gamma(image[:, :, :3], GAMMA)
-        else:
-            image = gamma(image, GAMMA)
-    return image
-
-
 def check_positive_scalar(num):
     """Returns True if value if a positive scalar."""
     if num > 0 and not isinstance(num, str) and np.isscalar(num):
@@ -127,11 +102,9 @@ class Cropper:
     """
     Crops the largest detected face from images.
 
-    This class uses the `CascadeClassifier` from OpenCV to
-    perform the `crop` by taking in either a filepath or
-    Numpy array, and returning a Numpy array. By default,
-    also provides a slight gamma fix to lighten the face
-    in its new context.
+    This class uses OpenCV's YuNet face detector to perform the
+    `crop` by taking in either a filepath or Numpy array, and
+    returning a Numpy array.
 
     Parameters:
     -----------
@@ -143,10 +116,6 @@ class Cropper:
     * `face_percent`: `int`, default=`50`
         - Aka zoom factor. Percent of the overall size of
         the cropped image containing the detected coordinates.
-    * `fix_gamma`: `bool`, default=`True`
-        - Cropped faces are often underexposed when taken
-        out of their context. If under a threshold, sets the
-        gamma to 0.9.
     * `resize`: `bool`, default=`True`
         - Resizes the image to the specified width and height,
         otherwise, returns the original image pixels.
@@ -158,7 +127,6 @@ class Cropper:
         height=500,
         face_percent=50,
         padding=None,
-        fix_gamma=True,
         resize=True,
         face_detector=None,
         yunet_model_path=None,
@@ -169,7 +137,6 @@ class Cropper:
         self.height = check_positive_scalar(height)
         self.width = check_positive_scalar(width)
         self.aspect_ratio = width / height
-        self.gamma = fix_gamma
         self.resize = resize
         self.face_detector = face_detector or YuNetDetector(
             model_path=yunet_model_path,
@@ -241,9 +208,6 @@ class Cropper:
             with Image.fromarray(image) as img:
                 image = np.array(img.resize((self.width, self.height)))
 
-        # Underexposition fix
-        if self.gamma:
-            image = check_underexposed(image, gray)
         if image_is_bgr:
             return bgr_to_rbg(image)
         return image
