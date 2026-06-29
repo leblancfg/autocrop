@@ -77,5 +77,4 @@ include = [
 packages = ["autocrop"]
 
 [tool.hatch.build.targets.wheel.force-include]
-"autocrop/haarcascade_frontalface_default.xml" = "autocrop/haarcascade_frontalface_default.xml"
 "autocrop/face_detection_yunet_2023mar.onnx" = "autocrop/face_detection_yunet_2023mar.onnx"
