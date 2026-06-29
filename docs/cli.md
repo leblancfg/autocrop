@@ -18,9 +18,9 @@ autocrop -i portraits -o cropped --no-resize
 The stable CLI is folder-oriented and prompts before destructive in-place
 cropping unless `--no-confirm` is passed.
 
-## Composable v2 direction
+## Next CLI direction
 
-The v2 CLI should behave more like a classic shell command:
+The next major CLI should behave more like a classic shell command:
 
 - a single input image can be cropped to stdout
 - diagnostics should go to stderr
