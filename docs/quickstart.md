@@ -2,7 +2,7 @@
 layout: default
 title: Quickstart
 heading: Quickstart
-lead: Install autocrop, crop one folder, then move to scriptable examples.
+lead: Install autocrop, crop one image, then move to scriptable examples.
 description: Install and run autocrop from the command line or Python.
 ---
 
@@ -17,10 +17,14 @@ For local development:
 ```sh
 git clone https://github.com/leblancfg/autocrop
 cd autocrop
-python -m venv env
-. env/bin/activate
-pip install -r requirements-dev.txt
-pip install -e .
+uv sync
+uv run autocrop --help
+```
+
+## Crop one image
+
+```sh
+autocrop portrait.jpg > portrait-cropped.jpg
 ```
 
 ## Crop a folder

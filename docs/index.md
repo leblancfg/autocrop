@@ -10,8 +10,12 @@ description: Face-aware image cropping for scripts, data cleanup, and command-li
 is useful when you have portraits, screenshots, or scraped images and want
 consistent framing without hand-editing each file.
 
+Autocrop v2 uses OpenCV's YuNet neural-network detector and writes single-image
+crops to stdout by default.
+
 ```sh
 pip install autocrop
+autocrop portrait.jpg > cropped.jpg
 autocrop -i portraits -o cropped -w 500 -H 500
 ```
 
@@ -26,19 +30,9 @@ if cropped is not None:
     Image.fromarray(cropped).save("cropped.jpg")
 ```
 
-## What this docs draft changes
-
-This is a proposed documentation refresh:
-
-- keep the package practical and small
-- use a restrained blue-over-grey identity, parallel to pi-fusion without copying its green accent
-- separate install, CLI, and API documentation instead of putting everything in the README
-- make pipeable shell workflows first-class in the docs
-- add migration notes before behavior-changing PRs land
-
 ## Documentation map
 
 - [Quickstart]({{ '/quickstart/' | relative_url }}) covers installation and the shortest working examples.
 - [CLI]({{ '/cli/' | relative_url }}) covers file, directory, and shell-composed workflows.
 - [API]({{ '/api/' | relative_url }}) covers `Cropper` and return values.
-- [Migration path]({{ '/migration/' | relative_url }}) tracks proposed breaking changes.
+- [Migration path]({{ '/migration/' | relative_url }}) tracks breaking changes.

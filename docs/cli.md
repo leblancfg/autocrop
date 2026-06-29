@@ -6,33 +6,41 @@ lead: Use autocrop directly, or compose it with shell tools for larger jobs.
 description: autocrop command-line usage and shell examples.
 ---
 
-## Current stable usage
+## Single-image usage
+
+Autocrop v2 behaves like a classic shell command for single images: cropped image
+bytes go to stdout and diagnostics go to stderr.
+
+```sh
+autocrop portrait.jpg > portrait-cropped.jpg
+cat portrait.jpg | autocrop - > portrait-cropped.jpg
+autocrop portrait.jpg -o portrait-cropped.jpg
+```
+
+YuNet is the built-in face detector; there is no detector-selection flag.
+
+## Directory usage
+
+Directory input requires an explicit output directory:
 
 ```sh
 autocrop -i portraits -o cropped
 autocrop -i portraits -o cropped -w 400 -H 400
 autocrop -i portraits -o cropped -e png
 autocrop -i portraits -o cropped --no-resize
+autocrop -i portraits -o cropped -r rejected
 ```
 
-The stable CLI is folder-oriented and prompts before destructive in-place
-cropping unless `--no-confirm` is passed.
-
-## Next CLI direction
-
-The next major CLI should behave more like a classic shell command:
-
-- a single input image can be cropped to stdout
-- diagnostics should go to stderr
-- explicit output paths should still work
-- recursive folder handling should be documented through shell tools, not owned by autocrop
+Explicit in-place directory output remains available by passing the same input
+and output directory. It prompts unless `--no-confirm` is passed.
 
 ```sh
-autocrop portrait.jpg > portrait-cropped.jpg
-cat portrait.jpg | autocrop - > portrait-cropped.jpg
+autocrop -i portraits -o portraits
 ```
 
-For batch jobs:
+## Shell-composed batch jobs
+
+For recursive or filtered batch jobs, compose `autocrop` with shell tools:
 
 ```sh
 mkdir -p cropped
