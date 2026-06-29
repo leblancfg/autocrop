@@ -261,13 +261,18 @@ def crop_stdin_to_stdout(
     image_format = None
 
     try:
+
         def read_stdin_image():
             image_bytes = stdin.read()
             if not image_bytes:
                 return None, None, "No image bytes received on stdin"
             try:
                 with Image.open(io.BytesIO(image_bytes)) as img_orig:
-                    return img_orig.format, cropper_array_from_pillow_image(img_orig), None
+                    return (
+                        img_orig.format,
+                        cropper_array_from_pillow_image(img_orig),
+                        None,
+                    )
             except OSError as exc:
                 return None, None, f"Could not read image from stdin: {exc}"
 
@@ -326,12 +331,13 @@ def parse_args(args):
         help=help_d["source"],
     )
     parser.add_argument(
-        "-v",
+        "-V",
         "--version",
         action="version",
         version="%(prog)s version {}".format(__version__),
     )
     parser.add_argument(
+        "-v",
         "--verbose",
         action="store_true",
         help=help_d["verbose"],
