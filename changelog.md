@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Remove automatic gamma/exposure adjustment from cropped output.
 
 ### Changed
+* Avoid Pillow plugin registration during import by using static image extension metadata.
 * Use Pillow for resizing.
 * Update contributor setup documentation.
 * Update GitHub Actions versions and CI support through Python 3.14.

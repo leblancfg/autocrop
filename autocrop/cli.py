@@ -12,7 +12,7 @@ from PIL import Image
 from . import _timing
 from .__version__ import __version__
 from .autocrop import Cropper
-from .constants import INPUT_FILETYPES
+from .constants import IMAGE_FORMATS_BY_EXTENSION, INPUT_FILETYPES
 
 
 def _preserve_metadata(input_filename, output_filename, source_stat):
@@ -64,7 +64,7 @@ def input_path(p):
     p = os.path.abspath(p)
     if not os.path.exists(p):
         raise argparse.ArgumentTypeError(no_file)
-    if not os.path.isfile(p) or os.path.splitext(p)[-1] not in INPUT_FILETYPES:
+    if not os.path.isfile(p) or os.path.splitext(p)[-1].lower() not in INPUT_FILETYPES:
         raise argparse.ArgumentTypeError(no_image_file)
     return p
 
@@ -89,7 +89,7 @@ def chk_extension(extension):
     if not extension.startswith("."):
         extension = f".{extension}"
     if extension in INPUT_FILETYPES:
-        return extension.lower().replace(".", "")
+        return extension.replace(".", "")
     else:
         raise argparse.ArgumentTypeError(error)
 
@@ -97,7 +97,7 @@ def chk_extension(extension):
 def output_format(input_format=None, extension=None):
     """Return a Pillow format name for stream or file output."""
     if extension:
-        return Image.registered_extensions()[f".{extension}"]
+        return IMAGE_FORMATS_BY_EXTENSION[f".{extension}"]
     return input_format or "PNG"
 
 
