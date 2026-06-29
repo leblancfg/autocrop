@@ -40,7 +40,6 @@ autocrop = "autocrop:command_line_interface"
 dev = [
   "attrs",
   "build",
-  "codecov",
   "flake8",
   "flake8-pyproject",
   "mock",
