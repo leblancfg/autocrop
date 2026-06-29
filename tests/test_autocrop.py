@@ -278,8 +278,8 @@ def test_crop_positions_stay_inside_image_bounds(values):
 def test_detect_face_in_cropped_image(height, width, integration):
     """
     Cropped outputs should stay inside image bounds and remain valid arrays.
-    YuNet is intentionally stricter than Haar, so a second-pass detection is not
-    a stable invariant for aggressively margin-heavy crops.
+    YuNet is intentionally strict, so a second-pass detection is not a stable
+    invariant for aggressively margin-heavy crops.
     """
     c = Cropper(height=height, width=width, face_percent=1, resize=False)
     faces = [f for f in glob("tests/test/*") if not f.endswith("md")]
