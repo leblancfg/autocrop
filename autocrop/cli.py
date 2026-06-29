@@ -1,10 +1,12 @@
 import argparse
+import io
 import os
 import shutil
 import stat
 import sys
 from typing import Optional
 
+import numpy as np
 from PIL import Image
 
 from .__version__ import __version__
@@ -56,6 +58,12 @@ def output(input_filename, output_filename, image, source_stat=None):
     _preserve_metadata(input_filename, output_filename, source_stat)
 
 
+def output_bytes(image, output_stream, image_format):
+    """Write cropped image bytes to a binary stream."""
+    img_new = Image.fromarray(image)
+    img_new.save(output_stream, format=image_format)
+
+
 def reject(input_filename, reject_filename, source_stat=None):
     """Move the input file to the reject location."""
     if source_stat is None:
@@ -64,6 +72,12 @@ def reject(input_filename, reject_filename, source_stat=None):
         # Move the file to the reject directory
         shutil.copy(input_filename, reject_filename)
     _preserve_metadata(input_filename, reject_filename, source_stat)
+
+
+def status(message, quiet):
+    """Write status text to stderr unless quiet mode is enabled."""
+    if not quiet:
+        print(message, file=sys.stderr)
 
 
 def main(
@@ -75,6 +89,7 @@ def main(
     fwidth: int = 500,
     facePercent: int = 50,
     resize: bool = True,
+    quiet: bool = True,
 ) -> None:
     """
     Crops folder of images to the desired height and width if a
@@ -145,38 +160,45 @@ def main(
         try:
             image = cropper.crop(input_filename)
         except ImageReadError:
-            print("Read error:       {}".format(input_filename))
+            status("Read error:       {}".format(input_filename), quiet)
             continue
 
         # Did the crop produce an invalid image?
         if isinstance(image, type(None)):
             reject(input_filename, reject_filename, source_stat)
-            print("No face detected: {}".format(reject_filename))
+            status("No face detected: {}".format(reject_filename), quiet)
             reject_count += 1
         else:
             output(input_filename, output_filename, image, source_stat)
-            print("Face detected:    {}".format(output_filename))
+            status("Face detected:    {}".format(output_filename), quiet)
             output_count += 1
 
     # Stop and print status
 
-    print(
-        f"{input_count} : Input files, {output_count} : Faces Cropped, {reject_count}"
+    status(
+        f"{input_count} : Input files, {output_count} : Faces Cropped, {reject_count}",
+        quiet,
     )
 
 
 def input_path(p):
-    """Returns path, only if input is a valid directory."""
-    no_folder = "Input folder does not exist"
+    """Return path, only if input is a valid image file, directory, or stdin."""
+    no_folder = "Input path does not exist"
     no_images = "Input folder does not contain any image files"
-    p = os.path.abspath(p)
-    if not os.path.isdir(p):
-        raise argparse.ArgumentTypeError(no_folder)
-    filetypes = {os.path.splitext(f)[-1] for f in os.listdir(p)}
-    if not any(t in INPUT_FILETYPES for t in filetypes):
-        raise argparse.ArgumentTypeError(no_images)
-    else:
+    no_image_file = "Input file type is not supported"
+    if p == "-":
         return p
+    p = os.path.abspath(p)
+    if not os.path.exists(p):
+        raise argparse.ArgumentTypeError(no_folder)
+    if os.path.isdir(p):
+        filetypes = {os.path.splitext(f)[-1] for f in os.listdir(p)}
+        if not any(t in INPUT_FILETYPES for t in filetypes):
+            raise argparse.ArgumentTypeError(no_images)
+        return p
+    if os.path.splitext(p)[-1] not in INPUT_FILETYPES:
+        raise argparse.ArgumentTypeError(no_image_file)
+    return p
 
 
 def output_path(p):
@@ -245,21 +267,117 @@ def chk_extension(extension):
         raise argparse.ArgumentTypeError(error)
 
 
+def output_format(input_format=None, extension=None):
+    """Return a Pillow format name for stream or file output."""
+    if extension:
+        return Image.registered_extensions()[f".{extension}"]
+    return input_format or "PNG"
+
+
+def crop_image(
+    path_or_array, image_format, extension, fheight, fwidth, face_percent, resize
+):
+    """Crop a single image path or numpy array."""
+    cropper = Cropper(
+        width=fwidth, height=fheight, face_percent=face_percent, resize=resize
+    )
+    image = cropper.crop(path_or_array)
+    if image is None:
+        return None, None
+    return image, output_format(image_format, extension)
+
+
+def cropper_array_from_pillow_image(img_orig):
+    """
+    Return an array in the color-channel order expected by Cropper.crop(np.ndarray).
+
+    Cropper treats ndarray inputs as OpenCV-style BGR/BGRA and converts them back
+    to RGB/RGBA before returning. Pillow decodes stream input as RGB/RGBA, so swap
+    the first and third channels up front to keep stdin output colors stable.
+    """
+    input_image = np.array(img_orig)
+    if input_image.ndim == 3 and input_image.shape[2] >= 3:
+        input_image = input_image.copy()
+        input_image[:, :, [0, 2]] = input_image[:, :, [2, 0]]
+    return input_image
+
+
+def crop_file_to_output(
+    input_filename,
+    output_filename=None,
+    extension=None,
+    fheight=500,
+    fwidth=500,
+    face_percent=50,
+    resize=True,
+    stdout=None,
+):
+    """Crop one image file to a file path or stdout."""
+    with Image.open(input_filename) as img_orig:
+        input_format = img_orig.format
+
+    image, image_format = crop_image(
+        input_filename, input_format, extension, fheight, fwidth, face_percent, resize
+    )
+    if image is None:
+        print(f"No face detected: {input_filename}", file=sys.stderr)
+        return 1
+
+    if output_filename is None:
+        output_bytes(image, stdout or sys.stdout.buffer, image_format)
+    else:
+        output(input_filename, output_filename, image)
+    return 0
+
+
+def crop_stdin_to_stdout(
+    stdin=None,
+    stdout=None,
+    extension=None,
+    fheight=500,
+    fwidth=500,
+    face_percent=50,
+    resize=True,
+):
+    """Read image bytes from stdin, crop, and write image bytes to stdout."""
+    stdin = stdin or sys.stdin.buffer
+    stdout = stdout or sys.stdout.buffer
+    image_bytes = stdin.read()
+    if not image_bytes:
+        print("No image bytes received on stdin", file=sys.stderr)
+        return 1
+
+    try:
+        with Image.open(io.BytesIO(image_bytes)) as img_orig:
+            input_format = img_orig.format
+            input_image = cropper_array_from_pillow_image(img_orig)
+    except OSError as exc:
+        print(f"Could not read image from stdin: {exc}", file=sys.stderr)
+        return 1
+
+    image, image_format = crop_image(
+        input_image, input_format, extension, fheight, fwidth, face_percent, resize
+    )
+    if image is None:
+        print("No face detected on stdin image", file=sys.stderr)
+        return 1
+    output_bytes(image, stdout, image_format)
+    return 0
+
+
 def parse_args(args):
     """Helper function. Parses the arguments given to the CLI."""
     help_d = {
-        "desc": "Automatically crops faces from batches of pictures",
-        "input": """Folder where images to crop are located. Default:
-                     current working directory""",
-        "output": """Folder where cropped images will be moved to.
-
-                      Default: current working directory, meaning images are
-                      cropped in place.""",
+        "desc": "Automatically crops faces from pictures",
+        "source": """Image file, image directory, or '-' to read image bytes from
+                     stdin. Directory input requires --output.""",
+        "input": """Image file or folder where images to crop are located.
+                     Use '-' to read image bytes from stdin.""",
+        "output": """Output file for a single input image, or output directory for
+                      directory input. If omitted for a single image, cropped
+                      image bytes are written to stdout.""",
         "reject": """Folder where images that could not be cropped will be
-                       moved to.
-
-                      Default: current working directory, meaning images that
-                      are not cropped will be left in place.""",
+                       moved to in directory mode.""",
         "extension": "Enter the image extension which to save at output",
         "width": "Width of cropped files in px. Default=500",
         "height": "Height of cropped files in px. Default=500",
@@ -271,6 +389,12 @@ def parse_args(args):
 
     parser = argparse.ArgumentParser(description=help_d["desc"])
     parser.add_argument(
+        "source",
+        nargs="?",
+        type=input_path,
+        help=help_d["source"],
+    )
+    parser.add_argument(
         "-v",
         "--version",
         action="version",
@@ -279,7 +403,8 @@ def parse_args(args):
     parser.add_argument(
         "--no-confirm",
         "--skip-prompt",
-        action="store_true", help=help_d["y"]
+        action="store_true",
+        help=help_d["y"],
     )
     parser.add_argument(
         "-n",
@@ -288,14 +413,13 @@ def parse_args(args):
         help=help_d["no_resize"],
     )
     parser.add_argument(
-        "-i", "--input", default=".", type=input_path, help=help_d["input"]
+        "-i", "--input", default=None, type=input_path, help=help_d["input"]
     )
     parser.add_argument(
         "-o",
         "--output",
         "-p",
         "--path",
-        type=output_path,
         default=None,
         help=help_d["output"],
     )
@@ -311,7 +435,69 @@ def parse_args(args):
         "-e", "--extension", type=chk_extension, default=None, help=help_d["extension"]
     )
 
-    return parser.parse_args()
+    parsed = parser.parse_args(args)
+    if parsed.input is not None and parsed.source is not None:
+        parser.error("use either positional source or --input, not both")
+    return parsed
+
+
+def resolve_file_output(input_source, output_arg, extension):
+    """Resolve --output for single-image mode."""
+    if output_arg is None:
+        return None
+    output_ext = os.path.splitext(output_arg)[1]
+    if os.path.isdir(output_arg) or not output_ext:
+        os.makedirs(output_arg, exist_ok=True)
+        basename = os.path.basename(input_source)
+        if extension:
+            basename = os.path.splitext(basename)[0] + "." + extension
+        return os.path.join(output_arg, basename)
+
+    output_dir = os.path.dirname(os.path.abspath(output_arg))
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+    return os.path.abspath(output_arg)
+
+
+def run_single_file_mode(args, input_source, resize):
+    """Run single-image file mode."""
+    output_filename = resolve_file_output(input_source, args.output, args.extension)
+    return crop_file_to_output(
+        input_source,
+        output_filename,
+        args.extension,
+        args.height,
+        args.width,
+        args.facePercent,
+        resize,
+    )
+
+
+def run_directory_mode(args, input_source, resize):
+    """Run explicit directory batch mode."""
+    if args.output is None:
+        raise SystemExit(
+            "autocrop: directory input requires --output. "
+            "Use find/fd to stream files one at a time."
+        )
+
+    args.output = output_path(args.output)
+    if not args.no_confirm and input_source == args.output:
+        if not confirmation(QUESTION_OVERWRITE):
+            sys.exit()
+    if input_source == args.output:
+        args.output = None
+    main(
+        input_source,
+        args.output,
+        args.reject,
+        args.extension,
+        args.height,
+        args.width,
+        args.facePercent,
+        resize,
+    )
+    return 0
 
 
 def command_line_interface():
@@ -321,22 +507,28 @@ def command_line_interface():
     Crops faces from batches of images.
     """
     args = parse_args(sys.argv[1:])
-    if not args.no_confirm:
-        if args.output is None or args.input == args.output:
-            if not confirmation(QUESTION_OVERWRITE):
-                sys.exit()
-    if args.input == args.output:
-        args.output = None
-    print("Processing images in folder:", args.input)
+    input_source = args.input or args.source
+    if input_source is None:
+        if sys.stdin.isatty():
+            raise SystemExit(
+                "autocrop: an input image, input directory, or '-' is required"
+            )
+        input_source = "-"
 
     resize = not args.no_resize
-    main(
-        args.input,
-        args.output,
-        args.reject,
-        args.extension,
-        args.height,
-        args.width,
-        args.facePercent,
-        resize,
-    )
+
+    if input_source == "-":
+        status = crop_stdin_to_stdout(
+            extension=args.extension,
+            fheight=args.height,
+            fwidth=args.width,
+            face_percent=args.facePercent,
+            resize=resize,
+        )
+        sys.exit(status)
+
+    if os.path.isfile(input_source):
+        status = run_single_file_mode(args, input_source, resize)
+        sys.exit(status)
+
+    run_directory_mode(args, input_source, resize)
