@@ -103,10 +103,13 @@ main {
   height: 62px;
   padding: 4px;
   border-radius: 12px;
+  background: var(--bg);
 }
 
 .brand-mark:hover {
-  background: var(--accent-soft);
+  background:
+    linear-gradient(var(--accent-soft), var(--accent-soft)),
+    var(--bg);
   text-decoration: none;
 }
 
