@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 * Add YuNet face detection using the vendored OpenCV Zoo model.
+* Add `--verbose` CLI output with import, read, process, write, and total timings on stderr.
 
 ### Removed
 * Remove directory-scanning CLI mode; compose `autocrop` with `find`, `fd`, or similar tools for batch work.

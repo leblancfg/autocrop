@@ -27,11 +27,12 @@ uv run autocrop --help
 autocrop portrait.jpg > portrait-cropped.jpg
 ```
 
-Write to an explicit file or directory:
+Write to an explicit file or directory, or include timings on stderr:
 
 ```sh
 autocrop portrait.jpg -o portrait-cropped.jpg
 autocrop portrait.jpg -o cropped/
+autocrop portrait.jpg --verbose > portrait-cropped.jpg
 ```
 
 ## Crop many images

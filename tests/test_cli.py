@@ -188,6 +188,28 @@ def test_cli_width_140_is_valid(mock_crop):
     assert args[4] == 140
 
 
+@mock.patch("autocrop.cli.crop_file_to_output")
+def test_cli_verbose_is_passed_to_file_mode(mock_crop):
+    mock_crop.return_value = 0
+    sys.argv = ["autocrop", "tests/data/obama.jpg", "--verbose"]
+    with pytest.raises(SystemExit) as e:
+        command_line_interface()
+    assert e.value.code == 0
+    _, kwargs = mock_crop.call_args
+    assert kwargs["verbose"] is True
+
+
+@mock.patch("autocrop.cli.crop_stdin_to_stdout")
+def test_cli_verbose_is_passed_to_stdin_mode(mock_crop):
+    mock_crop.return_value = 0
+    sys.argv = ["autocrop", "-", "--verbose"]
+    with pytest.raises(SystemExit) as e:
+        command_line_interface()
+    assert e.value.code == 0
+    _, kwargs = mock_crop.call_args
+    assert kwargs["verbose"] is True
+
+
 def test_cli_invalid_input_path_errors_out():
     sys.argv = ["autocrop", "asdfasdf"]
     with pytest.raises(SystemExit) as e:
@@ -286,6 +308,31 @@ def test_crop_file_to_output_writes_cropped_bytes_to_stdout(monkeypatch, capsys)
     assert capsys.readouterr().err == ""
 
 
+def test_crop_file_to_output_verbose_writes_timings_to_stderr(monkeypatch, capsys):
+    image = Image.open("tests/data/obama.jpg")
+    cropped = image.resize((32, 32))
+    stdout = io.BytesIO()
+    monkeypatch.setattr(Cropper, "crop", lambda *args: np.array(cropped))
+
+    status = crop_file_to_output(
+        "tests/data/obama.jpg",
+        stdout=stdout,
+        fheight=32,
+        fwidth=32,
+        verbose=True,
+    )
+
+    captured = capsys.readouterr()
+    assert status == 0
+    assert captured.out == ""
+    assert "Input: tests/data/obama.jpg" in captured.err
+    assert "Output: stdout" in captured.err
+    assert "Format: JPEG" in captured.err
+    assert "Timings:" in captured.err
+    for key in ["total=", "imports=", "read=", "process=", "write="]:
+        assert key in captured.err
+
+
 def test_crop_file_to_output_writes_failures_to_stderr(monkeypatch, capsys):
     stdout = io.BytesIO()
     monkeypatch.setattr(Cropper, "crop", lambda *args: None)
@@ -315,6 +362,28 @@ def test_crop_stdin_to_stdout_infers_image_type(monkeypatch):
         assert status == 0
         assert result.size == (20, 20)
         assert result.format == "PNG"
+
+
+def test_crop_stdin_to_stdout_verbose_writes_timings_to_stderr(monkeypatch, capsys):
+    source = io.BytesIO()
+    Image.new("RGB", (40, 40), "white").save(source, format="PNG")
+    source.seek(0)
+    stdout = io.BytesIO()
+    monkeypatch.setattr(
+        Cropper, "crop", lambda *args: np.array(Image.new("RGB", (20, 20), "white"))
+    )
+
+    status = crop_stdin_to_stdout(stdin=source, stdout=stdout, verbose=True)
+
+    captured = capsys.readouterr()
+    assert status == 0
+    assert captured.out == ""
+    assert "Input: stdin" in captured.err
+    assert "Output: stdout" in captured.err
+    assert "Format: PNG" in captured.err
+    assert "Timings:" in captured.err
+    for key in ["total=", "imports=", "read=", "process=", "write="]:
+        assert key in captured.err
 
 
 def test_crop_stdin_to_stdout_writes_invalid_input_to_stderr(capsys):

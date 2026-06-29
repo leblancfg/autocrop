@@ -4,10 +4,12 @@ import os
 import shutil
 import stat
 import sys
+import time
 
 import numpy as np
 from PIL import Image
 
+from . import _timing
 from .__version__ import __version__
 from .autocrop import Cropper
 from .constants import INPUT_FILETYPES
@@ -99,6 +101,43 @@ def output_format(input_format=None, extension=None):
     return input_format or "PNG"
 
 
+def empty_timings():
+    """Return a timing map with stable keys for verbose output."""
+    return {
+        "imports": _timing.import_seconds(),
+        "read": 0.0,
+        "process": 0.0,
+        "write": 0.0,
+        "total": 0.0,
+    }
+
+
+def timed_step(timings, key, callback):
+    """Run callback and add elapsed seconds to a timing key."""
+    started = time.perf_counter()
+    try:
+        return callback()
+    finally:
+        timings[key] += time.perf_counter() - started
+
+
+def print_verbose(input_label, output_label, image_format, timings):
+    """Write human-readable verbose diagnostics to stderr."""
+    print(f"Input: {input_label}", file=sys.stderr)
+    print(f"Output: {output_label}", file=sys.stderr)
+    if image_format:
+        print(f"Format: {image_format}", file=sys.stderr)
+    print(
+        "Timings: "
+        f"total={timings['total']:.3f}s "
+        f"imports={timings['imports']:.3f}s "
+        f"read={timings['read']:.3f}s "
+        f"process={timings['process']:.3f}s "
+        f"write={timings['write']:.3f}s",
+        file=sys.stderr,
+    )
+
+
 def crop_image(
     path_or_array,
     image_format,
@@ -136,6 +175,12 @@ def cropper_array_from_pillow_image(img_orig):
     return input_image
 
 
+def read_input_file(input_filename):
+    """Read one image file into the ndarray form expected by Cropper."""
+    with Image.open(input_filename) as img_orig:
+        return img_orig.format, cropper_array_from_pillow_image(img_orig)
+
+
 def crop_file_to_output(
     input_filename,
     output_filename=None,
@@ -145,29 +190,52 @@ def crop_file_to_output(
     face_percent=50,
     resize=True,
     stdout=None,
+    verbose=False,
 ):
     """Crop one image file to a file path or stdout."""
-    with Image.open(input_filename) as img_orig:
-        input_format = img_orig.format
+    timings = empty_timings()
+    started = time.perf_counter()
+    image_format = None
+    output_label = output_filename or "stdout"
 
-    image, image_format = crop_image(
-        input_filename,
-        input_format,
-        extension,
-        fheight,
-        fwidth,
-        face_percent,
-        resize,
-    )
-    if image is None:
-        print(f"No face detected: {input_filename}", file=sys.stderr)
-        return 1
+    try:
+        input_format, input_image = timed_step(
+            timings, "read", lambda: read_input_file(input_filename)
+        )
+        image, image_format = timed_step(
+            timings,
+            "process",
+            lambda: crop_image(
+                input_image,
+                input_format,
+                extension,
+                fheight,
+                fwidth,
+                face_percent,
+                resize,
+            ),
+        )
+        if image is None:
+            print(f"No face detected: {input_filename}", file=sys.stderr)
+            return 1
 
-    if output_filename is None:
-        output_bytes(image, stdout or sys.stdout.buffer, image_format)
-    else:
-        output(input_filename, output_filename, image)
-    return 0
+        if output_filename is None:
+            timed_step(
+                timings,
+                "write",
+                lambda: output_bytes(image, stdout or sys.stdout.buffer, image_format),
+            )
+        else:
+            timed_step(
+                timings,
+                "write",
+                lambda: output(input_filename, output_filename, image),
+            )
+        return 0
+    finally:
+        timings["total"] = time.perf_counter() - started
+        if verbose:
+            print_verbose(input_filename, output_label, image_format, timings)
 
 
 def crop_stdin_to_stdout(
@@ -178,37 +246,55 @@ def crop_stdin_to_stdout(
     fwidth=500,
     face_percent=50,
     resize=True,
+    verbose=False,
 ):
     """Read image bytes from stdin, crop, and write image bytes to stdout."""
     stdin = stdin or sys.stdin.buffer
     stdout = stdout or sys.stdout.buffer
-    image_bytes = stdin.read()
-    if not image_bytes:
-        print("No image bytes received on stdin", file=sys.stderr)
-        return 1
+    timings = empty_timings()
+    started = time.perf_counter()
+    image_format = None
 
     try:
-        with Image.open(io.BytesIO(image_bytes)) as img_orig:
-            input_format = img_orig.format
-            input_image = cropper_array_from_pillow_image(img_orig)
-    except OSError as exc:
-        print(f"Could not read image from stdin: {exc}", file=sys.stderr)
-        return 1
+        def read_stdin_image():
+            image_bytes = stdin.read()
+            if not image_bytes:
+                return None, None, "No image bytes received on stdin"
+            try:
+                with Image.open(io.BytesIO(image_bytes)) as img_orig:
+                    return img_orig.format, cropper_array_from_pillow_image(img_orig), None
+            except OSError as exc:
+                return None, None, f"Could not read image from stdin: {exc}"
 
-    image, image_format = crop_image(
-        input_image,
-        input_format,
-        extension,
-        fheight,
-        fwidth,
-        face_percent,
-        resize,
-    )
-    if image is None:
-        print("No face detected on stdin image", file=sys.stderr)
-        return 1
-    output_bytes(image, stdout, image_format)
-    return 0
+        input_format, input_image, read_error = timed_step(
+            timings, "read", read_stdin_image
+        )
+        if read_error:
+            print(read_error, file=sys.stderr)
+            return 1
+
+        image, image_format = timed_step(
+            timings,
+            "process",
+            lambda: crop_image(
+                input_image,
+                input_format,
+                extension,
+                fheight,
+                fwidth,
+                face_percent,
+                resize,
+            ),
+        )
+        if image is None:
+            print("No face detected on stdin image", file=sys.stderr)
+            return 1
+        timed_step(timings, "write", lambda: output_bytes(image, stdout, image_format))
+        return 0
+    finally:
+        timings["total"] = time.perf_counter() - started
+        if verbose:
+            print_verbose("stdin", "stdout", image_format, timings)
 
 
 def parse_args(args):
@@ -224,6 +310,7 @@ def parse_args(args):
         "facePercent": "Percentage of face to image height",
         "no_resize": """Do not resize images to the specified width and height,
                       but instead use the original image's pixels.""",
+        "verbose": "Write timings and basic processing details to stderr",
     }
 
     parser = argparse.ArgumentParser(description=help_d["desc"])
@@ -238,6 +325,11 @@ def parse_args(args):
         "--version",
         action="version",
         version="%(prog)s version {}".format(__version__),
+    )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help=help_d["verbose"],
     )
     parser.add_argument(
         "-n",
@@ -293,6 +385,7 @@ def run_single_file_mode(args, input_source, resize):
         args.width,
         args.facePercent,
         resize,
+        verbose=args.verbose,
     )
 
 
@@ -318,6 +411,7 @@ def command_line_interface():
             fwidth=args.width,
             face_percent=args.facePercent,
             resize=resize,
+            verbose=args.verbose,
         )
         sys.exit(status)
 

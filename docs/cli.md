@@ -16,9 +16,11 @@ autocrop portrait.jpg > portrait-cropped.jpg
 cat portrait.jpg | autocrop - > portrait-cropped.jpg
 autocrop portrait.jpg -o portrait-cropped.jpg
 autocrop portrait.jpg -o cropped/
+autocrop portrait.jpg --verbose > portrait-cropped.jpg
 ```
 
-YuNet is the built-in face detector; there is no detector-selection flag.
+`--verbose` writes basic processing details and timings to stderr, including total, imports, read,
+process, and write time. YuNet is the built-in face detector; there is no detector-selection flag.
 
 ## Shell-composed batch jobs
 

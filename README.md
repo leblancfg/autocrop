@@ -26,7 +26,7 @@ Autocrop can be used [from the command line](#from-the-command-line) or directly
 
 ## From the command line
 
-    usage: autocrop [-h] [-v] [-n] [-o OUTPUT] [-w WIDTH] [-H HEIGHT] [--facePercent FACEPERCENT] [-e EXTENSION]
+    usage: autocrop [-h] [-v] [--verbose] [-n] [-o OUTPUT] [-w WIDTH] [-H HEIGHT] [--facePercent FACEPERCENT] [-e EXTENSION]
                     [source]
 
     Automatically crops faces from pictures
@@ -37,6 +37,7 @@ Autocrop can be used [from the command line](#from-the-command-line) or directly
     options:
       -h, --help            Show this help message and exit
       -v, --version         Show program's version number and exit
+      --verbose             Write timings and basic processing details to stderr
       -n, --no-resize       Do not resize images to the specified width and height, but instead use the original image's pixels.
       -o, -p, --output, --path OUTPUT
                             Output file, or output directory for a single input image. If omitted, cropped image bytes are written to stdout.
@@ -84,6 +85,8 @@ Further examples and use cases are found in the
   - `autocrop -- > cropped.jpg < portrait.jpg`
 - Crop one image and write to an explicit output file:
   - `autocrop portrait.jpg -o cropped.jpg`
+- Print timings and basic processing details to stderr:
+  - `autocrop portrait.jpg --verbose > cropped.jpg`
 - Crop one image and write into an explicit output directory:
   - `autocrop portrait.jpg -o crop`
 - Same as above but the output extension will be `png`:
