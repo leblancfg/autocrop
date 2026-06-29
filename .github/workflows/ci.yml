@@ -43,4 +43,4 @@ jobs:
         run: just lint
 
       - name: Run tests
-        run: uv run pytest --cov autocrop -v --cov-report term-missing
+        run: just test
