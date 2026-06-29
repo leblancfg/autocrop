@@ -44,7 +44,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "numpy", specifier = ">=1.10" },
-    { name = "opencv-python-headless", specifier = ">=3,<5" },
+    { name = "opencv-python-headless", specifier = ">=4.8,<5" },
     { name = "pillow", specifier = ">=9.0.0" },
 ]
 
