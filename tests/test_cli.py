@@ -183,7 +183,7 @@ def test_cli_file_without_output_writes_to_stdout(mock_crop):
         command_line_interface()
     assert e.value.code == 0
     args, _ = mock_crop.call_args
-    assert args[0].endswith("tests/data/obama.jpg")
+    assert args[0].replace("\\", "/").endswith("tests/data/obama.jpg")
     assert args[1] is None
 
 
