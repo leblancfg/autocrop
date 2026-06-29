@@ -31,7 +31,7 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/leblancfg/autocrop"
 Issues = "https://github.com/leblancfg/autocrop/issues"
-Changelog = "https://github.com/leblancfg/autocrop/blob/master/changelog.md"
+Changelog = "https://github.com/leblancfg/autocrop/blob/master/docs/changelog.md"
 
 [project.scripts]
 autocrop = "autocrop:command_line_interface"
@@ -70,6 +70,7 @@ include = [
   "/LICENSE",
   "/LICENSE-3RD-PARTY.txt",
   "/changelog.md",
+  "/docs/changelog.md",
 ]
 
 [tool.hatch.build.targets.wheel]

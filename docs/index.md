@@ -36,4 +36,4 @@ if cropped is not None:
 - [Quickstart]({{ '/quickstart/' | relative_url }}) covers installation and the shortest working examples.
 - [CLI]({{ '/cli/' | relative_url }}) covers file and shell-composed workflows.
 - [API]({{ '/api/' | relative_url }}) covers `Cropper` and return values.
-- [Migration path]({{ '/migration/' | relative_url }}) tracks breaking changes.
+- [Changelog]({{ '/changelog/' | relative_url }}) tracks release notes and v2 migration notes.
