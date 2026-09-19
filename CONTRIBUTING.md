@@ -66,6 +66,7 @@ CI runs these checks on every supported Python/OS combination. The package ships
 `py.typed`; the consumer examples use `assert_type` to check the public API. Keep
 dynamic types confined to external-library boundaries and use specific
 `ty: ignore[rule]` comments only when justified. Unused ignores fail the check.
+The consumer checks also verify rejection of the retired array return and diagnostics flag.
 
 
 ## Contact
@@ -91,12 +92,50 @@ One-time PyPI setup:
 
 Release flow:
 
-1. Merge the release commit that updates `autocrop/__version__.py` and `changelog.md`.
-2. Create and publish a GitHub Release with a tag that exactly matches the
-   package version, for example `v1.3.1`.
-3. The `Build` workflow checks out that tag, verifies the tag matches the
-   package version, builds the sdist and wheel, and publishes to PyPI through
-   OIDC.
+1. Finish API/release-blocker review and wait for the latest CI checks to pass.
+2. Update `autocrop/__version__.py` and date the release in `docs/changelog.md`
+   (the canonical changelog). Merge the reviewed release changes.
+3. Check the exact commit you will tag:
+   ```sh
+   uv sync --locked
+   just check
+   uv build
+   uvx --from twine twine check dist/*
+   ```
+   Use a clean `dist/` directory so no older distributions are included.
+4. Prepare a **draft** GitHub Release targeting that reviewed commit, with a tag
+   matching the package version (for example `v2.0.0`). Review its notes and any
+   assets before publication. With immutable releases enabled, the published
+   tag and assets cannot be replaced.
+5. Publish the draft only after final approval. This triggers `Build`, which
+   checks the tag/version, builds the sdist and wheel, and uploads to PyPI through
+   OIDC. A successful GitHub Release alone does not mean PyPI publishing succeeded.
+6. Watch `Build`, verify the version and both files on PyPI, then smoke-test a
+   fresh installation from PyPI outside the source checkout.
 
-If the GitHub Release already exists but PyPI did not publish, rerun
-`.github/workflows/build.yml` manually with the release tag.
+If GitHub published the release but the PyPI upload failed, fix the cause and
+rerun `Build` for the same tag. Do not move a published tag or try to replace a
+published PyPI distribution. Never enable auto-merge as a substitute for release
+approval.
+
+### Pending 2.0.0 review stack
+
+The native GitHub stack starts with #221 (typing only, targeting `master`), then
+#213 (diagnostics), #214 (alignment), and #219 (migration FAQ and errors).
+Review and merge from the base upward in that order. #221 preserves the current
+array-or-None API; the result-object change belongs to #213.
+
+After approval and green CI, use GitHub's stack merge controls to merge the
+lowest PR or a contiguous group starting there. Selecting #219 includes the
+whole approved stack. GitHub rebases the next unmerged PR onto the stack base
+after a partial merge; wait for any new checks before continuing. Do not follow
+the former reverse-order/manual-base-edit recipe for these native stacked PRs.
+
+See [GitHub's stack merge guide](https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/merging-stacked-pull-requests).
+Nothing should be merged or published without maintainer approval.
+
+Before publishing, explicitly resolve or defer the SDK design decisions in
+#215 (input types), #216 (array ownership), #217 (detector configuration), and
+#218 (numeric validation). They were recorded for discussion, not silently fixed
+by this stack. The old `v2.0.0` release/tag were deleted; do not recreate them
+until this review is complete.

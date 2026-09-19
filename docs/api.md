@@ -22,6 +22,10 @@ cropper = Cropper(
 
 Autocrop v2 uses OpenCV's YuNet neural-network face detector.
 
+Only `width`, `height`, and `face_percent` may be positional; all other options
+must be passed by keyword. Removed v1 arguments raise a migration-specific
+`TypeError`. See the [migration FAQ](../faq/#python-arguments).
+
 ### Parameters
 
 - `width`: output crop width in pixels.

@@ -17,6 +17,7 @@ from .diagnostics import (
     ImageSize,
     Rectangle,
 )
+from .migration import check_constructor_arguments
 from .types import ImageArray
 from .yunet import YuNetDetector, decode_detections
 
@@ -144,16 +145,18 @@ class Cropper:
         width: int = 500,
         height: int = 500,
         face_percent: int = 50,
+        *legacy_args: object,
         resize: bool = True,
         face_detector: FaceDetector | None = None,
         yunet_model_path: str | os.PathLike[str] | None = None,
         yunet_score_threshold: float = 0.6,
         yunet_nms_threshold: float = 0.3,
         yunet_top_k: int = 5000,
-        *,
         align: bool = False,
         max_rotation: float = 30,
+        **legacy_kwargs: object,
     ) -> None:
+        check_constructor_arguments(legacy_args, legacy_kwargs)
         self.height = check_positive_scalar(height)
         self.width = check_positive_scalar(width)
         self.aspect_ratio = width / height

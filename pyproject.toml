@@ -15,7 +15,7 @@ authors = [
 dependencies = [
   "numpy>=1.10",
   "opencv-python-headless>=4.8,<5",
-  "Pillow>=9.0.0",
+  "Pillow>=12.3.0",
 ]
 classifiers = [
   "License :: OSI Approved :: BSD License",
@@ -84,6 +84,7 @@ include = [
   "/LICENSE-3RD-PARTY.txt",
   "/changelog.md",
   "/docs/changelog.md",
+  "/docs/faq.md",
 ]
 
 [tool.hatch.build.targets.wheel]

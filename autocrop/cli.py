@@ -8,6 +8,7 @@ import time
 from contextlib import contextmanager
 from typing import Any, BinaryIO, Iterator, NoReturn
 
+import cv2
 import numpy as np
 from PIL import Image, ImageOps
 
@@ -20,6 +21,7 @@ from .constants import (
     OUTPUT_FORMATS,
     OUTPUT_FORMATS_BY_EXTENSION,
 )
+from .migration import migration_message, removed_cli_option, removed_option_message
 from .reporting import CliReport
 from .types import ImageArray
 
@@ -103,6 +105,13 @@ def input_path(p: str) -> str:
     p = os.path.abspath(p)
     if not os.path.exists(p):
         raise argparse.ArgumentTypeError(no_file)
+    if os.path.isdir(p):
+        raise argparse.ArgumentTypeError(
+            migration_message(
+                "Directory inputs are no longer supported. Pass one image; use a shell loop for batches.",
+                "directory-mode",
+            )
+        )
     if not os.path.isfile(p) or os.path.splitext(p)[-1].lower() not in INPUT_FILETYPES:
         raise argparse.ArgumentTypeError(no_image_file)
     return p
@@ -270,7 +279,13 @@ def run_crop(
                     output(input_filename, output_filename, result.image, image_format=report.image_format)
     except BrokenPipeError:
         report.error = "broken_pipe"
-    except (CliError, OSError, ValueError) as exc:
+    except cv2.error as exc:
+        report.error = "process_error"
+        report.message = migration_message(
+            f"OpenCV could not process this image: {exc}. Check the image and OpenCV installation.",
+            "dependencies",
+        )
+    except (CliError, OSError, ValueError, RuntimeError) as exc:
         report.error, report.message = f"{stage}_error", str(exc)
     return finish_report(report, json_output, verbose, started)
 
@@ -308,7 +323,13 @@ def crop_file_to_output(
 def _read_stdin_image(stdin: BinaryIO) -> tuple[str | None, ImageArray]:
     image_bytes = stdin.read()
     if not image_bytes:
-        raise CliError("No image bytes received on stdin")
+        raise CliError(
+            migration_message(
+                "No image bytes received on stdin. Pass an image filename or pipe image bytes; "
+                "autocrop no longer scans the current directory. Use -V or --version for the version (-v is verbose).",
+                "no-input",
+            )
+        )
     try:
         with Image.open(io.BytesIO(image_bytes)) as image:
             return image.format, cropper_array_from_pillow_image(image)
@@ -388,6 +409,9 @@ def parse_args(args: list[str]) -> CliArguments:
     }
 
     parser = ArgumentParser(description=help_d["desc"], json_stderr=_json_stderr(args), allow_abbrev=False)
+    removed = removed_cli_option(args)
+    if removed:
+        parser.error(removed_option_message(*removed))
     parser.add_argument(
         "source",
         nargs="?",
@@ -478,7 +502,11 @@ def command_line_interface() -> NoReturn:
     input_source = args.source
     if input_source is None:
         if sys.stdin.isatty():
-            message = "autocrop: an input image or '-' is required"
+            message = migration_message(
+                "An input image or '-' is required; the current directory is no longer scanned. "
+                "Use -V or --version for the version (-v is verbose).",
+                "no-input",
+            )
             if args.json_output == "-":
                 reporting.report_error(message, "-")
                 raise SystemExit(2)
@@ -488,6 +516,16 @@ def command_line_interface() -> NoReturn:
     resize = not args.no_resize
 
     if input_source == "-":
+        if args.output is not None:
+            reporting.report_error(
+                migration_message(
+                    "-o/--output is not supported with stdin. Redirect stdout instead: "
+                    "autocrop - > cropped.jpg. Redirection does not convert the image format.",
+                    "stdout",
+                ),
+                args.json_output,
+            )
+            raise SystemExit(2)
         status = crop_stdin_to_stdout(
             fheight=args.height,
             fwidth=args.width,

@@ -6,10 +6,15 @@ lead: Use autocrop directly, or compose it with shell tools for larger jobs.
 description: autocrop command-line usage and shell examples.
 ---
 
+For removed v1 flags, batch scripts, and rollback instructions, see the
+[migration FAQ](../faq/).
+
 ## Single-image usage
 
 Autocrop v2 behaves like a classic shell command: one input image is cropped,
 cropped image bytes go to stdout by default, and diagnostics go to stderr.
+Stdin input writes only to stdout; combining `-` with `-o` is an error. Use
+filename input with `-o` if you need format conversion.
 Explicit output files use their extension to choose the output format. Unsupported or read-only
 output extensions fail before image processing starts.
 

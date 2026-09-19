@@ -19,6 +19,8 @@ Simple!
 pip install autocrop
 ```
 
+Upgrading from v1 or fixing an unpinned install? Read the [v2 migration FAQ](https://leblancfg.com/autocrop/faq/).
+
 # Use
 
 Autocrop can be used [from the command line](#from-the-command-line) or directly
