@@ -53,3 +53,7 @@ Detection input is normalized internally to 3-channel BGR for YuNet. Cropping is
 performed on the original image array, so grayscale and alpha channels are
 preserved where Pillow/OpenCV can represent them. File path inputs are decoded
 with Pillow and EXIF orientation is applied before detection and cropping.
+
+The package ships inline type hints and a `py.typed` marker. Array shape and
+dtype still depend on input mode; annotations do not impose new runtime input
+restrictions.

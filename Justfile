@@ -16,7 +16,10 @@ test:
 lint:
     {{ uv-run }} flake8 --max-complexity=10 --count autocrop tests
 
-check: lint test
+typecheck:
+    {{ uv-run }} mypy
+
+check: lint typecheck test
 
 venv:
     uv venv

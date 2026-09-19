@@ -9,7 +9,7 @@ Please follow these steps:
 * Branch off of `master` for every change you want to make
 * Develop changes on your branch
 * Test your changes (see section below)
-* Modify the tests and documentation as necessary
+* Modify the tests and documentation as necessary; annotate public and internal package functions
 * When your changes are ready, make a pull request to the upstream
   [autocrop](https://github.com/leblancfg/autocrop) repository
 
@@ -47,6 +47,7 @@ Specifically, we:
 
 * Use [just](https://just.systems/) as the project command runner
 * Use [flake8](http://flake8.pycqa.org/en/latest/) for coding style tests
+* Check package types and downstream usage examples with strict [mypy](https://mypy-lang.org/)
 * Run a test suite using [pytest](https://docs.pytest.org/en/latest/)
 
 You can run the tests locally, like so:
@@ -54,6 +55,12 @@ You can run the tests locally, like so:
 ```
 $ just check
 ```
+
+This runs lint, `just typecheck`, and tests. CI runs the type checker on each
+supported Python version with that interpreter's dependencies. The package
+ships `py.typed`; `tests/typing/usage.py` checks the consumer-facing API. Keep
+dynamic types confined to external-library boundaries rather than suppressing
+errors across a module.
 
 
 ## Contact

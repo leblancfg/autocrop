@@ -1,9 +1,12 @@
 import itertools
+import os
+from typing import Protocol
 
 import cv2
 import numpy as np
 from PIL import Image, ImageOps
 
+from .types import ImageArray
 from .yunet import YuNetDetector
 
 
@@ -13,14 +16,20 @@ class ImageReadError(Exception):
     pass
 
 
-def perp(a):
+class FaceDetector(Protocol):
+    """Existing custom-detector interface: an array of bounding-box rows."""
+
+    def detect(self, image: ImageArray) -> ImageArray: ...
+
+
+def perp(a: ImageArray) -> ImageArray:
     b = np.empty_like(a)
     b[0] = -a[1]
     b[1] = a[0]
     return b
 
 
-def intersect(v1, v2):
+def intersect(v1: ImageArray, v2: tuple[ImageArray, ImageArray]) -> ImageArray | None:
     a1, a2 = v1
     b1, b2 = v2
     da = a2 - a1
@@ -31,16 +40,15 @@ def intersect(v1, v2):
     if denom == 0:
         return None
     num = np.dot(dap, dp)
-    return (num / denom) * db + b1
+    return np.asarray((num / denom) * db + b1)
 
 
-def distance(pt1, pt2):
+def distance(pt1: ImageArray, pt2: tuple[int, int] | ImageArray) -> float:
     """Returns the euclidian distance in 2D between 2 pts."""
-    distance = np.linalg.norm(pt2 - pt1)
-    return distance
+    return float(np.linalg.norm(pt2 - pt1))
 
 
-def bgr_to_rbg(img):
+def bgr_to_rbg(img: ImageArray) -> ImageArray:
     """Given a BGR (cv2) numpy array, returns a RBG (standard) array."""
     # Don't do anything for grayscale images
     if img.ndim == 2:
@@ -51,7 +59,7 @@ def bgr_to_rbg(img):
     return img
 
 
-def detector_color_image(image, image_is_bgr):
+def detector_color_image(image: ImageArray, image_is_bgr: bool) -> ImageArray:
     """
     Return a 3-channel BGR image suitable for OpenCV DNN face detectors.
 
@@ -75,14 +83,15 @@ def detector_color_image(image, image_is_bgr):
     return image
 
 
-def check_positive_scalar(num):
+def check_positive_scalar(num: int | float) -> int:
     """Returns True if value if a positive scalar."""
-    if num > 0 and not isinstance(num, str) and np.isscalar(num):
+    is_scalar = np.isscalar(num)
+    if num > 0 and not isinstance(num, str) and is_scalar:
         return int(num)
     raise ValueError("A positive scalar is required")
 
 
-def open_file(input_filename):
+def open_file(input_filename: str | os.PathLike[str]) -> ImageArray:
     """Given a filename, returns an EXIF-oriented numpy array."""
     with Image.open(input_filename) as img_orig:
         return np.array(ImageOps.exif_transpose(img_orig))
@@ -116,21 +125,21 @@ class Cropper:
 
     def __init__(
         self,
-        width=500,
-        height=500,
-        face_percent=50,
-        resize=True,
-        face_detector=None,
-        yunet_model_path=None,
-        yunet_score_threshold=0.6,
-        yunet_nms_threshold=0.3,
-        yunet_top_k=5000,
-    ):
+        width: int = 500,
+        height: int = 500,
+        face_percent: int = 50,
+        resize: bool = True,
+        face_detector: FaceDetector | None = None,
+        yunet_model_path: str | os.PathLike[str] | None = None,
+        yunet_score_threshold: float = 0.6,
+        yunet_nms_threshold: float = 0.3,
+        yunet_top_k: int = 5000,
+    ) -> None:
         self.height = check_positive_scalar(height)
         self.width = check_positive_scalar(width)
         self.aspect_ratio = width / height
         self.resize = resize
-        self.face_detector = face_detector or YuNetDetector(
+        self.face_detector: FaceDetector = face_detector or YuNetDetector(
             model_path=yunet_model_path,
             score_threshold=yunet_score_threshold,
             nms_threshold=yunet_nms_threshold,
@@ -143,7 +152,7 @@ class Cropper:
             raise ValueError(fp_error)
         self.face_percent = check_positive_scalar(face_percent)
 
-    def crop(self, path_or_array):
+    def crop(self, path_or_array: str | ImageArray) -> ImageArray | None:
         """
         Given a file path or np.ndarray image with a face,
         returns cropped np.ndarray around the largest detected
@@ -209,7 +218,7 @@ class Cropper:
             return bgr_to_rbg(image)
         return image
 
-    def _determine_safe_zoom(self, imgh, imgw, x, y, w, h):
+    def _determine_safe_zoom(self, imgh: int, imgw: int, x: int, y: int, w: int, h: int) -> float:
         """
         Determines the safest zoom level with which to add margins
         around the detected face. Tries to honor `self.face_percent`
@@ -260,7 +269,7 @@ class Cropper:
         )  # image_corners
         image_sides = [(i[n], i[n + 1]) for n in range(4)]
 
-        corner_ratios = [self.face_percent]  # Hopefully we use this one
+        corner_ratios = [float(self.face_percent)]  # Hopefully we use this one
         for c in corners:
             corner_vector = np.array([center, c])
             a = distance(*corner_vector)
@@ -276,13 +285,13 @@ class Cropper:
 
     def _crop_positions(
         self,
-        imgh,
-        imgw,
-        x,
-        y,
-        w,
-        h,
-    ):
+        imgh: int,
+        imgw: int,
+        x: int,
+        y: int,
+        w: int,
+        h: int,
+    ) -> list[int]:
         """
         Retuns the coordinates of the crop position centered
         around the detected face with extra margins. Tries to

@@ -40,6 +40,7 @@ autocrop = "autocrop:command_line_interface"
 dev = [
   "flake8",
   "flake8-pyproject",
+  "mypy>=1.19,<2",
   "pytest>=9.0.3,<10",
 ]
 
@@ -52,6 +53,10 @@ markers = [
 extend-ignore = ["E203"]
 max-line-length = 120
 exclude = ["venv/*"]
+
+[tool.mypy]
+files = ["autocrop", "tests/typing"]
+strict = true
 
 [tool.hatch.version]
 path = "autocrop/__version__.py"
