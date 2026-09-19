@@ -11,7 +11,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 2.0.0 - 2026-06-29
+## 2.0.0 - Unreleased
+
+Before upgrading an unpinned installation, read the [migration FAQ](../faq/).
 
 ### Migration notes for v2
 Autocrop v2 intentionally simplifies the public surface around one detector and one image per
@@ -38,6 +40,12 @@ CLI invocation.
 * Development uses `uv` and `just`.
 
 ### Added
+* Always return a `CropResult` with `image` and a `CropDiagnostics` dataclass from `crop()`.
+* Add `--json PATH` for structured CLI reports.
+* Add type hints throughout the package and a `py.typed` marker, checked with ty in CI.
+* Use Ruff for linting, import sorting, and formatting checks.
+* Add opt-in face leveling with `Cropper(align=True)` and `--align`.
+* Add a migration FAQ and targeted errors for removed CLI/Python arguments.
 * Add YuNet face detection using the vendored OpenCV Zoo model.
 * Add `--verbose` CLI output with import, read, process, write, and total timings on stderr.
 * Apply EXIF orientation before detection and cropping.
@@ -50,7 +58,11 @@ CLI invocation.
 * Remove automatic gamma/exposure adjustment from cropped output.
 
 ### Changed
+* Python callers must read `crop(...).image` instead of treating the result as an array or `None`.
+* Keep typed per-call diagnostics separate from CLI JSON/file handling.
+* Use `diagnostics.py`, `reporting.py`, `alignment.py`, `migration.py`, and `timing.py` for their named responsibilities.
 * Require OpenCV 4.8 or newer for YuNet support.
+* Require Pillow 12.3.0 or newer for image-decoding and memory-safety fixes.
 * Avoid Pillow plugin registration during import by using static image extension metadata.
 * Interpret NumPy array inputs explicitly as OpenCV-style BGR/BGRA and return RGB/RGBA arrays.
 * Use Pillow for resizing.
@@ -60,6 +72,9 @@ CLI invocation.
 * Allow pytest 9 in development requirements.
 
 ### Fixed
+* Keep JSON stderr parseable on processing failures and with verbose output.
+* Prevent JSON output from overwriting input/output image paths, including aliases.
+* Reject ambiguous legacy positional constructor arguments and stdin with `-o`.
 * Open files through Pillow to handle transparency.
 * Preserve RGB channels for path inputs.
 * Keep crop positions inside image bounds.
