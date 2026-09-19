@@ -58,11 +58,13 @@ from autocrop import Cropper
 from PIL import Image
 
 cropper = Cropper(width=500, height=500, face_percent=50)
-cropped = cropper.crop("portrait.jpg")
+result = cropper.crop("portrait.jpg")
 
-if cropped is not None:
-    Image.fromarray(cropped).save("portrait-cropped.jpg")
+if result.image is not None:
+    Image.fromarray(result.image).save("portrait-cropped.jpg")
+print(result.diagnostics.crop_rectangle)
 ```
 
-`Cropper.crop()` returns `None` when no face is detected. NumPy array inputs are
-interpreted as OpenCV-style BGR/BGRA arrays; returned arrays are RGB/RGBA.
+`Cropper.crop()` always returns a `CropResult`; its `image` is `None` when no face
+is detected. The result includes a `CropDiagnostics` dataclass for that call.
+NumPy inputs use BGR/BGRA order; `result.image` uses RGB/RGBA.

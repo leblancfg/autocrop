@@ -1,6 +1,7 @@
 """Tests for cli"""
 
 import io
+import json
 import os
 import re
 import sys
@@ -10,7 +11,7 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from autocrop.autocrop import Cropper
+from autocrop.autocrop import Cropper, CropResult
 from autocrop.cli import (
     command_line_interface,
     crop_file_to_output,
@@ -21,11 +22,24 @@ from autocrop.cli import (
     size,
     validate_output_extension,
 )
+from autocrop.diagnostics import CropDiagnostics, DetectedFace, DetectorDiagnostics, ImageSize, Rectangle
 
 SOURCE_ATIME_NS = 946684800123456000
 SOURCE_MTIME_NS = 978307200654321000
 EXIF_MAKE_TAG = 271
 EXIF_ORIENTATION_TAG = 274
+
+
+def mock_result(image):
+    diagnostics = CropDiagnostics(DetectorDiagnostics("MockDetector"), ImageSize(20, 20), True, 50)
+    if image is None:
+        diagnostics.error = "no_face_detected"
+        return CropResult(None, diagnostics)
+    diagnostics.faces = (DetectedFace(Rectangle(0, 0, 10, 10)),)
+    diagnostics.selected_face_index = 0
+    diagnostics.crop_rectangle = Rectangle(0, 0, 20, 20)
+    diagnostics.actual_output_dimensions = ImageSize(image.width, image.height)
+    return CropResult(np.array(image), diagnostics)
 
 
 def verbose_timing(captured_err, key):
@@ -232,6 +246,17 @@ def test_cli_verbose_is_passed_to_file_mode(mock_crop, flag):
     assert kwargs["verbose"] is True
 
 
+@mock.patch("autocrop.cli.crop_file_to_output")
+def test_cli_json_is_passed_to_file_mode(mock_crop):
+    mock_crop.return_value = 0
+    sys.argv = ["autocrop", "tests/data/obama.jpg", "--json", "diagnostics.json"]
+    with pytest.raises(SystemExit) as e:
+        command_line_interface()
+    assert e.value.code == 0
+    _, kwargs = mock_crop.call_args
+    assert kwargs["json_output"] == "diagnostics.json"
+
+
 @pytest.mark.parametrize("flag", ["--verbose", "-v"])
 @mock.patch("autocrop.cli.crop_stdin_to_stdout")
 def test_cli_verbose_is_passed_to_stdin_mode(mock_crop, flag):
@@ -242,6 +267,17 @@ def test_cli_verbose_is_passed_to_stdin_mode(mock_crop, flag):
     assert e.value.code == 0
     _, kwargs = mock_crop.call_args
     assert kwargs["verbose"] is True
+
+
+@mock.patch("autocrop.cli.crop_stdin_to_stdout")
+def test_cli_json_is_passed_to_stdin_mode(mock_crop):
+    mock_crop.return_value = 0
+    sys.argv = ["autocrop", "-", "--json", "-"]
+    with pytest.raises(SystemExit) as e:
+        command_line_interface()
+    assert e.value.code == 0
+    _, kwargs = mock_crop.call_args
+    assert kwargs["json_output"] == "-"
 
 
 def test_cli_invalid_input_path_errors_out():
@@ -314,7 +350,7 @@ def test_crop_file_to_output_writes_explicit_file(monkeypatch, tmp_path):
     image = Image.open("tests/data/obama.jpg")
     cropped = image.resize((32, 32))
     destination = tmp_path / "cropped.jpg"
-    monkeypatch.setattr(Cropper, "crop", lambda *args: np.array(cropped))
+    monkeypatch.setattr(Cropper, "crop", lambda *args, **kwargs: mock_result(cropped))
 
     status = crop_file_to_output(
         "tests/data/obama.jpg",
@@ -328,11 +364,52 @@ def test_crop_file_to_output_writes_explicit_file(monkeypatch, tmp_path):
         assert result.size == (32, 32)
 
 
+def test_crop_file_to_output_writes_json_diagnostics(monkeypatch, tmp_path):
+    class MockDetector:
+        def detect(self, image):
+            return np.array([[0, 0, 10, 10, 0.8]])
+
+    destination = tmp_path / "cropped.jpg"
+    diagnostics_path = tmp_path / "diagnostics.json"
+
+    monkeypatch.setattr(
+        "autocrop.cli.Cropper",
+        lambda **kwargs: Cropper(face_detector=MockDetector(), **kwargs),
+    )
+
+    status = crop_file_to_output(
+        "tests/data/obama.jpg",
+        output_filename=str(destination),
+        fheight=32,
+        fwidth=32,
+        json_output=str(diagnostics_path),
+    )
+
+    diagnostics = json.loads(diagnostics_path.read_text())
+    assert status == 0
+    assert diagnostics["input"].endswith("tests/data/obama.jpg")
+    assert diagnostics["output"] == str(destination)
+    assert diagnostics["detector"]["name"] == "MockDetector"
+    assert diagnostics["faces"][0]["box"] == {
+        "x": 0,
+        "y": 0,
+        "width": 10,
+        "height": 10,
+    }
+    assert diagnostics["selected_face_index"] == 0
+    assert diagnostics["crop_rectangle"] is not None
+    assert diagnostics["requested_output_dimensions"] == {"width": 32, "height": 32}
+    assert diagnostics["actual_output_dimensions"] == {"width": 32, "height": 32}
+    assert diagnostics["resize"] is True
+    assert diagnostics["image_format"] == "JPEG"
+    assert diagnostics["error"] is None
+
+
 def test_crop_file_to_output_writes_cropped_bytes_to_stdout(monkeypatch, capsys):
     image = Image.open("tests/data/obama.jpg")
     cropped = image.resize((32, 32))
     stdout = io.BytesIO()
-    monkeypatch.setattr(Cropper, "crop", lambda *args: np.array(cropped))
+    monkeypatch.setattr(Cropper, "crop", lambda *args, **kwargs: mock_result(cropped))
 
     status = crop_file_to_output(
         "tests/data/obama.jpg",
@@ -349,11 +426,36 @@ def test_crop_file_to_output_writes_cropped_bytes_to_stdout(monkeypatch, capsys)
     assert capsys.readouterr().err == ""
 
 
+def test_crop_file_to_output_writes_json_to_stderr_without_corrupting_stdout(monkeypatch, capsys):
+    image = Image.open("tests/data/obama.jpg")
+    cropped = image.resize((32, 32))
+    stdout = io.BytesIO()
+    monkeypatch.setattr(Cropper, "crop", lambda *args, **kwargs: mock_result(cropped))
+
+    status = crop_file_to_output(
+        "tests/data/obama.jpg",
+        stdout=stdout,
+        fheight=32,
+        fwidth=32,
+        json_output="-",
+    )
+
+    stdout.seek(0)
+    with Image.open(stdout) as result:
+        assert status == 0
+        assert result.size == (32, 32)
+    captured = capsys.readouterr()
+    diagnostics = json.loads(captured.err)
+    assert captured.out == ""
+    assert diagnostics["output"] == "stdout"
+    assert diagnostics["image_format"] == "JPEG"
+
+
 def test_crop_file_to_output_verbose_writes_timings_to_stderr(monkeypatch, capsys):
     image = Image.open("tests/data/obama.jpg")
     cropped = image.resize((32, 32))
     stdout = io.BytesIO()
-    monkeypatch.setattr(Cropper, "crop", lambda *args: np.array(cropped))
+    monkeypatch.setattr(Cropper, "crop", lambda *args, **kwargs: mock_result(cropped))
 
     status = crop_file_to_output(
         "tests/data/obama.jpg",
@@ -377,7 +479,7 @@ def test_crop_file_to_output_verbose_writes_timings_to_stderr(monkeypatch, capsy
 
 def test_crop_file_to_output_writes_failures_to_stderr(monkeypatch, capsys):
     stdout = io.BytesIO()
-    monkeypatch.setattr(Cropper, "crop", lambda *args: None)
+    monkeypatch.setattr(Cropper, "crop", lambda *args, **kwargs: mock_result(None))
 
     status = crop_file_to_output("tests/data/noise.png", stdout=stdout)
 
@@ -388,6 +490,24 @@ def test_crop_file_to_output_writes_failures_to_stderr(monkeypatch, capsys):
     assert "No face detected: tests/data/noise.png" in captured.err
 
 
+def test_crop_file_to_output_writes_no_face_json(monkeypatch, tmp_path, capsys):
+    diagnostics_path = tmp_path / "diagnostics.json"
+    monkeypatch.setattr(Cropper, "crop", lambda *args, **kwargs: mock_result(None))
+
+    status = crop_file_to_output(
+        "tests/data/noise.png",
+        stdout=io.BytesIO(),
+        json_output=str(diagnostics_path),
+    )
+
+    captured = capsys.readouterr()
+    diagnostics = json.loads(diagnostics_path.read_text())
+    assert status == 1
+    assert "No face detected: tests/data/noise.png" in captured.err
+    assert diagnostics["error"] == "no_face_detected"
+    assert diagnostics["faces"] == []
+
+
 class BrokenPipeStream(io.BytesIO):
     def write(self, data):
         raise BrokenPipeError
@@ -396,7 +516,7 @@ class BrokenPipeStream(io.BytesIO):
 def test_crop_file_to_output_handles_broken_stdout_pipe(monkeypatch, capsys):
     image = Image.open("tests/data/obama.jpg")
     cropped = image.resize((32, 32))
-    monkeypatch.setattr(Cropper, "crop", lambda *args: np.array(cropped))
+    monkeypatch.setattr(Cropper, "crop", lambda *args, **kwargs: mock_result(cropped))
 
     status = crop_file_to_output("tests/data/obama.jpg", stdout=BrokenPipeStream())
 
@@ -420,12 +540,29 @@ def test_crop_file_to_output_writes_invalid_file_to_stderr(tmp_path, capsys):
     assert "Could not read image file" in captured.err
 
 
+def test_crop_file_to_output_writes_invalid_file_json(tmp_path, capsys):
+    invalid = tmp_path / "invalid.jpg"
+    invalid.write_bytes(b"not an image")
+    diagnostics_path = tmp_path / "diagnostics.json"
+    stdout = io.BytesIO()
+
+    status = crop_file_to_output(str(invalid), stdout=stdout, json_output=diagnostics_path)
+
+    captured = capsys.readouterr()
+    diagnostics = json.loads(diagnostics_path.read_text())
+    assert status == 1
+    assert stdout.getvalue() == b""
+    assert "Could not read image file" in captured.err
+    assert diagnostics["error"] == "read_error"
+    assert "Could not read image file" in diagnostics["message"]
+
+
 def test_crop_stdin_to_stdout_infers_image_type(monkeypatch):
     source = io.BytesIO()
     Image.new("RGB", (40, 40), "white").save(source, format="PNG")
     source.seek(0)
     stdout = io.BytesIO()
-    monkeypatch.setattr(Cropper, "crop", lambda *args: np.array(Image.new("RGB", (20, 20), "white")))
+    monkeypatch.setattr(Cropper, "crop", lambda *args, **kwargs: mock_result(Image.new("RGB", (20, 20), "white")))
 
     status = crop_stdin_to_stdout(stdin=source, stdout=stdout)
 
@@ -436,12 +573,37 @@ def test_crop_stdin_to_stdout_infers_image_type(monkeypatch):
         assert result.format == "PNG"
 
 
+def test_crop_stdin_to_stdout_writes_json_to_stderr(monkeypatch, capsys):
+    source = io.BytesIO()
+    Image.new("RGB", (40, 40), "white").save(source, format="PNG")
+    source.seek(0)
+    stdout = io.BytesIO()
+    monkeypatch.setattr(
+        Cropper,
+        "crop",
+        lambda *args, **kwargs: mock_result(Image.new("RGB", (20, 20), "white")),
+    )
+
+    status = crop_stdin_to_stdout(stdin=source, stdout=stdout, json_output="-")
+
+    stdout.seek(0)
+    with Image.open(stdout) as result:
+        assert status == 0
+        assert result.size == (20, 20)
+    captured = capsys.readouterr()
+    diagnostics = json.loads(captured.err)
+    assert captured.out == ""
+    assert diagnostics["input"] == "stdin"
+    assert diagnostics["output"] == "stdout"
+    assert diagnostics["image_format"] == "PNG"
+
+
 def test_crop_stdin_to_stdout_verbose_writes_timings_to_stderr(monkeypatch, capsys):
     source = io.BytesIO()
     Image.new("RGB", (40, 40), "white").save(source, format="PNG")
     source.seek(0)
     stdout = io.BytesIO()
-    monkeypatch.setattr(Cropper, "crop", lambda *args: np.array(Image.new("RGB", (20, 20), "white")))
+    monkeypatch.setattr(Cropper, "crop", lambda *args, **kwargs: mock_result(Image.new("RGB", (20, 20), "white")))
 
     status = crop_stdin_to_stdout(stdin=source, stdout=stdout, verbose=True)
 

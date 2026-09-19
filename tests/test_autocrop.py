@@ -8,7 +8,8 @@ import numpy as np
 import pytest  # noqa: F401
 from PIL import Image, ImageOps
 
-from autocrop.autocrop import Cropper, open_file
+from autocrop.autocrop import Cropper, CropResult, open_file
+from autocrop.diagnostics import ImageSize, Rectangle
 from autocrop.yunet import YuNetDetector
 
 
@@ -32,14 +33,14 @@ def test_crop_noise_returns_none():
     loc = "tests/data/noise.png"
     noise = cv2.imread(loc)
     c = Cropper()
-    assert c.crop(noise) is None
+    assert c.crop(noise).image is None
 
 
 def test_obama_has_a_face():
     loc = "tests/data/obama.jpg"
     obama = cv2.imread(loc)
     c = Cropper()
-    assert len(c.crop(obama)) == 500
+    assert len(c.crop(obama).image) == 500
 
 
 def test_open_file_applies_exif_orientation(tmp_path):
@@ -83,7 +84,7 @@ def test_path_crop_preserves_rgb_channels(tmp_path):
         resize=False,
         face_detector=MockDetector(),
     )
-    np.testing.assert_array_equal(c.crop(str(image_path)), source)
+    np.testing.assert_array_equal(c.crop(str(image_path)).image, source)
 
 
 def test_cropper_accepts_detector_object():
@@ -107,7 +108,7 @@ def test_cropper_accepts_detector_object():
         resize=False,
         face_detector=MockDetector(),
     )
-    np.testing.assert_array_equal(c.crop(source), expected)
+    np.testing.assert_array_equal(c.crop(source).image, expected)
 
 
 def test_cropper_normalizes_grayscale_for_detection(tmp_path):
@@ -129,7 +130,7 @@ def test_cropper_normalizes_grayscale_for_detection(tmp_path):
         face_detector=detector,
     )
 
-    np.testing.assert_array_equal(c.crop(str(image_path)), source)
+    np.testing.assert_array_equal(c.crop(str(image_path)).image, source)
     assert detector.image.shape == (2, 2, 3)
     np.testing.assert_array_equal(detector.image[:, :, 0], source)
     np.testing.assert_array_equal(detector.image[:, :, 1], source)
@@ -161,7 +162,7 @@ def test_cropper_normalizes_rgba_for_detection_and_preserves_alpha(tmp_path):
         face_detector=detector,
     )
 
-    np.testing.assert_array_equal(c.crop(str(image_path)), source)
+    np.testing.assert_array_equal(c.crop(str(image_path)).image, source)
     assert detector.image.shape == (2, 2, 3)
     np.testing.assert_array_equal(detector.image, source[:, :, [2, 1, 0]])
 
@@ -188,7 +189,54 @@ def test_cropper_uses_largest_detected_face():
         face_detector=MockDetector(),
     )
 
-    np.testing.assert_array_equal(c.crop(source), expected)
+    np.testing.assert_array_equal(c.crop(source).image, expected)
+
+
+def test_cropper_returns_structured_diagnostics():
+    class MockDetector:
+        def detect(self, image):
+            return np.array([[0, 0, 1, 1, 0.7], [0, 0, 2, 2, 0.9]])
+
+    source = np.array(
+        [
+            [[1, 2, 3], [4, 5, 6]],
+            [[7, 8, 9], [10, 11, 12]],
+        ],
+        dtype=np.uint8,
+    )
+
+    c = Cropper(
+        width=2,
+        height=2,
+        face_percent=100,
+        resize=False,
+        face_detector=MockDetector(),
+    )
+    result = c.crop(source)
+
+    assert isinstance(result, CropResult)
+    assert result.image is not None
+    assert result.diagnostics.detector.name == "MockDetector"
+    assert result.diagnostics.selected_face_index == 1
+    assert result.diagnostics.faces[1].box == Rectangle(0, 0, 2, 2)
+    assert result.diagnostics.faces[1].score == pytest.approx(0.9)
+    assert result.diagnostics.crop_rectangle == Rectangle(0, 0, 2, 2)
+    assert result.diagnostics.actual_output_dimensions == ImageSize(2, 2)
+    assert result.diagnostics.error is None
+
+
+def test_cropper_diagnostics_reports_no_face():
+    class MockDetector:
+        def detect(self, image):
+            return np.empty((0, 4), dtype=np.int32)
+
+    c = Cropper(face_detector=MockDetector())
+    result = c.crop(np.zeros((10, 10, 3), dtype=np.uint8))
+
+    assert result.image is None
+    assert result.diagnostics.faces == ()
+    assert result.diagnostics.selected_face_index is None
+    assert result.diagnostics.error == "no_face_detected"
 
 
 def test_cropper_returns_none_for_invalid_crop_geometry():
@@ -199,7 +247,7 @@ def test_cropper_returns_none_for_invalid_crop_geometry():
     source = np.zeros((885, 10, 3), dtype=np.uint8)
     c = Cropper(face_detector=MockDetector())
 
-    assert c.crop(source) is None
+    assert c.crop(source).image is None
 
 
 def test_yunet_detector_uses_packaged_model(monkeypatch):
@@ -310,7 +358,7 @@ def test_detect_face_in_cropped_image(height, width, integration):
     faces = [f for f in glob("tests/test/*") if not f.endswith("md")]
     for face in faces:
         try:
-            img_array = c.crop(face)
+            img_array = c.crop(face).image
         except (AttributeError, TypeError):
             pass
         if img_array is not None:
@@ -323,7 +371,7 @@ def test_detect_face_in_cropped_image(height, width, integration):
 def test_resize(resize, integration):
     c = Cropper(resize=resize)
     face = "tests/test/obama.jpg"
-    img_array = c.crop(face)
+    img_array = c.crop(face).image
     if resize:
         assert img_array.shape == (500, 500, 3)
     else:
@@ -344,7 +392,7 @@ def test_face_percent(face_percent):
 
 def test_transparent_png(integration):
     c = Cropper()
-    img = c.crop("tests/test/expo_67.png")
+    img = c.crop("tests/test/expo_67.png").image
 
     # Make sure we're still RGBA
     assert img.shape[-1] == 4

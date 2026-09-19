@@ -6,8 +6,16 @@ import cv2
 import numpy as np
 from PIL import Image, ImageOps
 
+from .diagnostics import (
+    CropDiagnostics,
+    CropResult,
+    DetectedFace,
+    DetectorDiagnostics,
+    ImageSize,
+    Rectangle,
+)
 from .types import ImageArray
-from .yunet import YuNetDetector
+from .yunet import YuNetDetector, decode_detections
 
 
 class ImageReadError(Exception):
@@ -17,7 +25,7 @@ class ImageReadError(Exception):
 
 
 class FaceDetector(Protocol):
-    """Existing custom-detector interface: an array of bounding-box rows."""
+    """Existing custom-detector interface: rows of boxes, optionally with scores/landmarks."""
 
     def detect(self, image: ImageArray) -> ImageArray: ...
 
@@ -104,7 +112,7 @@ class Cropper:
 
     This class uses OpenCV's YuNet face detector to perform the
     `crop` by taking in either a filepath or Numpy array, and
-    returning a Numpy array.
+    returning a CropResult with an image array and per-call diagnostics.
 
     Parameters:
     -----------
@@ -153,29 +161,27 @@ class Cropper:
             raise ValueError(fp_error)
         self.face_percent = check_positive_scalar(face_percent)
 
-    def crop(self, path_or_array: str | ImageArray) -> ImageArray | None:
-        """
-        Given a file path or np.ndarray image with a face,
-        returns cropped np.ndarray around the largest detected
-        face.
+    def crop(self, path_or_array: str | ImageArray) -> CropResult:
+        """Return an image and diagnostics for this call, without retaining results.
 
-        Parameters
-        ----------
-        - `path_or_array` : {`str`, `np.ndarray`}
-            * The filepath or numpy array of the image. Array inputs are
-              interpreted as OpenCV-style BGR/BGRA arrays.
-
-        Returns
-        -------
-        - `image` : {`np.ndarray`, `None`}
-            * A cropped numpy array if face detected, else None.
+        String paths are decoded with Pillow; arrays use BGR/BGRA order.
+        The result's image is RGB/RGBA, or None when no crop can be produced.
+        Unreadable inputs and invalid configuration still raise exceptions.
         """
+        metadata = CropDiagnostics(
+            detector=self._detector_diagnostics(),
+            requested_output_dimensions=ImageSize(self.width, self.height),
+            resize=self.resize,
+            face_percent=self.face_percent,
+        )
+        image = self._crop(path_or_array, metadata)
+        return CropResult(image, metadata)
+
+    def _crop(self, path_or_array: str | ImageArray, metadata: CropDiagnostics) -> ImageArray | None:
         if isinstance(path_or_array, str):
-            image = open_file(path_or_array)
-            image_is_bgr = False
+            image, image_is_bgr = open_file(path_or_array), False
         else:
-            image = path_or_array
-            image_is_bgr = True
+            image, image_is_bgr = path_or_array, True
 
         detection_image = detector_color_image(image, image_is_bgr)
 
@@ -184,16 +190,36 @@ class Cropper:
             img_height, img_width = image.shape[:2]
         except AttributeError:
             raise ImageReadError
+        metadata.input_dimensions = ImageSize(img_width, img_height)
+
         # ====== Detect faces in the image ======
-        faces = self.face_detector.detect(detection_image)
+        faces = self._detect_faces(detection_image)
+        metadata.faces = faces
 
         # Handle no faces
         if len(faces) == 0:
+            metadata.error = "no_face_detected"
             return None
 
+        return self._crop_face(image, image_is_bgr, faces, metadata)
+
+    def _crop_face(
+        self,
+        image: ImageArray,
+        image_is_bgr: bool,
+        faces: tuple[DetectedFace, ...],
+        metadata: CropDiagnostics,
+    ) -> ImageArray | None:
         # Make crop margins from biggest face found
-        x, y, w, h = max(faces, key=lambda face: face[2] * face[3])
+        selected_face_index, selected_face = max(
+            enumerate(faces), key=lambda item: item[1].box.width * item[1].box.height
+        )
+        metadata.selected_face_index = selected_face_index
+        box = selected_face.box
+        img_height, img_width = image.shape[:2]
+        x, y, w, h = int(box.x), int(box.y), int(box.width), int(box.height)
         if w <= 0 or h <= 0:
+            metadata.error = "invalid_face_box"
             return None
         pos = self._crop_positions(
             img_height,
@@ -205,7 +231,10 @@ class Cropper:
         )
 
         if pos[0] >= pos[1] or pos[2] >= pos[3]:
+            metadata.error = "invalid_crop_geometry"
             return None
+
+        metadata.crop_rectangle = Rectangle(pos[2], pos[0], pos[3] - pos[2], pos[1] - pos[0])
 
         # ====== Actual cropping ======
         image = image[pos[0] : pos[1], pos[2] : pos[3]]
@@ -216,8 +245,34 @@ class Cropper:
                 image = np.array(img.resize((self.width, self.height)))
 
         if image_is_bgr:
-            return bgr_to_rbg(image)
+            image = bgr_to_rbg(image)
+
+        metadata.actual_output_dimensions = ImageSize(int(image.shape[1]), int(image.shape[0]))
         return image
+
+    def _detect_faces(self, image: ImageArray) -> tuple[DetectedFace, ...]:
+        if isinstance(self.face_detector, YuNetDetector):
+            return decode_detections(self.face_detector.detect(image, details=True))
+        return decode_detections(self.face_detector.detect(image))
+
+    def _detector_diagnostics(self) -> DetectorDiagnostics:
+        """Return JSON-serializable detector settings when available."""
+        detector = self.face_detector
+        settings = {}
+        for attribute in (
+            "model_path",
+            "score_threshold",
+            "nms_threshold",
+            "top_k",
+        ):
+            if hasattr(detector, attribute):
+                value = getattr(detector, attribute)
+                if isinstance(value, np.generic):
+                    value = value.item()
+                if isinstance(value, os.PathLike):
+                    value = os.fspath(value)
+                settings[attribute] = value
+        return DetectorDiagnostics(name=type(detector).__name__, settings=settings)
 
     def _determine_safe_zoom(self, imgh: int, imgw: int, x: int, y: int, w: int, h: int) -> float:
         """

@@ -19,11 +19,29 @@ cat portrait.jpg | autocrop - > portrait-cropped.jpg
 autocrop portrait.jpg -o portrait-cropped.jpg
 autocrop portrait.jpg -o portrait-cropped.png
 autocrop portrait.jpg -o cropped/
+autocrop portrait.jpg -o portrait-cropped.jpg --json diagnostics.json
+autocrop portrait.jpg --json - > portrait-cropped.jpg
 autocrop portrait.jpg --verbose > portrait-cropped.jpg
 ```
 
 `--verbose` writes basic processing details and timings to stderr, including total, imports, read,
 process, and write time. YuNet is the built-in face detector; there is no detector-selection flag.
+
+`--json PATH` writes structured crop diagnostics to a file. Use `--json -` to
+write JSON diagnostics to stderr, which keeps stdout safe for cropped image
+bytes. Diagnostics include detector settings, detected face boxes, selected face
+index, crop rectangle before resize, requested and actual output dimensions,
+resize mode, image format, EXIF orientation handling, timings, and an error
+reason when no crop is produced.
+
+With `--json -`, stderr contains one JSON document, including errors and timings;
+`--verbose` does not add text outside that document. Exit status remains nonzero
+on failure. Argument errors also use JSON stderr, but do not write a diagnostics
+file. `--help` and `--version` remain plain text on stdout.
+
+The JSON path must differ from both image paths, including symlinks and hard
+links. Failure to write diagnostics returns a nonzero status, even if the image
+was written successfully. JSON files are replaced atomically.
 
 ## Shell-composed batch jobs
 
