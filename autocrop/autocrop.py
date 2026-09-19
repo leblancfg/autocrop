@@ -1,4 +1,5 @@
 import itertools
+import math
 import os
 from typing import Protocol, cast
 
@@ -6,7 +7,9 @@ import cv2
 import numpy as np
 from PIL import Image, ImageOps
 
+from .alignment import align_face
 from .diagnostics import (
+    AlignmentDiagnostics,
     CropDiagnostics,
     CropResult,
     DetectedFace,
@@ -127,6 +130,10 @@ class Cropper:
     * `resize`: `bool`, default=`True`
         - Resizes the image to the specified width and height,
         otherwise, returns the original image pixels.
+    * `align`: `bool`, default=`False`
+        - Rotate faces so they're level using eye landmarks before cropping.
+    * `max_rotation`: `float`, default=`30`
+        - Maximum absolute roll angle to correct, in degrees.
 
     NumPy array inputs are interpreted as OpenCV-style BGR/BGRA arrays. Returned
     arrays are RGB/RGBA so they can be passed directly to Pillow or Matplotlib.
@@ -143,11 +150,20 @@ class Cropper:
         yunet_score_threshold: float = 0.6,
         yunet_nms_threshold: float = 0.3,
         yunet_top_k: int = 5000,
+        *,
+        align: bool = False,
+        max_rotation: float = 30,
     ) -> None:
         self.height = check_positive_scalar(height)
         self.width = check_positive_scalar(width)
         self.aspect_ratio = width / height
         self.resize = resize
+        self.align = bool(align)
+        if isinstance(max_rotation, bool) or not isinstance(max_rotation, (int, float)):
+            raise TypeError("max_rotation must be a number of degrees")
+        if not math.isfinite(max_rotation) or not 0 < max_rotation <= 90:
+            raise ValueError("max_rotation must be greater than 0 and at most 90 degrees")
+        self.max_rotation = max_rotation
         self.face_detector: FaceDetector = face_detector or YuNetDetector(
             model_path=yunet_model_path,
             score_threshold=yunet_score_threshold,
@@ -173,6 +189,7 @@ class Cropper:
             requested_output_dimensions=ImageSize(self.width, self.height),
             resize=self.resize,
             face_percent=self.face_percent,
+            alignment=AlignmentDiagnostics(enabled=self.align),
         )
         image = self._crop(path_or_array, metadata)
         return CropResult(image, metadata)
@@ -216,6 +233,11 @@ class Cropper:
         )
         metadata.selected_face_index = selected_face_index
         box = selected_face.box
+        metadata.alignment.reason = "disabled"
+        if self.align:
+            image, box, metadata.alignment = align_face(image, selected_face, self.max_rotation)
+            if metadata.alignment.applied:
+                metadata.crop_coordinate_space = "aligned_input"
         img_height, img_width = image.shape[:2]
         x, y, w, h = int(box.x), int(box.y), int(box.width), int(box.height)
         if w <= 0 or h <= 0:
