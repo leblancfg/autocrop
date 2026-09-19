@@ -9,7 +9,7 @@ Please follow these steps:
 * Branch off of `master` for every change you want to make
 * Develop changes on your branch
 * Test your changes (see section below)
-* Modify the tests and documentation as necessary
+* Modify the tests and documentation as necessary; annotate public and internal package functions
 * When your changes are ready, make a pull request to the upstream
   [autocrop](https://github.com/leblancfg/autocrop) repository
 
@@ -46,7 +46,8 @@ green-light changes.
 Specifically, we:
 
 * Use [just](https://just.systems/) as the project command runner
-* Use [flake8](http://flake8.pycqa.org/en/latest/) for coding style tests
+* Use [Ruff](https://docs.astral.sh/ruff/) for linting, import sorting, and formatting
+* Check package types and downstream usage examples with [ty](https://docs.astral.sh/ty/)
 * Run a test suite using [pytest](https://docs.pytest.org/en/latest/)
 
 You can run the tests locally, like so:
@@ -54,6 +55,17 @@ You can run the tests locally, like so:
 ```
 $ just check
 ```
+
+This runs Ruff linting and format checks, `just typecheck` (ty), and tests.
+Use `just format` to apply formatting, or `uv run ruff check --fix autocrop tests`
+for safe lint fixes and import sorting. CI only checks files; it never rewrites them.
+
+Ruff also requires annotations on package functions and limits complexity to 10.
+Ty checks the package and `tests/typing`, failing on warnings as well as errors.
+CI runs these checks on every supported Python/OS combination. The package ships
+`py.typed`; the consumer examples use `assert_type` to check the public API. Keep
+dynamic types confined to external-library boundaries and use specific
+`ty: ignore[rule]` comments only when justified. Unused ignores fail the check.
 
 
 ## Contact
