@@ -26,8 +26,8 @@ Autocrop can be used [from the command line](#from-the-command-line) or directly
 
 ## From the command line
 
-    usage: autocrop [-h] [-V] [-v] [-n] [-o OUTPUT] [-w WIDTH] [-H HEIGHT]
-                    [--facePercent FACEPERCENT]
+    usage: autocrop [-h] [-V] [-v] [-n] [-o OUTPUT] [--json PATH]
+                    [-w WIDTH] [-H HEIGHT] [--facePercent FACEPERCENT]
                     [source]
 
     Automatically crops faces from pictures
@@ -45,6 +45,8 @@ Autocrop can be used [from the command line](#from-the-command-line) or directly
                             Output file, or output directory for a single input
                             image. If omitted, cropped image bytes are written to
                             stdout.
+      --json PATH           Write JSON crop diagnostics to a file, or to stderr
+                            with '-'
       -w, --width WIDTH     Width of cropped files in px. Default=500
       -H, --height HEIGHT   Height of cropped files in px. Default=500
       --facePercent FACEPERCENT
@@ -54,9 +56,10 @@ Autocrop can be used [from the command line](#from-the-command-line) or directly
 
 Import the `Cropper` class, set some parameters (optional), and start cropping.
 
-The `crop` method accepts filepaths or OpenCV-style BGR/BGRA `np.ndarray` inputs, and returns
-RGB/RGBA Numpy arrays. These are easily handled with
-[PIL](https://pillow.readthedocs.io/) or [Matplotlib](https://matplotlib.org/).
+The `crop` method accepts string filepaths or OpenCV-style BGR/BGRA `np.ndarray`
+inputs and always returns a `CropResult`. Its `image` is an RGB/RGBA NumPy array
+for [Pillow](https://pillow.readthedocs.io/) or [Matplotlib](https://matplotlib.org/),
+or `None` when no crop is produced. Its `diagnostics` is a `CropDiagnostics` dataclass.
 
 ```python
 from PIL import Image
@@ -64,14 +67,18 @@ from autocrop import Cropper
 
 cropper = Cropper()
 
-# Get a Numpy array of the cropped image
-cropped_array = cropper.crop('portrait.png')
+result = cropper.crop('portrait.png')
 
-# Save the cropped image with PIL if a face was detected:
-if cropped_array is not None:
-    cropped_image = Image.fromarray(cropped_array)
-    cropped_image.save('cropped.png')
+if result.image is not None:
+    Image.fromarray(result.image).save('cropped.png')
+
+print(result.diagnostics.selected_face_index)
+print(result.diagnostics.crop_rectangle)
 ```
+
+Upgrading Python code from v1? Use `cropper.crop(...).image` where you previously
+used the returned array, and check `result.image is not None` rather than the
+result object itself. Unreadable files and invalid configuration still raise.
 
 Autocrop v2 uses OpenCV's YuNet neural-network face detector.
 
@@ -88,6 +95,9 @@ Further examples and use cases are found in the
   - `autocrop -- > cropped.jpg < portrait.jpg`
 - Crop one image and write to an explicit output file:
   - `autocrop portrait.jpg -o cropped.jpg`
+- Write crop diagnostics to JSON:
+  - `autocrop portrait.jpg -o cropped.jpg --json diagnostics.json`
+  - `autocrop portrait.jpg --json - > cropped.jpg`
 - Print timings and basic processing details to stderr:
   - `autocrop portrait.jpg --verbose > cropped.jpg`
 - Crop one image and write into an explicit output directory:

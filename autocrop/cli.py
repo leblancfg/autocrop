@@ -5,12 +5,13 @@ import shutil
 import stat
 import sys
 import time
-from typing import Any, BinaryIO, Callable, NoReturn, TypeVar
+from contextlib import contextmanager
+from typing import Any, BinaryIO, Iterator, NoReturn
 
 import numpy as np
 from PIL import Image, ImageOps
 
-from . import _timing
+from . import reporting, timing
 from .__version__ import __version__
 from .autocrop import Cropper
 from .constants import (
@@ -19,10 +20,10 @@ from .constants import (
     OUTPUT_FORMATS,
     OUTPUT_FORMATS_BY_EXTENSION,
 )
+from .reporting import CliReport
 from .types import ImageArray
 
 ORIENTATION_EXIF_TAG = 274
-T = TypeVar("T")
 
 
 class CliError(Exception):
@@ -141,7 +142,7 @@ def validate_output_extension(output_filename: str) -> str:
 def empty_timings() -> dict[str, float]:
     """Return a timing map with stable keys for verbose output."""
     return {
-        "imports": _timing.import_seconds(),
+        "imports": timing.import_seconds(),
         "read": 0.0,
         "process": 0.0,
         "write": 0.0,
@@ -149,11 +150,12 @@ def empty_timings() -> dict[str, float]:
     }
 
 
-def timed_step(timings: dict[str, float], key: str, callback: Callable[[], T]) -> T:
-    """Run callback and add elapsed seconds to a timing key."""
+@contextmanager
+def measure(timings: dict[str, float], key: str) -> Iterator[None]:
+    """Measure a stage, including time spent before an exception."""
     started = time.perf_counter()
     try:
-        return callback()
+        yield
     finally:
         timings[key] += time.perf_counter() - started
 
@@ -185,28 +187,6 @@ def print_verbose(
     )
 
 
-def crop_image(
-    path_or_array: str | ImageArray,
-    image_format: str | None,
-    output_filename: str | None,
-    fheight: int,
-    fwidth: int,
-    face_percent: int,
-    resize: bool,
-) -> tuple[ImageArray | None, str | None]:
-    """Crop a single image path or numpy array."""
-    cropper = Cropper(
-        width=fwidth,
-        height=fheight,
-        face_percent=face_percent,
-        resize=resize,
-    )
-    image = cropper.crop(path_or_array)
-    if image is None:
-        return None, None
-    return image, output_format(image_format, output_filename)
-
-
 def cropper_array_from_pillow_image(img_orig: Image.Image) -> ImageArray:
     """
     Return an array in the color-channel order expected by Cropper.crop(np.ndarray).
@@ -232,69 +212,107 @@ def read_input_file(input_filename: str | os.PathLike[str]) -> tuple[str | None,
         raise CliError(f"Could not read image file: {input_filename}: {exc}") from exc
 
 
+def finish_report(
+    report: CliReport,
+    json_output: str | os.PathLike[str] | None,
+    verbose: bool,
+    started: float,
+) -> int:
+    finish_timings(report.timings, started)
+    if json_output != "-":
+        if report.message:
+            print(report.message, file=sys.stderr)
+        if verbose:
+            print_verbose(report.input, report.output, report.image_format, report.timings)
+    try:
+        reporting.write(report.to_dict(), json_output)
+    except (OSError, TypeError, ValueError) as exc:
+        print(f"Could not write JSON diagnostics: {exc}", file=sys.stderr)
+        return 1
+    return int(report.failure is not None)
+
+
+def run_crop(
+    input_filename: str | None,
+    output_filename: str | None,
+    stdin: BinaryIO | None,
+    stdout: BinaryIO,
+    cropper: Cropper,
+    json_output: str | os.PathLike[str] | None,
+    verbose: bool,
+) -> int:
+    """Read, crop, and write once; keep transport errors separate from crop data."""
+    report = CliReport(input_filename or "stdin", output_filename or "stdout", output_filename)
+    report.timings = empty_timings()
+    started = time.perf_counter()
+    stage = "read"
+    try:
+        with measure(report.timings, stage):
+            if input_filename is None:
+                assert stdin is not None  # The stdin wrapper supplies a binary stream.
+                input_format, input_image = _read_stdin_image(stdin)
+            else:
+                input_format, input_image = read_input_file(input_filename)
+        stage = "process"
+        with measure(report.timings, stage):
+            result = cropper.crop(input_image)
+        report.crop = result.diagnostics
+        if result.image is None:
+            report.message = f"No face detected: {report.input}"
+        else:
+            report.image_format = output_format(input_format, output_filename)
+            stage = "write"
+            with measure(report.timings, stage):
+                if output_filename is None:
+                    output_bytes(result.image, stdout, report.image_format)
+                else:
+                    assert input_filename is not None  # Explicit output is supported only for file input.
+                    output(input_filename, output_filename, result.image, image_format=report.image_format)
+    except BrokenPipeError:
+        report.error = "broken_pipe"
+    except (CliError, OSError, ValueError) as exc:
+        report.error, report.message = f"{stage}_error", str(exc)
+    return finish_report(report, json_output, verbose, started)
+
+
 def crop_file_to_output(
-    input_filename: str,
-    output_filename: str | None = None,
+    input_filename: str | os.PathLike[str],
+    output_filename: str | os.PathLike[str] | None = None,
     fheight: int = 500,
     fwidth: int = 500,
     face_percent: int = 50,
     resize: bool = True,
     stdout: BinaryIO | None = None,
     verbose: bool = False,
+    json_output: str | os.PathLike[str] | None = None,
 ) -> int:
     """Crop one image file to a file path or stdout."""
-    timings = empty_timings()
-    started = time.perf_counter()
-    image_format = None
-    output_label = output_filename or "stdout"
-
+    input_filename = os.fspath(input_filename)
+    output_filename = os.fspath(output_filename) if output_filename is not None else None
+    stdout = stdout or sys.stdout.buffer
     try:
-        input_format, input_image = timed_step(timings, "read", lambda: read_input_file(input_filename))
-        image, image_format = timed_step(
-            timings,
-            "process",
-            lambda: crop_image(
-                input_image,
-                input_format,
-                output_filename,
-                fheight,
-                fwidth,
-                face_percent,
-                resize,
-            ),
+        reporting.validate_destination(
+            json_output,
+            input_filename,
+            output_filename,
+            image_streams=(stdout,) if output_filename is None else (),
         )
-        if image is None:
-            print(f"No face detected: {input_filename}", file=sys.stderr)
-            return 1
+        cropper = Cropper(width=fwidth, height=fheight, face_percent=face_percent, resize=resize)
+    except ValueError as exc:
+        reporting.report_error(exc, json_output)
+        return 2
+    return run_crop(input_filename, output_filename, None, stdout, cropper, json_output, verbose)
 
-        assert image_format is not None
-        if output_filename is None:
-            timed_step(
-                timings,
-                "write",
-                lambda: output_bytes(image, stdout or sys.stdout.buffer, image_format),
-            )
-        else:
-            timed_step(
-                timings,
-                "write",
-                lambda: output(
-                    input_filename,
-                    output_filename,
-                    image,
-                    image_format=image_format,
-                ),
-            )
-        return 0
-    except CliError as exc:
-        print(exc, file=sys.stderr)
-        return 1
-    except BrokenPipeError:
-        return 1
-    finally:
-        finish_timings(timings, started)
-        if verbose:
-            print_verbose(input_filename, output_label, image_format, timings)
+
+def _read_stdin_image(stdin: BinaryIO) -> tuple[str | None, ImageArray]:
+    image_bytes = stdin.read()
+    if not image_bytes:
+        raise CliError("No image bytes received on stdin")
+    try:
+        with Image.open(io.BytesIO(image_bytes)) as image:
+            return image.format, cropper_array_from_pillow_image(image)
+    except OSError as exc:
+        raise CliError(f"Could not read image from stdin: {exc}") from exc
 
 
 def crop_stdin_to_stdout(
@@ -305,61 +323,18 @@ def crop_stdin_to_stdout(
     face_percent: int = 50,
     resize: bool = True,
     verbose: bool = False,
+    json_output: str | os.PathLike[str] | None = None,
 ) -> int:
     """Read image bytes from stdin, crop, and write image bytes to stdout."""
     stdin = stdin or sys.stdin.buffer
     stdout = stdout or sys.stdout.buffer
-    timings = empty_timings()
-    started = time.perf_counter()
-    image_format = None
-
     try:
-
-        def read_stdin_image() -> tuple[str | None, ImageArray | None, str | None]:
-            image_bytes = stdin.read()
-            if not image_bytes:
-                return None, None, "No image bytes received on stdin"
-            try:
-                with Image.open(io.BytesIO(image_bytes)) as img_orig:
-                    return (
-                        img_orig.format,
-                        cropper_array_from_pillow_image(img_orig),
-                        None,
-                    )
-            except OSError as exc:
-                return None, None, f"Could not read image from stdin: {exc}"
-
-        input_format, input_image, read_error = timed_step(timings, "read", read_stdin_image)
-        if read_error:
-            print(read_error, file=sys.stderr)
-            return 1
-        assert input_image is not None
-
-        image, image_format = timed_step(
-            timings,
-            "process",
-            lambda: crop_image(
-                input_image,
-                input_format,
-                None,
-                fheight,
-                fwidth,
-                face_percent,
-                resize,
-            ),
-        )
-        if image is None:
-            print("No face detected on stdin image", file=sys.stderr)
-            return 1
-        assert image_format is not None
-        timed_step(timings, "write", lambda: output_bytes(image, stdout, image_format))
-        return 0
-    except BrokenPipeError:
-        return 1
-    finally:
-        finish_timings(timings, started)
-        if verbose:
-            print_verbose("stdin", "stdout", image_format, timings)
+        reporting.validate_destination(json_output, image_streams=(stdin, stdout))
+        cropper = Cropper(width=fwidth, height=fheight, face_percent=face_percent, resize=resize)
+    except ValueError as exc:
+        reporting.report_error(exc, json_output)
+        return 2
+    return run_crop(None, None, stdin, stdout, cropper, json_output, verbose)
 
 
 class CliArguments(argparse.Namespace):
@@ -370,6 +345,26 @@ class CliArguments(argparse.Namespace):
     facePercent: int
     no_resize: bool
     verbose: bool
+    json_output: str | None
+
+
+class ArgumentParser(argparse.ArgumentParser):
+    def __init__(self, *args: Any, json_stderr: bool = False, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.json_stderr = json_stderr
+
+    def error(self, message: str) -> NoReturn:
+        if self.json_stderr:
+            reporting.report_error(message, "-")
+            self.exit(2)
+        super().error(message)
+
+
+def _json_stderr(args: list[str]) -> bool:
+    options = args[: args.index("--")] if "--" in args else args
+    return "--json=-" in options or any(
+        arg == "--json" and i + 1 < len(options) and options[i + 1] == "-" for i, arg in enumerate(options)
+    )
 
 
 def parse_args(args: list[str]) -> CliArguments:
@@ -385,9 +380,10 @@ def parse_args(args: list[str]) -> CliArguments:
         "no_resize": """Do not resize images to the specified width and height,
                       but instead use the original image's pixels.""",
         "verbose": "Write timings and basic processing details to stderr",
+        "json": "Write JSON crop diagnostics to a file, or to stderr with '-'",
     }
 
-    parser = argparse.ArgumentParser(description=help_d["desc"])
+    parser = ArgumentParser(description=help_d["desc"], json_stderr=_json_stderr(args), allow_abbrev=False)
     parser.add_argument(
         "source",
         nargs="?",
@@ -419,6 +415,13 @@ def parse_args(args: list[str]) -> CliArguments:
         "--path",
         default=None,
         help=help_d["output"],
+    )
+    parser.add_argument(
+        "--json",
+        dest="json_output",
+        default=None,
+        metavar="PATH",
+        help=help_d["json"],
     )
     parser.add_argument("-w", "--width", type=size, default=500, help=help_d["width"])
     parser.add_argument("-H", "--height", type=size, default=500, help=help_d["height"])
@@ -455,6 +458,7 @@ def run_single_file_mode(args: CliArguments, input_source: str, resize: bool) ->
         args.facePercent,
         resize,
         verbose=args.verbose,
+        json_output=args.json_output,
     )
 
 
@@ -468,7 +472,11 @@ def command_line_interface() -> NoReturn:
     input_source = args.source
     if input_source is None:
         if sys.stdin.isatty():
-            raise SystemExit("autocrop: an input image or '-' is required")
+            message = "autocrop: an input image or '-' is required"
+            if args.json_output == "-":
+                reporting.report_error(message, "-")
+                raise SystemExit(2)
+            raise SystemExit(message)
         input_source = "-"
 
     resize = not args.no_resize
@@ -480,12 +488,13 @@ def command_line_interface() -> NoReturn:
             face_percent=args.facePercent,
             resize=resize,
             verbose=args.verbose,
+            json_output=args.json_output,
         )
         sys.exit(status)
 
     try:
         status = run_single_file_mode(args, input_source, resize)
-    except CliError as exc:
-        print(exc, file=sys.stderr)
+    except (CliError, OSError) as exc:
+        reporting.report_error(exc, args.json_output)
         status = 2
     sys.exit(status)
