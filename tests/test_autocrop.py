@@ -1,11 +1,11 @@
 """Tests for autocrop"""
 
-from glob import glob
 import shutil
+from glob import glob
 
-import pytest  # noqa: F401
 import cv2
 import numpy as np
+import pytest  # noqa: F401
 from PIL import Image, ImageOps
 
 from autocrop.autocrop import Cropper, open_file

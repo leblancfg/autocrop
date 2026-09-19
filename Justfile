@@ -14,12 +14,18 @@ test:
     {{ uv-run }} pytest
 
 lint:
-    {{ uv-run }} flake8 --max-complexity=10 --count autocrop tests
+    {{ uv-run }} ruff check autocrop tests
+
+format:
+    {{ uv-run }} ruff format autocrop tests
+
+format-check:
+    {{ uv-run }} ruff format --check autocrop tests
 
 typecheck:
-    {{ uv-run }} mypy
+    {{ uv-run }} ty check --error-on-warning
 
-check: lint typecheck test
+check: lint format-check typecheck test
 
 venv:
     uv venv

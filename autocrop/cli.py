@@ -13,13 +13,13 @@ from PIL import Image, ImageOps
 from . import _timing
 from .__version__ import __version__
 from .autocrop import Cropper
-from .types import ImageArray
 from .constants import (
     INPUT_FILETYPES,
     OUTPUT_FILETYPES,
     OUTPUT_FORMATS,
     OUTPUT_FORMATS_BY_EXTENSION,
 )
+from .types import ImageArray
 
 ORIENTATION_EXIF_TAG = 274
 T = TypeVar("T")
@@ -30,7 +30,9 @@ class CliError(Exception):
 
 
 def _preserve_metadata(
-    input_filename: str | os.PathLike[str], output_filename: str | os.PathLike[str], source_stat: os.stat_result,
+    input_filename: str | os.PathLike[str],
+    output_filename: str | os.PathLike[str],
+    source_stat: os.stat_result,
 ) -> None:
     """Preserve safe filesystem metadata from the source image."""
     if input_filename != output_filename:
@@ -66,8 +68,11 @@ def image_for_format(image: ImageArray, image_format: str) -> Image.Image:
 
 
 def output(
-    input_filename: str | os.PathLike[str], output_filename: str | os.PathLike[str], image: ImageArray,
-    source_stat: os.stat_result | None = None, image_format: str | None = None,
+    input_filename: str | os.PathLike[str],
+    output_filename: str | os.PathLike[str],
+    image: ImageArray,
+    source_stat: os.stat_result | None = None,
+    image_format: str | None = None,
 ) -> None:
     """Write cropped image data to an output file."""
     if source_stat is None:
@@ -159,7 +164,10 @@ def finish_timings(timings: dict[str, float], started: float) -> None:
 
 
 def print_verbose(
-    input_label: str, output_label: str, image_format: str | None, timings: dict[str, float],
+    input_label: str,
+    output_label: str,
+    image_format: str | None,
+    timings: dict[str, float],
 ) -> None:
     """Write human-readable verbose diagnostics to stderr."""
     print(f"Input: {input_label}", file=sys.stderr)
@@ -241,9 +249,7 @@ def crop_file_to_output(
     output_label = output_filename or "stdout"
 
     try:
-        input_format, input_image = timed_step(
-            timings, "read", lambda: read_input_file(input_filename)
-        )
+        input_format, input_image = timed_step(timings, "read", lambda: read_input_file(input_filename))
         image, image_format = timed_step(
             timings,
             "process",
@@ -323,9 +329,7 @@ def crop_stdin_to_stdout(
             except OSError as exc:
                 return None, None, f"Could not read image from stdin: {exc}"
 
-        input_format, input_image, read_error = timed_step(
-            timings, "read", read_stdin_image
-        )
+        input_format, input_image, read_error = timed_step(timings, "read", read_stdin_image)
         if read_error:
             print(read_error, file=sys.stderr)
             return 1
@@ -418,9 +422,7 @@ def parse_args(args: list[str]) -> CliArguments:
     )
     parser.add_argument("-w", "--width", type=size, default=500, help=help_d["width"])
     parser.add_argument("-H", "--height", type=size, default=500, help=help_d["height"])
-    parser.add_argument(
-        "--facePercent", type=size, default=50, help=help_d["facePercent"]
-    )
+    parser.add_argument("--facePercent", type=size, default=50, help=help_d["facePercent"])
     parsed = CliArguments()
     parser.parse_args(args, namespace=parsed)
     return parsed

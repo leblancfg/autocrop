@@ -1,4 +1,4 @@
-"""Checked by mypy: the API on master before the feature PRs are applied."""
+"""Checked by ty: the API on master before the feature PRs are applied."""
 
 import numpy as np
 from typing_extensions import assert_type

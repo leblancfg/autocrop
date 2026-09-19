@@ -1,6 +1,6 @@
 import itertools
 import os
-from typing import Protocol
+from typing import Protocol, cast
 
 import cv2
 import numpy as np
@@ -87,7 +87,8 @@ def check_positive_scalar(num: int | float) -> int:
     """Returns True if value if a positive scalar."""
     is_scalar = np.isscalar(num)
     if num > 0 and not isinstance(num, str) and is_scalar:
-        return int(num)
+        # NumPy's scalar TypeGuard is broader than this function's numeric input contract.
+        return int(cast(int | float, num))
     raise ValueError("A positive scalar is required")
 
 
@@ -264,9 +265,7 @@ class Cropper:
         # Find out what zoom factor to use given self.aspect_ratio
         corners = itertools.product((x, x + w), (y, y + h))
         center = np.array([x + int(w / 2), y + int(h / 2)])
-        i = np.array(
-            [(0, 0), (0, imgh), (imgw, imgh), (imgw, 0), (0, 0)]
-        )  # image_corners
+        i = np.array([(0, 0), (0, imgh), (imgw, imgh), (imgw, 0), (0, 0)])  # image_corners
         image_sides = [(i[n], i[n + 1]) for n in range(4)]
 
         corner_ratios = [float(self.face_percent)]  # Hopefully we use this one

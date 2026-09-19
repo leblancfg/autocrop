@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
-# flake8: noqa
 
 import os
 import sys
 
 from . import _timing
+from .__version__ import __version__
 from .autocrop import Cropper
 from .cli import command_line_interface
-from .__version__ import __version__
 
 __all__ = ["Cropper", "command_line_interface", "__version__"]
 
@@ -23,15 +22,11 @@ See https://leblancfg.com/autocrop for more documentation.
 """
 
 # Inject vendored directory into system path.
-v_path = os.path.abspath(
-    os.path.sep.join([os.path.dirname(os.path.realpath(__file__)), "vendor"])
-)
+v_path = os.path.abspath(os.path.sep.join([os.path.dirname(os.path.realpath(__file__)), "vendor"]))
 sys.path.insert(0, v_path)
 
 # Inject patched directory into system path.
-v_path = os.path.abspath(
-    os.path.sep.join([os.path.dirname(os.path.realpath(__file__)), "patched"])
-)
+v_path = os.path.abspath(os.path.sep.join([os.path.dirname(os.path.realpath(__file__)), "patched"]))
 sys.path.insert(0, v_path)
 
 if __name__ == "__main__":
