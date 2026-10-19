@@ -10,6 +10,14 @@ clear-dist:
 build: clear-dist
     uv build
 
+docs:
+    #!/usr/bin/env sh
+    set -eu
+    cfg=$(mktemp)
+    trap 'rm -f "$cfg"' EXIT
+    printf 'site_name: autocrop\ndocs_dir: "%s/docs"\n' "$PWD" > "$cfg"
+    uvx mkdocs serve -f "$cfg" -a 127.0.0.1:8000
+
 test:
     {{ uv-run }} pytest
 

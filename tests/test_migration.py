@@ -37,6 +37,10 @@ def test_removed_options_explain_migration_before_reading_input(flag, capsys):
         ("-rrejected", "-r"),
         ("--input=portraits", "--input"),
         ("--extension=png", "--extension"),
+        ("--reject=rejected", "--reject"),
+        ("-ni", "-i"),
+        ("-vnepng", "-e"),
+        ("-nvrejected", "-r"),
     ],
 )
 def test_attached_legacy_values(arg, option, capsys):
@@ -49,6 +53,9 @@ def test_option_scanner_respects_terminator_and_argument_values():
     assert removed_cli_option(["--", "-image.jpg"]) is None
     assert removed_cli_option(["--json", "-report.json"]) is None
     assert removed_cli_option(["-o", "-input.png"]) is None
+    assert removed_cli_option(["-vno", "-input.png"]) is None
+    assert removed_cli_option(["-vno-input.png"]) is None
+    assert removed_cli_option(["-w100", "--", "-image.jpg"]) is None
 
 
 def test_dash_prefixed_source_after_terminator(tmp_path, monkeypatch):

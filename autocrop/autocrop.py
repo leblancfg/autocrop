@@ -1,7 +1,7 @@
 import itertools
 import math
 import os
-from typing import Protocol, cast
+from typing import NoReturn, Protocol, overload
 
 import cv2
 import numpy as np
@@ -17,9 +17,28 @@ from .diagnostics import (
     ImageSize,
     Rectangle,
 )
-from .migration import check_constructor_arguments
+from .migration import (
+    REMOVED_CONSTANTS,
+    check_constructor_arguments,
+    check_crop_arguments,
+    migration_message,
+    removed_module_attribute,
+)
 from .types import ImageArray
 from .yunet import YuNetDetector, decode_detections
+
+
+def __getattr__(name: str) -> NoReturn:
+    return removed_module_attribute(
+        __name__,
+        name,
+        {
+            **REMOVED_CONSTANTS,
+            "gamma": ("Apply brightness correction to result.image in your own code.", "python-helpers"),
+            "check_underexposed": ("Apply brightness correction to result.image in your own code.", "python-helpers"),
+            "COMBINED_FILETYPES": ("Use autocrop.constants.INPUT_FILETYPES.", "python-helpers"),
+        },
+    )
 
 
 class ImageReadError(Exception):
@@ -97,10 +116,11 @@ def detector_color_image(image: ImageArray, image_is_bgr: bool) -> ImageArray:
 
 def check_positive_scalar(num: int | float) -> int:
     """Returns True if value if a positive scalar."""
+    # Keep the numeric input type separate from NumPy's scalar TypeGuard.
+    value = num
     is_scalar = np.isscalar(num)
     if num > 0 and not isinstance(num, str) and is_scalar:
-        # NumPy's scalar TypeGuard is broader than this function's numeric input contract.
-        return int(cast(int | float, num))
+        return int(value)
     raise ValueError("A positive scalar is required")
 
 
@@ -180,13 +200,46 @@ class Cropper:
             raise ValueError(fp_error)
         self.face_percent = check_positive_scalar(face_percent)
 
-    def crop(self, path_or_array: str | ImageArray) -> CropResult:
+    def __setattr__(self, name: str, value: object) -> None:
+        if name in {"gamma", "casc_path", "diagnostics"}:
+            self.__getattr__(name)
+        object.__setattr__(self, name, value)
+
+    def __getattr__(self, name: str) -> NoReturn:
+        if name in {"crop_with_diagnostics", "diagnostics"}:
+            raise AttributeError(
+                migration_message(
+                    f"Cropper.{name} is not supported. Use result = cropper.crop(source), "
+                    "then result.image and result.diagnostics; the cropper stores no last-call result.",
+                    "python-results",
+                )
+            )
+        if name in {"gamma", "casc_path"}:
+            raise AttributeError(
+                migration_message(
+                    f"Cropper.{name} was removed. YuNet replaces Haar detection; "
+                    "apply brightness correction after cropping.",
+                    "python-helpers",
+                )
+            )
+        raise AttributeError(f"{type(self).__name__!r} object has no attribute {name!r}")
+
+    # Overloads keep legacy arguments out of the typed API while the implementation
+    # catches old calls at runtime, before reading an image or invoking the detector.
+    @overload
+    def crop(self, path_or_array: str) -> CropResult: ...
+
+    @overload
+    def crop(self, path_or_array: ImageArray) -> CropResult: ...
+
+    def crop(self, path_or_array: str | ImageArray, *legacy_args: object, **legacy_kwargs: object) -> CropResult:
         """Return an image and diagnostics for this call, without retaining results.
 
         String paths are decoded with Pillow; arrays use BGR/BGRA order.
         The result's image is RGB/RGBA, or None when no crop can be produced.
         Unreadable inputs and invalid configuration still raise exceptions.
         """
+        check_crop_arguments(legacy_args, legacy_kwargs)
         metadata = CropDiagnostics(
             detector=self._detector_diagnostics(),
             requested_output_dimensions=ImageSize(self.width, self.height),

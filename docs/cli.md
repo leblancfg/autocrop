@@ -6,8 +6,10 @@ lead: Use autocrop directly, or compose it with shell tools for larger jobs.
 description: autocrop command-line usage and shell examples.
 ---
 
-For removed v1 flags, batch scripts, and rollback instructions, see the
-[migration FAQ](../faq/).
+This page describes autocrop **2.0.0**, released 2026-10-18. For removed v1
+flags, batch scripts, and rollback instructions, see the [migration FAQ](../faq/).
+Use `autocrop -V` or `autocrop --version` to check your installation; `-v` now
+enables verbose timings.
 
 ## Single-image usage
 

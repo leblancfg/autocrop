@@ -1,10 +1,26 @@
 """Actionable messages for calls that used the v1 interface."""
 
+from typing import NoReturn
+
 FAQ_URL = "https://leblancfg.com/autocrop/faq/"
+
+# These constants were also imported into the v1 processing and CLI modules.
+REMOVED_CONSTANTS = {
+    "FIXEXP": ("Apply brightness correction after cropping.", "python-helpers"),
+    "GAMMA": ("Apply brightness correction after cropping.", "python-helpers"),
+    "GAMMA_THRES": ("Apply brightness correction after cropping.", "python-helpers"),
+    "MINFACE": ("Haar tuning was removed; YuNet is the built-in detector.", "different-results"),
+    "INCREMENT": ("Haar tuning was removed; YuNet is the built-in detector.", "different-results"),
+    "FACE_RATIO": ("Use Cropper(face_percent=...) to control crop margins.", "python-arguments"),
+    "CASCFILE": ("The Haar model was removed; YuNet ships with autocrop.", "different-results"),
+    "QUESTION_OVERWRITE": ("Implement overwrite prompts in your own application.", "python-helpers"),
+    "CV2_FILETYPES": ("Use autocrop.constants.INPUT_FILETYPES; Pillow now decodes path inputs.", "python-helpers"),
+    "PILLOW_FILETYPES": ("Use autocrop.constants.INPUT_FILETYPES; Pillow now decodes path inputs.", "python-helpers"),
+}
 
 
 def migration_message(message: str, section: str) -> str:
-    return f"autocrop 2: {message} See {FAQ_URL}#{section}"
+    return f"autocrop 2.0.0: {message} See {FAQ_URL}#{section}"
 
 
 def check_constructor_arguments(positional: tuple[object, ...], keywords: dict[str, object]) -> None:
@@ -31,6 +47,28 @@ def check_constructor_arguments(positional: tuple[object, ...], keywords: dict[s
         raise TypeError(f"Cropper.__init__() got an unexpected keyword argument {name!r}")
 
 
+def check_crop_arguments(positional: tuple[object, ...], keywords: dict[str, object]) -> None:
+    if positional or "diagnostics" in keywords:
+        raise TypeError(
+            migration_message(
+                "crop() accepts only the source image; there is no diagnostics flag. "
+                "Use result = cropper.crop(source), then result.image and result.diagnostics.",
+                "python-results",
+            )
+        )
+    if keywords:
+        name = next(iter(keywords))
+        raise TypeError(f"Cropper.crop() got an unexpected keyword argument {name!r}")
+
+
+def removed_module_attribute(module: str, name: str, replacements: dict[str, tuple[str, str]]) -> NoReturn:
+    """Keep migration guidance in ImportError instead of losing it during a from-import."""
+    if name in replacements:
+        advice, section = replacements[name]
+        raise ImportError(migration_message(f"{module}.{name} was removed. {advice}", section))
+    raise AttributeError(f"module {module!r} has no attribute {name!r}")
+
+
 REMOVED_OPTIONS = {
     "-i": "directory-mode",
     "--input": "directory-mode",
@@ -45,6 +83,21 @@ REMOVED_OPTIONS = {
 OPTION_VALUES = {"-o", "--output", "-p", "--path", "-w", "--width", "-H", "--height", "--facePercent", "--json"}
 
 
+def _removed_short_option(token: str) -> tuple[str | None, bool]:
+    """Inspect flag clusters without treating an attached output filename as flags."""
+    if not token.startswith("-") or token.startswith("--"):
+        return None, False
+    for index, character in enumerate(token[1:], start=1):
+        option = f"-{character}"
+        if option in REMOVED_OPTIONS:
+            return option, False
+        if option in OPTION_VALUES:
+            return None, index == len(token) - 1
+        if option not in {"-n", "-v", "-V", "-h"}:
+            break
+    return None, False
+
+
 def removed_cli_option(args: list[str]) -> tuple[str, str] | None:
     """Recognize removed flags before argparse mistakes their value for a source."""
     skip_value = False
@@ -57,9 +110,10 @@ def removed_cli_option(args: list[str]) -> tuple[str, str] | None:
         option = token.split("=", 1)[0]
         if option in REMOVED_OPTIONS:
             return option, REMOVED_OPTIONS[option]
-        if token[:2] in {"-i", "-r", "-e"}:
-            return token[:2], REMOVED_OPTIONS[token[:2]]
-        skip_value = token in OPTION_VALUES
+        short_option, needs_value = _removed_short_option(token)
+        if short_option is not None:
+            return short_option, REMOVED_OPTIONS[short_option]
+        skip_value = token in OPTION_VALUES or needs_value
     return None
 
 

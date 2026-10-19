@@ -6,6 +6,9 @@ lead: CropResult keeps an image and its diagnostics together.
 description: autocrop Python API documentation.
 ---
 
+This page describes autocrop **2.0.0**, released 2026-10-18. For v1 code, start
+with the [migration FAQ](../faq/#python-results).
+
 ## `Cropper`
 
 ```python
@@ -61,13 +64,40 @@ Every completed call returns a `CropResult` dataclass:
 There is no diagnostics flag, tuple unpacking, or last-result attribute on
 `Cropper`. **Check `result.image is not None`**, not `if result` or
 `result is not None`: the result record exists even when cropping finds no face.
-V1 code that expected an array must now read `.image`.
+V1 code that expected an array must now read `.image`. Boolean checks, indexing,
+`len(result)`, and unpacking of the record raise `TypeError` with a migration link. Accessing
+array attributes on the record raises an explanatory `AttributeError`.
+`result is None` and `result is not None` cannot raise a custom error; update
+those checks explicitly. Third-party functions must receive `result.image`,
+not the record.
 
 String filepaths are decoded with Pillow, applying EXIF orientation first.
 NumPy inputs use OpenCV's BGR/BGRA channel order. Detection uses a normalized
 3-channel image; the crop preserves grayscale and alpha where supported.
 Unreadable files and invalid configuration still raise exceptions. No-face
 results have `image=None` and `diagnostics.error="no_face_detected"`.
+
+### Input and ownership limitations
+
+Pass string paths; convert a `pathlib.Path` with `str(path)`. Use nonempty
+`uint8` grayscale or BGR/BGRA arrays, converting Pillow/RGB arrays yourself.
+Unsupported objects, shapes, and dtypes do not yet have a consistent error
+contract ([#215](https://github.com/leblancfg/autocrop/issues/215)).
+
+With `resize=False`, an unrotated crop can share memory with its input, and
+channel conversion can modify that input. Pass `source.copy()` when reusing
+arrays or working with read-only arrays
+([#216](https://github.com/leblancfg/autocrop/issues/216)). Diagnostic records are
+independent; that does not imply independent image storage.
+
+Use positive integer pixel dimensions and an integer `face_percent` from 1 to
+100. Numeric validation still has gaps; do not rely on fractional dimensions
+being rejected ([#218](https://github.com/leblancfg/autocrop/issues/218)).
+
+The advanced `face_detector` hook accepts an object with `detect(image)` returning
+rows of bounding boxes, optionally with confidence scores and landmarks. Its
+public configuration contract remains under discussion
+([#217](https://github.com/leblancfg/autocrop/issues/217)).
 
 ## `CropDiagnostics`
 

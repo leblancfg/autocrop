@@ -6,7 +6,7 @@ import stat
 import sys
 import time
 from contextlib import contextmanager
-from typing import Any, BinaryIO, Iterator, NoReturn
+from typing import Any, BinaryIO, Generator, NoReturn
 
 import cv2
 import numpy as np
@@ -21,11 +21,34 @@ from .constants import (
     OUTPUT_FORMATS,
     OUTPUT_FORMATS_BY_EXTENSION,
 )
-from .migration import migration_message, removed_cli_option, removed_option_message
+from .migration import (
+    REMOVED_CONSTANTS,
+    migration_message,
+    removed_cli_option,
+    removed_module_attribute,
+    removed_option_message,
+)
 from .reporting import CliReport
 from .types import ImageArray
 
 ORIENTATION_EXIF_TAG = 274
+
+
+def __getattr__(name: str) -> NoReturn:
+    return removed_module_attribute(
+        __name__,
+        name,
+        {
+            **REMOVED_CONSTANTS,
+            "main": ("Loop over files and call Cropper.crop(source).image for each image.", "python-helpers"),
+            "reject": ("Handle failed crops and reject-folder copies in your own loop.", "python-helpers"),
+            "output_path": ("Create output directories in your own code.", "python-helpers"),
+            "compat_input": ("Use Python's input() if your application needs a prompt.", "python-helpers"),
+            "confirmation": ("Implement overwrite prompts in your own application.", "python-helpers"),
+            "chk_extension": ("Choose an output filename with the desired extension.", "output-format"),
+            "COMBINED_FILETYPES": ("Use autocrop.constants.INPUT_FILETYPES.", "python-helpers"),
+        },
+    )
 
 
 class CliError(Exception):
@@ -160,7 +183,7 @@ def empty_timings() -> dict[str, float]:
 
 
 @contextmanager
-def measure(timings: dict[str, float], key: str) -> Iterator[None]:
+def measure(timings: dict[str, float], key: str) -> Generator[None, None, None]:
     """Measure a stage, including time spent before an exception."""
     started = time.perf_counter()
     try:
@@ -408,7 +431,9 @@ def parse_args(args: list[str]) -> CliArguments:
         "json": "Write JSON crop diagnostics to a file, or to stderr with '-'",
     }
 
-    parser = ArgumentParser(description=help_d["desc"], json_stderr=_json_stderr(args), allow_abbrev=False)
+    parser = ArgumentParser(
+        prog="autocrop", description=help_d["desc"], json_stderr=_json_stderr(args), allow_abbrev=False
+    )
     removed = removed_cli_option(args)
     if removed:
         parser.error(removed_option_message(*removed))

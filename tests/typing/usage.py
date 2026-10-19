@@ -34,6 +34,6 @@ def use_cropper(source: str | ImageArray) -> CropResult:
 
 def reject_old_api() -> None:
     cropper = Cropper()
-    cropper.crop("portrait.jpg", diagnostics=True)  # ty: ignore[unknown-argument]
+    cropper.crop("portrait.jpg", diagnostics=True)  # ty: ignore[no-matching-overload]
     old_array: ImageArray = cropper.crop("portrait.jpg")  # ty: ignore[invalid-assignment]
     print(old_array)

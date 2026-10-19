@@ -1,14 +1,34 @@
 ---
 layout: default
 title: FAQ
-heading: Upgrading to autocrop 2
+heading: Upgrading to autocrop 2.0.0
 lead: Fixing scripts and Python calls after an unpinned upgrade.
 description: autocrop v1 to v2 migration FAQ, error messages, and rollback instructions.
 ---
 
+Autocrop **2.0.0 was released on 2026-10-18**. This page covers migration from
+published v1 releases and from the draft v2 diagnostics API.
+
+## Migration checklist
+
+| v1 call or behavior | 2.0.0 replacement |
+| --- | --- |
+| `image = cropper.crop(source)` | `result = cropper.crop(source)`; use `result.image` |
+| `if image is not None` | `if result.image is not None` |
+| `Cropper(..., padding=..., fix_gamma=...)` | Remove those arguments; use `face_percent` and post-process brightness |
+| `autocrop -i folder -r rejected` | Invoke autocrop once per image in a shell loop |
+| `autocrop -e png` | `autocrop image.jpg -o cropped.png` |
+| `autocrop -v` for the version | `autocrop -V` or `autocrop --version` |
+| Default in-place writes and prompts | Stdout by default; choose `-o` explicitly and keep backups |
+| Haar detection and automatic brightening | YuNet detection, optional alignment, application-controlled brightness |
+
+After updating your code, install `autocrop==2.0.0` in a clean environment, run
+your tests on representative images, and regenerate your dependency lockfile.
+If you need time to migrate, [pin v1](#rollback).
+
 ## Why did an unchanged script stop working? {#upgrade}
 
-Autocrop 2 changes the command-line interface and removes some Python arguments.
+Autocrop 2.0.0 changes the command-line interface and removes some Python arguments.
 A fresh install, environment rebuild, or `pip install --upgrade autocrop` can
 select v2 if your requirement is `autocrop`, `autocrop>=1.3`, or another constraint
 that permits it. An already-installed copy does not upgrade itself.
@@ -183,19 +203,73 @@ else:
     print(result.diagnostics.error)
 ```
 
-The result record exists even when its image is `None`; `if result` does not test
-whether a face was cropped. For the smallest change to v1 code, replace
-`cropped = cropper.crop(source)` with `cropped = cropper.crop(source).image`.
+The result record exists even when its image is `None`. `if result` and
+`bool(result)` raise `TypeError` explaining the required check. Indexing,
+`len(result)`, and unpacking also raise migration errors; `.shape`, `.dtype`, and other
+missing array attributes explain that you need `.image`.
+
+Python identity comparisons cannot be intercepted: `result is not None` is
+always true, and `result is None` is always false. Update those checks yourself.
+Third-party libraries may produce their own errors (or treat the record as an
+object); pass them the checked image array. For the smallest change to v1 code,
+replace `cropped = cropper.crop(source)` with `cropped = cropper.crop(source).image`.
 
 Diagnostics are a per-call `CropDiagnostics` dataclass. Read attributes such as
 `result.diagnostics.crop_rectangle`, or use `dataclasses.asdict()` to serialize
 it. There is no flag, tuple unpacking, or `cropper.diagnostics` state. Unreadable
 files and configuration errors still raise. The earlier diagnostics flag and
-separate method existed only in draft PRs, not published releases.
+separate method existed only in draft PRs, not published releases:
 
-Imports of removed internal helpers such as `autocrop.cli.main`, `gamma`, and
-`check_underexposed` must also be replaced; directory iteration and brightness
-adjustment belong in your code.
+```python
+# Draft API, no longer supported:
+# image, diagnostics = cropper.crop(source, diagnostics=True)
+# image, diagnostics = cropper.crop_with_diagnostics(source)
+# diagnostics = cropper.diagnostics
+
+# 2.0.0:
+result = cropper.crop(source)
+image = result.image
+diagnostics = result.diagnostics
+```
+
+These draft calls now fail with a link to this section. Do not add a diagnostics
+flag or cache last-call state in a shared cropper.
+
+V1 code that treated unreadable files as `None` must now catch `OSError`
+(including `FileNotFoundError` and Pillow's `UnidentifiedImageError`). A completed
+no-face attempt still returns a result, with `result.image is None`; it is not
+an I/O failure. Invalid configuration raises `TypeError` or `ValueError`.
+
+## What replaces removed Python helpers and constants? {#python-helpers}
+
+These were internal helpers, not a supported public API. Imports now fail with
+an `ImportError` containing a migration link; removed `Cropper` attributes raise
+an explanatory `AttributeError`. Assigning `cropper.gamma`, `cropper.casc_path`,
+or `cropper.diagnostics` also raises instead of silently creating unused state.
+
+| Removed name | Replacement |
+| --- | --- |
+| `autocrop.cli.main` | Loop over files and use `Cropper.crop(source).image` |
+| `autocrop.cli.reject` | Copy failed inputs yourself, for example with `shutil.copy2` |
+| `autocrop.cli.output_path` | Create directories with `pathlib.Path.mkdir` |
+| `autocrop.cli.chk_extension` | Choose the output filename extension (`-o cropped.png`) |
+| `autocrop.cli.confirmation`, `compat_input` | Implement prompts in your own application; use Python's `input()` |
+| `autocrop.autocrop.gamma`, `check_underexposed` | Apply your chosen brightness correction to `result.image` |
+| `cropper.gamma`, `cropper.casc_path` | Remove access; automatic brightening and the Haar model are gone |
+| `CV2_FILETYPES`, `PILLOW_FILETYPES`, `COMBINED_FILETYPES` | Use `autocrop.constants.INPUT_FILETYPES` |
+| `FIXEXP`, `GAMMA`, `GAMMA_THRES` | Configure brightness in your own code |
+| `MINFACE`, `INCREMENT`, `CASCFILE` | Remove Haar-specific configuration; YuNet is built in |
+| `FACE_RATIO` | Use `Cropper(face_percent=...)` for margins |
+| `QUESTION_OVERWRITE` | Keep any overwrite prompt in your own application |
+
+`ImageReadError` now inherits from `Exception` rather than `BaseException`.
+Image files are decoded with Pillow; catch `OSError` for unreadable files instead
+of relying only on the old custom exception.
+
+The input format list describes Pillow's recognized extensions; some decoders
+still require system support. It does not guarantee that every file can be read.
+Unsupported input objects and numeric options still have validation gaps. See
+the [known SDK limitations and workarounds](../api/#input-and-ownership-limitations).
 
 ## Why are the crops, colors, or brightness different? {#different-results}
 

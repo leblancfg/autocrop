@@ -11,9 +11,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 2.0.0 - Unreleased
+## 2.0.0 - 2026-10-18
 
-Before upgrading an unpinned installation, read the [migration FAQ](../faq/).
+This is a breaking release. Read the [v1 to v2 migration FAQ](../faq/) before
+upgrading. Python callers must use `cropper.crop(source).image`; batch CLI
+scripts must invoke autocrop once per image.
 
 ### Migration notes for v2
 Autocrop v2 intentionally simplifies the public surface around one detector and one image per
@@ -68,20 +70,31 @@ CLI invocation.
 * Use Pillow for resizing.
 * Remove unused Python documentation/upload development dependencies.
 * Update contributor setup documentation.
-* Update GitHub Actions versions and CI support through Python 3.14.
+* Update GitHub Actions versions and CI support through Python 3.15.
 * Allow pytest 9 in development requirements.
 
 ### Fixed
 * Keep JSON stderr parseable on processing failures and with verbose output.
 * Prevent JSON output from overwriting input/output image paths, including aliases.
 * Reject ambiguous legacy positional constructor arguments and stdin with `-o`.
+* Link removed Python helpers, constants, and draft diagnostics calls to their migration instructions.
+* Reject boolean checks, length checks, unpacking, and indexing of `CropResult` with migration guidance.
+  Missing array attributes also explain how to access `result.image`.
 * Open files through Pillow to handle transparency.
 * Preserve RGB channels for path inputs.
 * Keep crop positions inside image bounds.
 * Avoid tracebacks for invalid image files and broken stdout pipes.
 * Treat degenerate crop geometry as no detected face.
 
-## 1.3.1 - 2022-02-08
+### Known limitations
+* Array input validation, image ownership with `resize=False`, detector configuration,
+  and numeric validation remain tracked in [#215](https://github.com/leblancfg/autocrop/issues/215),
+  [#216](https://github.com/leblancfg/autocrop/issues/216),
+  [#217](https://github.com/leblancfg/autocrop/issues/217), and
+  [#218](https://github.com/leblancfg/autocrop/issues/218).
+  See the [API limitations and workarounds](../api/#input-and-ownership-limitations).
+
+## 1.3.1 - 2022-02-08 (not published to PyPI)
 ### API Additions
 * The `Cropper` class now accepts a `resize` arg, to determine whether to resize the image after cropping it or not.
 * Similarly for the CLI, it can now be called with a `--no-resize` flag

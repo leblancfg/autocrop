@@ -38,6 +38,24 @@ To refresh your local environment in future, run:
 $ uv sync
 ```
 
+## Documentation
+
+The 2.0.0 documentation lives in `docs/`. GitHub Pages builds it with Jekyll
+from `master:/docs` and serves it at https://leblancfg.com/autocrop/.
+Merging docs into `master` publishes them independently of PyPI, so coordinate
+release-facing changes with package publication and verify the Pages build.
+
+For a content preview without Ruby or Docker:
+
+```sh
+just docs
+```
+
+Open http://127.0.0.1:8000. The preview uses MkDocs and reloads on edits; Jekyll
+Liquid links and explicit heading anchors may render differently. Press Ctrl-C
+to stop it. If port 8000 is occupied, find the listener with
+`lsof -nP -iTCP:8000 -sTCP:LISTEN`.
+
 ## Tests
 
 Pull requests are tested using continuous integration (CI) which will
@@ -118,24 +136,12 @@ rerun `Build` for the same tag. Do not move a published tag or try to replace a
 published PyPI distribution. Never enable auto-merge as a substitute for release
 approval.
 
-### Pending 2.0.0 review stack
+After merging release documentation, verify the GitHub Pages deployment and
+check the live quickstart, API reference, and migration FAQ. Pages publication
+and PyPI publication are separate; check both before announcing a release.
 
-The native GitHub stack starts with #221 (typing only, targeting `master`), then
-#213 (diagnostics), #214 (alignment), and #219 (migration FAQ and errors).
-Review and merge from the base upward in that order. #221 preserves the current
-array-or-None API; the result-object change belongs to #213.
-
-After approval and green CI, use GitHub's stack merge controls to merge the
-lowest PR or a contiguous group starting there. Selecting #219 includes the
-whole approved stack. GitHub rebases the next unmerged PR onto the stack base
-after a partial merge; wait for any new checks before continuing. Do not follow
-the former reverse-order/manual-base-edit recipe for these native stacked PRs.
-
-See [GitHub's stack merge guide](https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/merging-stacked-pull-requests).
-Nothing should be merged or published without maintainer approval.
-
-Before publishing, explicitly resolve or defer the SDK design decisions in
-#215 (input types), #216 (array ownership), #217 (detector configuration), and
-#218 (numeric validation). They were recorded for discussion, not silently fixed
-by this stack. The old `v2.0.0` release/tag were deleted; do not recreate them
-until this review is complete.
+The [API documentation](docs/api.md#input-and-ownership-limitations) records
+known SDK limitations tracked in #215–#218. Review open correctness issues as
+part of each release; document fixes or explicit deferrals rather than treating
+a documentation update as a resolution. Nothing should be merged or published
+without maintainer approval.
