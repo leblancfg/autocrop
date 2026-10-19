@@ -5,7 +5,25 @@ import cv2
 import numpy as np
 
 from .constants import YUNET_MODEL
+from .diagnostics import DetectedFace, Point, Rectangle
 from .types import ImageArray
+
+
+def decode_detections(rows: ImageArray) -> tuple[DetectedFace, ...]:
+    """Interpret detector rows once, before crop geometry or diagnostics use them."""
+    faces = []
+    for row in rows:
+        landmarks: tuple[Point, ...] = ()
+        if len(row) == 15 and np.isfinite(row[4:14]).all():
+            landmarks = tuple(Point(float(row[i]), float(row[i + 1])) for i in range(4, 14, 2))
+        faces.append(
+            DetectedFace(
+                box=Rectangle(*(float(value) for value in row[:4])),
+                score=float(row[-1]) if len(row) in (5, 15) else None,
+                landmarks=landmarks,
+            )
+        )
+    return tuple(faces)
 
 
 class YuNetDetector:
@@ -27,7 +45,8 @@ class YuNetDetector:
         self._detector: cv2.FaceDetectorYN | None = None
         self._input_size: tuple[int, int] | None = None
 
-    def detect(self, image: ImageArray) -> ImageArray:
+    def detect(self, image: ImageArray, *, details: bool = False) -> ImageArray:
+        """Return boxes, or full detection rows (box, landmarks, score)."""
         if not hasattr(cv2, "FaceDetectorYN_create"):
             raise RuntimeError("OpenCV FaceDetectorYN is not available")
         if not os.path.exists(self.model_path):
@@ -51,5 +70,7 @@ class YuNetDetector:
 
         _, faces = self._detector.detect(image)
         if faces is None:
-            return np.empty((0, 4), dtype=np.int32)
+            return np.empty((0, 15 if details else 4), dtype=np.float32 if details else np.int32)
+        if details:
+            return faces.astype(np.float32)
         return faces[:, :4].astype(np.int32)

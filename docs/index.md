@@ -25,10 +25,10 @@ from autocrop import Cropper
 from PIL import Image
 
 cropper = Cropper(width=500, height=500)
-cropped = cropper.crop("portrait.jpg")
+result = cropper.crop("portrait.jpg")
 
-if cropped is not None:
-    Image.fromarray(cropped).save("cropped.jpg")
+if result.image is not None:
+    Image.fromarray(result.image).save("cropped.jpg")
 ```
 
 ## Documentation map
