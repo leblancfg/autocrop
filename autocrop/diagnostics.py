@@ -1,7 +1,9 @@
 """Per-crop values shared by the Python API and CLI serialization."""
 
 from dataclasses import dataclass, field
+from typing import NoReturn
 
+from .migration import migration_message
 from .types import ImageArray as ImageArray
 
 
@@ -70,3 +72,42 @@ class CropResult:
 
     image: ImageArray | None
     diagnostics: CropDiagnostics
+
+    def __bool__(self) -> NoReturn:
+        raise TypeError(
+            migration_message("Check result.image is not None, not the truthiness of CropResult.", "python-results")
+        )
+
+    def __len__(self) -> NoReturn:
+        raise TypeError(
+            migration_message(
+                "CropResult is not an array. Use len(result.image) after checking result.image is not None.",
+                "python-results",
+            )
+        )
+
+    def __iter__(self) -> NoReturn:
+        raise TypeError(
+            migration_message(
+                "CropResult cannot be unpacked or iterated. Read result.image and result.diagnostics explicitly.",
+                "python-results",
+            )
+        )
+
+    def __getitem__(self, key: object) -> NoReturn:
+        raise TypeError(
+            migration_message(
+                "CropResult is not an array or dictionary. Index result.image after checking it is not None; "
+                "read diagnostics through result.diagnostics attributes.",
+                "python-results",
+            )
+        )
+
+    def __getattr__(self, name: str) -> NoReturn:
+        raise AttributeError(
+            migration_message(
+                f"CropResult has no attribute {name!r}; it is not an image array. "
+                "Use result.image after checking it is not None, or read result.diagnostics.",
+                "python-results",
+            )
+        )

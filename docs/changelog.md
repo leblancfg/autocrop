@@ -11,7 +11,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 2.0.0 - 2026-06-29
+## 2.0.0 - 2026-10-18
+
+This is a breaking release. Read the [v1 to v2 migration FAQ](../faq/) before
+upgrading. Python callers must use `cropper.crop(source).image`; batch CLI
+scripts must invoke autocrop once per image.
 
 ### Migration notes for v2
 Autocrop v2 intentionally simplifies the public surface around one detector and one image per
@@ -38,6 +42,12 @@ CLI invocation.
 * Development uses `uv` and `just`.
 
 ### Added
+* Always return a `CropResult` with `image` and a `CropDiagnostics` dataclass from `crop()`.
+* Add `--json PATH` for structured CLI reports.
+* Add type hints throughout the package and a `py.typed` marker, checked with ty in CI.
+* Use Ruff for linting, import sorting, and formatting checks.
+* Add opt-in face leveling with `Cropper(align=True)` and `--align`.
+* Add a migration FAQ and targeted errors for removed CLI/Python arguments.
 * Add YuNet face detection using the vendored OpenCV Zoo model.
 * Add `--verbose` CLI output with import, read, process, write, and total timings on stderr.
 * Apply EXIF orientation before detection and cropping.
@@ -50,23 +60,41 @@ CLI invocation.
 * Remove automatic gamma/exposure adjustment from cropped output.
 
 ### Changed
+* Python callers must read `crop(...).image` instead of treating the result as an array or `None`.
+* Keep typed per-call diagnostics separate from CLI JSON/file handling.
+* Use `diagnostics.py`, `reporting.py`, `alignment.py`, `migration.py`, and `timing.py` for their named responsibilities.
 * Require OpenCV 4.8 or newer for YuNet support.
+* Require Pillow 12.3.0 or newer for image-decoding and memory-safety fixes.
 * Avoid Pillow plugin registration during import by using static image extension metadata.
 * Interpret NumPy array inputs explicitly as OpenCV-style BGR/BGRA and return RGB/RGBA arrays.
 * Use Pillow for resizing.
 * Remove unused Python documentation/upload development dependencies.
 * Update contributor setup documentation.
-* Update GitHub Actions versions and CI support through Python 3.14.
+* Update GitHub Actions versions and CI support through Python 3.15.
 * Allow pytest 9 in development requirements.
 
 ### Fixed
+* Keep JSON stderr parseable on processing failures and with verbose output.
+* Prevent JSON output from overwriting input/output image paths, including aliases.
+* Reject ambiguous legacy positional constructor arguments and stdin with `-o`.
+* Link removed Python helpers, constants, and draft diagnostics calls to their migration instructions.
+* Reject boolean checks, length checks, unpacking, and indexing of `CropResult` with migration guidance.
+  Missing array attributes also explain how to access `result.image`.
 * Open files through Pillow to handle transparency.
 * Preserve RGB channels for path inputs.
 * Keep crop positions inside image bounds.
 * Avoid tracebacks for invalid image files and broken stdout pipes.
 * Treat degenerate crop geometry as no detected face.
 
-## 1.3.1 - 2022-02-08
+### Known limitations
+* Array input validation, image ownership with `resize=False`, detector configuration,
+  and numeric validation remain tracked in [#215](https://github.com/leblancfg/autocrop/issues/215),
+  [#216](https://github.com/leblancfg/autocrop/issues/216),
+  [#217](https://github.com/leblancfg/autocrop/issues/217), and
+  [#218](https://github.com/leblancfg/autocrop/issues/218).
+  See the [API limitations and workarounds](../api/#input-and-ownership-limitations).
+
+## 1.3.1 - 2022-02-08 (not published to PyPI)
 ### API Additions
 * The `Cropper` class now accepts a `resize` arg, to determine whether to resize the image after cropping it or not.
 * Similarly for the CLI, it can now be called with a `--no-resize` flag

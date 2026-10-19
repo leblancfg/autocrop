@@ -5,8 +5,8 @@ import cv2
 import numpy as np
 
 from .constants import YUNET_MODEL
-from .diagnostics import DetectedFace, Point, Rectangle
-from .types import ImageArray
+from .diagnostics import DetectedFace, ImageArray, Point, Rectangle
+from .migration import migration_message
 
 
 def decode_detections(rows: ImageArray) -> tuple[DetectedFace, ...]:
@@ -48,9 +48,21 @@ class YuNetDetector:
     def detect(self, image: ImageArray, *, details: bool = False) -> ImageArray:
         """Return boxes, or full detection rows (box, landmarks, score)."""
         if not hasattr(cv2, "FaceDetectorYN_create"):
-            raise RuntimeError("OpenCV FaceDetectorYN is not available")
+            raise RuntimeError(
+                migration_message(
+                    "Face detection requires opencv-python-headless>=4.8,<5. "
+                    "Check for old or conflicting OpenCV packages in this environment.",
+                    "dependencies",
+                )
+            )
         if not os.path.exists(self.model_path):
-            raise FileNotFoundError(self.model_path)
+            raise FileNotFoundError(
+                migration_message(
+                    f"Face detector model not found: {self.model_path}. "
+                    "Check your custom model path, or reinstall autocrop to restore the bundled model.",
+                    "dependencies",
+                )
+            )
 
         img_height, img_width = image.shape[:2]
         input_size = (img_width, img_height)

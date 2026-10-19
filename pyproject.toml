@@ -15,7 +15,7 @@ authors = [
 dependencies = [
   "numpy>=1.10",
   "opencv-python-headless>=4.8,<5",
-  "Pillow>=9.0.0",
+  "Pillow>=12.3.0",
 ]
 classifiers = [
   "License :: OSI Approved :: BSD License",
@@ -26,10 +26,12 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
 ]
 
 [project.urls]
 Homepage = "https://github.com/leblancfg/autocrop"
+Documentation = "https://leblancfg.com/autocrop/"
 Issues = "https://github.com/leblancfg/autocrop/issues"
 Changelog = "https://github.com/leblancfg/autocrop/blob/master/docs/changelog.md"
 
@@ -84,6 +86,7 @@ include = [
   "/LICENSE-3RD-PARTY.txt",
   "/changelog.md",
   "/docs/changelog.md",
+  "/docs/faq.md",
 ]
 
 [tool.hatch.build.targets.wheel]

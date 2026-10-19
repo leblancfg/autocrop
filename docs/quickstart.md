@@ -6,11 +6,18 @@ lead: Install autocrop, crop one image, then move to scriptable examples.
 description: Install and run autocrop from the command line or Python.
 ---
 
-## Install
+## Install 2.0.0
+
+Autocrop 2.0.0 was released on 2026-10-18. It requires Python 3.10 or newer,
+OpenCV 4.8 or newer, and Pillow 12.3.0 or newer.
 
 ```sh
-pip install autocrop
+python -m pip install 'autocrop==2.0.0'
+autocrop --version
 ```
+
+Upgrading from v1? Read the [migration FAQ](../faq/) first: `crop()` now returns
+a result record, and directory-mode CLI commands must become shell loops.
 
 For local development:
 

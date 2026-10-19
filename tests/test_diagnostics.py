@@ -76,9 +76,11 @@ def test_unreadable_file_still_raises(tmp_path, exists):
 
 
 def test_model_path_is_json_serializable():
+    from importlib.resources import files
     from pathlib import Path
 
-    cropper = Cropper(yunet_model_path=Path("autocrop/face_detection_yunet_2023mar.onnx"))
+    model_path = Path(str(files("autocrop").joinpath("face_detection_yunet_2023mar.onnx")))
+    cropper = Cropper(yunet_model_path=model_path)
     result = cropper.crop("tests/data/obama.jpg")
     assert isinstance(result.diagnostics.detector.settings["model_path"], str)
     json.dumps(asdict(result.diagnostics))

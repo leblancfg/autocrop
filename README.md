@@ -19,6 +19,12 @@ Simple!
 pip install autocrop
 ```
 
+**Version 2.0.0 · 2026-10-18.** This is a breaking release. Python callers must
+read `cropper.crop(source).image`; the CLI processes one image per invocation.
+Read the [v1 to v2 migration FAQ](https://leblancfg.com/autocrop/faq/) before upgrading.
+The [changelog](https://leblancfg.com/autocrop/changelog/) lists the release changes.
+Python 3.10+, OpenCV 4.8+, and Pillow 12.3.0+ are required.
+
 # Use
 
 Autocrop can be used [from the command line](#from-the-command-line) or directly
@@ -79,7 +85,9 @@ print(result.diagnostics.crop_rectangle)
 
 Upgrading Python code from v1? Use `cropper.crop(...).image` where you previously
 used the returned array, and check `result.image is not None` rather than the
-result object itself. Unreadable files and invalid configuration still raise.
+result object itself. Boolean checks, indexing, and unpacking of `CropResult`
+raise errors linking to the migration FAQ. Unreadable files and invalid
+configuration still raise.
 
 To level slightly tilted faces before cropping, use `Cropper(align=True)` in
 Python or `autocrop portrait.jpg --align > cropped.jpg` in the shell. Alignment
@@ -234,7 +242,7 @@ uv run autocrop --help
 Autocrop is
 [currently being tested on](https://github.com/leblancfg/autocrop/actions/workflows/ci.yml):
 
-- Python 3.10 to 3.14
+- Python 3.10 to 3.15
 - OS:
   - Linux
   - macOS

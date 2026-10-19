@@ -1,3 +1,12 @@
+from typing import NoReturn
+
+from .migration import REMOVED_CONSTANTS, removed_module_attribute
+
+
+def __getattr__(name: str) -> NoReturn:
+    return removed_module_attribute(__name__, name, REMOVED_CONSTANTS)
+
+
 YUNET_MODEL = "face_detection_yunet_2023mar.onnx"
 
 # Static Pillow extension-to-format map. Keeping this static avoids calling
