@@ -38,9 +38,10 @@ autocrop = "autocrop:command_line_interface"
 
 [dependency-groups]
 dev = [
-  "flake8",
-  "flake8-pyproject",
   "pytest>=9.0.3,<10",
+  "ruff>=0.16.8",
+  "ty>=0.0.82",
+  "typing-extensions>=4.15",
 ]
 
 [tool.pytest.ini_options]
@@ -48,10 +49,29 @@ markers = [
   "slow: marks tests as slow (deselect with '-m \"not slow\"')",
 ]
 
-[tool.flake8]
-extend-ignore = ["E203"]
-max-line-length = 120
-exclude = ["venv/*"]
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "C90", "ANN"]
+# Explicit Any is allowed at NumPy, Pillow, and argparse boundaries.
+ignore = ["ANN401"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["ANN"]
+
+[tool.ty.src]
+include = ["autocrop", "tests/typing"]
+
+[tool.ty.analysis]
+respect-type-ignore-comments = false
+
+[tool.ty.rules]
+unused-ignore-comment = "error"
 
 [tool.hatch.version]
 path = "autocrop/__version__.py"

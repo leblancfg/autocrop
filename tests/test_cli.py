@@ -1,12 +1,13 @@
 """Tests for cli"""
+
 import io
 import os
 import re
 import sys
-
-import pytest
-import numpy as np
 from unittest import mock
+
+import numpy as np
+import pytest
 from PIL import Image
 
 from autocrop.autocrop import Cropper
@@ -81,9 +82,7 @@ def exif_image(path):
 
 def assert_exif_matches_source(source, destination):
     with Image.open(source) as source_image, Image.open(destination) as result_image:
-        assert result_image.getexif()[EXIF_MAKE_TAG] == source_image.getexif()[
-            EXIF_MAKE_TAG
-        ]
+        assert result_image.getexif()[EXIF_MAKE_TAG] == source_image.getexif()[EXIF_MAKE_TAG]
 
 
 def test_output_preserves_source_timestamps_for_new_file(tmp_path):
@@ -249,7 +248,7 @@ def test_cli_invalid_input_path_errors_out():
     sys.argv = ["autocrop", "asdfasdf"]
     with pytest.raises(SystemExit) as e:
         command_line_interface()
-    assert e.type == SystemExit
+    assert e.type is SystemExit
     assert "SystemExit" in str(e)
 
 
@@ -257,7 +256,7 @@ def test_cli_directory_input_errors_out():
     sys.argv = ["autocrop", "tests"]
     with pytest.raises(SystemExit) as e:
         command_line_interface()
-    assert e.type == SystemExit
+    assert e.type is SystemExit
     assert "SystemExit" in str(e)
 
 
@@ -265,7 +264,7 @@ def test_cli_width_0_not_valid():
     sys.argv = ["autocrop", "-w", "0"]
     with pytest.raises(SystemExit) as e:
         command_line_interface()
-    assert e.type == SystemExit
+    assert e.type is SystemExit
     assert "SystemExit" in str(e)
 
 
@@ -273,7 +272,7 @@ def test_cli_width_minus_14_not_valid():
     sys.argv = ["autocrop", "-w", "-14"]
     with pytest.raises(SystemExit) as e:
         command_line_interface()
-    assert e.type == SystemExit
+    assert e.type is SystemExit
     assert "SystemExit" in str(e)
 
 
@@ -373,9 +372,7 @@ def test_crop_file_to_output_verbose_writes_timings_to_stderr(monkeypatch, capsy
     assert "Timings:" in captured.err
     for key in ["total=", "imports=", "read=", "process=", "write="]:
         assert key in captured.err
-    assert verbose_timing(captured.err, "total") >= verbose_timing(
-        captured.err, "imports"
-    )
+    assert verbose_timing(captured.err, "total") >= verbose_timing(captured.err, "imports")
 
 
 def test_crop_file_to_output_writes_failures_to_stderr(monkeypatch, capsys):
@@ -428,9 +425,7 @@ def test_crop_stdin_to_stdout_infers_image_type(monkeypatch):
     Image.new("RGB", (40, 40), "white").save(source, format="PNG")
     source.seek(0)
     stdout = io.BytesIO()
-    monkeypatch.setattr(
-        Cropper, "crop", lambda *args: np.array(Image.new("RGB", (20, 20), "white"))
-    )
+    monkeypatch.setattr(Cropper, "crop", lambda *args: np.array(Image.new("RGB", (20, 20), "white")))
 
     status = crop_stdin_to_stdout(stdin=source, stdout=stdout)
 
@@ -446,9 +441,7 @@ def test_crop_stdin_to_stdout_verbose_writes_timings_to_stderr(monkeypatch, caps
     Image.new("RGB", (40, 40), "white").save(source, format="PNG")
     source.seek(0)
     stdout = io.BytesIO()
-    monkeypatch.setattr(
-        Cropper, "crop", lambda *args: np.array(Image.new("RGB", (20, 20), "white"))
-    )
+    monkeypatch.setattr(Cropper, "crop", lambda *args: np.array(Image.new("RGB", (20, 20), "white")))
 
     status = crop_stdin_to_stdout(stdin=source, stdout=stdout, verbose=True)
 
@@ -461,9 +454,7 @@ def test_crop_stdin_to_stdout_verbose_writes_timings_to_stderr(monkeypatch, caps
     assert "Timings:" in captured.err
     for key in ["total=", "imports=", "read=", "process=", "write="]:
         assert key in captured.err
-    assert verbose_timing(captured.err, "total") >= verbose_timing(
-        captured.err, "imports"
-    )
+    assert verbose_timing(captured.err, "total") >= verbose_timing(captured.err, "imports")
 
 
 def test_crop_stdin_to_stdout_writes_invalid_input_to_stderr(capsys):

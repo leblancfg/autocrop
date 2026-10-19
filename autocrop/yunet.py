@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 
 from .constants import YUNET_MODEL
+from .types import ImageArray
 
 
 class YuNetDetector:
@@ -12,21 +13,21 @@ class YuNetDetector:
 
     def __init__(
         self,
-        model_path=None,
-        score_threshold=0.6,
-        nms_threshold=0.3,
-        top_k=5000,
-    ):
+        model_path: str | os.PathLike[str] | None = None,
+        score_threshold: float = 0.6,
+        nms_threshold: float = 0.3,
+        top_k: int = 5000,
+    ) -> None:
         if model_path is None:
             model_path = str(files("autocrop").joinpath(YUNET_MODEL))
         self.model_path = model_path
         self.score_threshold = score_threshold
         self.nms_threshold = nms_threshold
         self.top_k = top_k
-        self._detector = None
-        self._input_size = None
+        self._detector: cv2.FaceDetectorYN | None = None
+        self._input_size: tuple[int, int] | None = None
 
-    def detect(self, image):
+    def detect(self, image: ImageArray) -> ImageArray:
         if not hasattr(cv2, "FaceDetectorYN_create"):
             raise RuntimeError("OpenCV FaceDetectorYN is not available")
         if not os.path.exists(self.model_path):
@@ -36,7 +37,7 @@ class YuNetDetector:
         input_size = (img_width, img_height)
         if self._detector is None:
             self._detector = cv2.FaceDetectorYN_create(
-                self.model_path,
+                os.fspath(self.model_path),
                 "",
                 input_size,
                 self.score_threshold,
