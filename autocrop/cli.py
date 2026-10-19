@@ -285,6 +285,7 @@ def crop_file_to_output(
     stdout: BinaryIO | None = None,
     verbose: bool = False,
     json_output: str | os.PathLike[str] | None = None,
+    align: bool = False,
 ) -> int:
     """Crop one image file to a file path or stdout."""
     input_filename = os.fspath(input_filename)
@@ -297,7 +298,7 @@ def crop_file_to_output(
             output_filename,
             image_streams=(stdout,) if output_filename is None else (),
         )
-        cropper = Cropper(width=fwidth, height=fheight, face_percent=face_percent, resize=resize)
+        cropper = Cropper(width=fwidth, height=fheight, face_percent=face_percent, resize=resize, align=align)
     except ValueError as exc:
         reporting.report_error(exc, json_output)
         return 2
@@ -324,13 +325,14 @@ def crop_stdin_to_stdout(
     resize: bool = True,
     verbose: bool = False,
     json_output: str | os.PathLike[str] | None = None,
+    align: bool = False,
 ) -> int:
     """Read image bytes from stdin, crop, and write image bytes to stdout."""
     stdin = stdin or sys.stdin.buffer
     stdout = stdout or sys.stdout.buffer
     try:
         reporting.validate_destination(json_output, image_streams=(stdin, stdout))
-        cropper = Cropper(width=fwidth, height=fheight, face_percent=face_percent, resize=resize)
+        cropper = Cropper(width=fwidth, height=fheight, face_percent=face_percent, resize=resize, align=align)
     except ValueError as exc:
         reporting.report_error(exc, json_output)
         return 2
@@ -344,6 +346,7 @@ class CliArguments(argparse.Namespace):
     height: int
     facePercent: int
     no_resize: bool
+    align: bool
     verbose: bool
     json_output: str | None
 
@@ -379,6 +382,7 @@ def parse_args(args: list[str]) -> CliArguments:
         "facePercent": "Percentage of face to image height",
         "no_resize": """Do not resize images to the specified width and height,
                       but instead use the original image's pixels.""",
+        "align": "Rotate faces so they're level using eye landmarks before cropping",
         "verbose": "Write timings and basic processing details to stderr",
         "json": "Write JSON crop diagnostics to a file, or to stderr with '-'",
     }
@@ -408,6 +412,7 @@ def parse_args(args: list[str]) -> CliArguments:
         action="store_true",
         help=help_d["no_resize"],
     )
+    parser.add_argument("--align", action="store_true", help=help_d["align"])
     parser.add_argument(
         "-o",
         "--output",
@@ -459,6 +464,7 @@ def run_single_file_mode(args: CliArguments, input_source: str, resize: bool) ->
         resize,
         verbose=args.verbose,
         json_output=args.json_output,
+        align=args.align,
     )
 
 
@@ -489,6 +495,7 @@ def command_line_interface() -> NoReturn:
             resize=resize,
             verbose=args.verbose,
             json_output=args.json_output,
+            align=args.align,
         )
         sys.exit(status)
 

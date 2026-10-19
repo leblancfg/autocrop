@@ -43,6 +43,19 @@ The JSON path must differ from both image paths, including symlinks and hard
 links. Failure to write diagnostics returns a nonzero status, even if the image
 was written successfully. JSON files are replaced atomically.
 
+## Face alignment
+
+```sh
+autocrop portrait.jpg --align > portrait-cropped.jpg
+autocrop portrait.jpg --align --json diagnostics.json -o portrait-cropped.jpg
+```
+
+`--align` rotates faces so they're level using eye landmarks before cropping.
+It skips missing landmarks and tilts over 30 degrees. Alignment is off by default.
+JSON diagnostics record the rotation, its coordinate transform, and why an
+attempt was skipped. `--no-resize` preserves crop dimensions, but rotation still
+interpolates pixels.
+
 ## Shell-composed batch jobs
 
 Autocrop intentionally does not walk directories. For recursive or filtered

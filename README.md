@@ -26,7 +26,7 @@ Autocrop can be used [from the command line](#from-the-command-line) or directly
 
 ## From the command line
 
-    usage: autocrop [-h] [-V] [-v] [-n] [-o OUTPUT] [--json PATH]
+    usage: autocrop [-h] [-V] [-v] [-n] [--align] [-o OUTPUT] [--json PATH]
                     [-w WIDTH] [-H HEIGHT] [--facePercent FACEPERCENT]
                     [source]
 
@@ -41,6 +41,7 @@ Autocrop can be used [from the command line](#from-the-command-line) or directly
       -v, --verbose         Write timings and basic processing details to stderr
       -n, --no-resize       Do not resize images to the specified width and
                             height, but instead use the original image's pixels.
+      --align               Rotate faces so they're level using eye landmarks before cropping
       -o, --output, -p, --path OUTPUT
                             Output file, or output directory for a single input
                             image. If omitted, cropped image bytes are written to
@@ -79,6 +80,11 @@ print(result.diagnostics.crop_rectangle)
 Upgrading Python code from v1? Use `cropper.crop(...).image` where you previously
 used the returned array, and check `result.image is not None` rather than the
 result object itself. Unreadable files and invalid configuration still raise.
+
+To level slightly tilted faces before cropping, use `Cropper(align=True)` in
+Python or `autocrop portrait.jpg --align > cropped.jpg` in the shell. Alignment
+is off by default and skips rotation when eye landmarks are missing or the tilt
+exceeds 30 degrees.
 
 Autocrop v2 uses OpenCV's YuNet neural-network face detector.
 

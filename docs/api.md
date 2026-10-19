@@ -16,6 +16,7 @@ cropper = Cropper(
     height=500,
     face_percent=50,
     resize=True,
+    align=False,
 )
 ```
 
@@ -27,6 +28,9 @@ Autocrop v2 uses OpenCV's YuNet neural-network face detector.
 - `height`: output crop height in pixels.
 - `face_percent`: target face height as a percentage of output height.
 - `resize`: resize output to `width` and `height` when true.
+- `align`: rotate faces so they're level using eye landmarks before cropping. Off by default.
+- `max_rotation`: maximum absolute roll to correct in degrees, greater than 0 and
+  at most 90. Defaults to 30; fractional angles are accepted.
 - `yunet_model_path`: optional path to a compatible YuNet ONNX model.
 - `yunet_score_threshold`: minimum detection confidence.
 - `yunet_nms_threshold`: non-maximum suppression threshold.
@@ -101,3 +105,24 @@ new runtime dtype restriction.
 Each result owns its diagnostic records. Reusing a cropper does not overwrite
 previous results, including after a failed call. The cropper's detector still
 has internal caches; use separate cropper instances for concurrent processing.
+
+## Alignment
+
+```python
+cropper = Cropper(align=True)
+result = cropper.crop("tilted-portrait.jpg")
+print(result.diagnostics.alignment.applied)
+print(result.diagnostics.alignment.reason)
+```
+
+`AlignmentDiagnostics` records the rotation angle, skip reason, and affine
+transform. Alignment estimates tilt from the eyes and rotates around the face's
+center. The canvas keeps its original dimensions, extending the nearest pixels
+at exposed edges. With `resize=False`, rotation still interpolates pixels while
+width and height continue to set the crop aspect ratio.
+
+Rotation is skipped for missing/invalid landmarks, an already-level face, or an
+angle above `max_rotation`. Face boxes always refer to the EXIF-oriented input.
+`crop_rectangle` refers to `crop_coordinate_space`: `oriented_input` without
+rotation, or `aligned_input` after rotation. `alignment.affine_matrix` maps
+oriented-input points to the aligned canvas before cropping/resizing.

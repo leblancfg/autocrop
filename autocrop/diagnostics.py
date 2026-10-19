@@ -39,6 +39,16 @@ class DetectorDiagnostics:
 
 
 @dataclass
+class AlignmentDiagnostics:
+    enabled: bool = False
+    applied: bool = False
+    reason: str | None = "not_processed"
+    angle_degrees: float | None = None
+    rotation_degrees: float = 0.0
+    affine_matrix: tuple[tuple[float, ...], ...] | None = None
+
+
+@dataclass
 class CropDiagnostics:
     detector: DetectorDiagnostics
     requested_output_dimensions: ImageSize
@@ -50,6 +60,8 @@ class CropDiagnostics:
     crop_rectangle: Rectangle | None = None
     actual_output_dimensions: ImageSize | None = None
     error: str | None = None
+    alignment: AlignmentDiagnostics = field(default_factory=AlignmentDiagnostics)
+    crop_coordinate_space: str = "oriented_input"
 
 
 @dataclass(eq=False)

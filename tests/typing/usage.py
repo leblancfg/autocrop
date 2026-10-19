@@ -7,8 +7,7 @@ from typing_extensions import assert_type
 
 from autocrop import CropDiagnostics, Cropper, CropResult
 from autocrop.autocrop import FaceDetector
-from autocrop.diagnostics import Rectangle
-from autocrop.types import ImageArray
+from autocrop.diagnostics import AlignmentDiagnostics, ImageArray, Rectangle
 
 
 class BoxesOnlyDetector:
@@ -18,11 +17,12 @@ class BoxesOnlyDetector:
 
 def use_cropper(source: str | ImageArray) -> CropResult:
     detector: FaceDetector = BoxesOnlyDetector()
-    cropper = Cropper(face_detector=detector)
+    cropper = Cropper(face_detector=detector, align=True)
     result = cropper.crop(source)
     assert_type(result, CropResult)
     assert_type(result.image, ImageArray | None)
     assert_type(result.diagnostics, CropDiagnostics)
+    assert_type(result.diagnostics.alignment, AlignmentDiagnostics)
     assert_type(result.diagnostics.crop_rectangle, Rectangle | None)
     if result.image is not None:
         print(result.image.shape)
